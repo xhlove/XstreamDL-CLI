@@ -1,3 +1,9 @@
+.vscode/
+tests/
+*.ts
+*.mp4
+sample/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

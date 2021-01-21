@@ -1,0 +1,4 @@
+rich
+click
+aiohttp
+argparse
