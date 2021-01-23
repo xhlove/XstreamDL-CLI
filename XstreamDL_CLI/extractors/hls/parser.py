@@ -2,6 +2,7 @@ import click
 from typing import List
 from ...util.stream import Stream
 from ..base import BaseParser
+from .ext.xkey import XKey
 
 
 class Parser(BaseParser):
@@ -15,17 +16,29 @@ class Parser(BaseParser):
         stream = Stream(name, 'hls')
         lines = [line.strip() for line in content.split('\n')]
         offset = 0
+        last_segment_xkeys = None # type: List[XKey]
         content_is_master_type = False
+        last_segment_has_xkeys = False
         do_not_append_at_end_list_tag = False
         while offset < len(lines):
             segment = stream.segments[-1]
             line = lines[offset]
+            # 分段标准tag参考 -> https://tools.ietf.org/html/rfc8216#section-4.3.2
             if line == '':
                 pass
             elif line.startswith('#EXTM3U'):
                 stream.set_tag('#EXTM3U')
             elif line.startswith('#EXT-X-VERSION'):
                 pass
+            elif line.startswith('#EXT-X-KEY'):
+                if offset > 0 and lines[offset - 1].startswith('#EXT-X-VERSION'):
+                    # 把这个位置的#EXT-X-KEY认为是全局的
+                    stream.set_key(home_url, base_url, line)
+                else:
+                    segment.set_key(home_url, base_url, line)
+                    if last_segment_has_xkeys is False:
+                        last_segment_has_xkeys = True
+                        last_segment_xkeys = segment.get_xkeys()
             elif line.startswith('#EXT-X-ALLOW-CACHE'):
                 pass
             elif line.startswith('#EXT-X-MEDIA-SEQUENCE'):
@@ -40,6 +53,9 @@ class Parser(BaseParser):
                 streams.append(stream)
                 stream = Stream(name, 'hls')
                 stream.set_tag('#EXT-X-DISCONTINUITY')
+            elif line.startswith('#EXT-X-MAP'):
+                segment.set_map_url(home_url, base_url, line)
+                stream.append_segment()
             elif line.startswith('#EXTINF'):
                 segment.set_duration(line)
             elif line.startswith('#EXT-X-PRIVINF'):
@@ -48,18 +64,34 @@ class Parser(BaseParser):
                 segment.set_byterange(line)
             elif line.startswith('#EXT-X-ENDLIST'):
                 pass
+            elif line.startswith('#EXT-X-MEDIA'):
+                # 外挂媒体 视为单独的一条流
+                stream.set_tag('#EXT-X-MEDIA')
+                stream.set_media(home_url, base_url, line)
+                content_is_master_type = True
+                streams.append(stream)
+                stream = Stream(name, 'hls')
             elif line.startswith('#EXT-X-STREAM-INF'):
                 stream.set_tag('#EXT-X-STREAM-INF')
                 stream.set_stream_info(line)
                 content_is_master_type = True
+            elif line.startswith('#'):
+                if line.startswith('## Generated with https://github.com/google/shaka-packager'):
+                    pass
+                else:
+                    click.secho(f'unknown TAG, skip\n\t{line}')
             else:
+                # 进入此处 说明这一行没有任何已知的#EXT标签 也就是具体媒体文件的链接
                 if offset > 0 and lines[offset - 1].startswith('#EXT-X-BYTERANGE'):
+                    segment.set_xkeys(last_segment_has_xkeys, last_segment_xkeys)
                     segment.set_url(home_url, base_url, line)
                     stream.append_segment()
                 elif offset > 0 and lines[offset - 1].startswith('#EXT-X-PRIVINF'):
+                    segment.set_xkeys(last_segment_has_xkeys, last_segment_xkeys)
                     segment.set_url(home_url, base_url, line)
                     stream.append_segment()
                 elif offset > 0 and lines[offset - 1].startswith('#EXTINF'):
+                    segment.set_xkeys(last_segment_has_xkeys, last_segment_xkeys)
                     segment.set_url(home_url, base_url, line)
                     stream.append_segment()
                 elif offset > 0 and lines[offset - 1].startswith('#EXT-X-STREAM-INF'):
@@ -85,7 +117,7 @@ class Parser(BaseParser):
                     _segments.append(segment)
             stream.segments = _segments
             # 保留过滤掉广告片段分段数大于0的Stream
-            if len(stream.segments) > 0 or stream.tag == '#EXT-X-STREAM-INF':
+            if len(stream.segments) > 0 or stream.tag == '#EXT-X-STREAM-INF' or stream.tag == '#EXT-X-MEDIA':
                 _streams.append(stream)
         if content_is_master_type is False and len(_streams) > 0:
             # 合并去除#EXT-X-DISCONTINUITY后剩下的Stream

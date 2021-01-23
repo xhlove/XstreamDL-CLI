@@ -53,7 +53,7 @@ class Extractor:
         streams = []
         for stream in _streams:
             # 针对master类型加载详细内容
-            if stream.tag != '#EXT-X-STREAM-INF':
+            if stream.tag != '#EXT-X-STREAM-INF' and stream.tag != '#EXT-X-MEDIA':
                 streams.append(stream)
                 continue
             new_streams = self.fetch_metadata(stream.origin_url)

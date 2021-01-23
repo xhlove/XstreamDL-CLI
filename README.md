@@ -22,6 +22,10 @@ python -m XstreamDL_CLI.cli FILEPATH/STREAMURL
 
 ![](images/master_m3u8.gif)
 
+- 特殊master m3u8下载
+
+![](images/camf_master_m3u8.gif)
+
 ## 特性
 
 - 基于aiohttp
@@ -29,3 +33,7 @@ python -m XstreamDL_CLI.cli FILEPATH/STREAMURL
 ## 其他
 
 - 逐步完善中
+
+# 参考
+
+- https://tools.ietf.org/html/rfc8216

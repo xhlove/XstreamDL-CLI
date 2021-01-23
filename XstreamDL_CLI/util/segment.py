@@ -1,6 +1,8 @@
+import re
 import click
 from typing import List
 from pathlib import Path
+from ..extractors.hls.ext.xkey import XKey
 
 
 class Segment:
@@ -30,6 +32,11 @@ class Segment:
         self.content = [] # type: List[bytes]
         # <---分段临时下载文件夹--->
         self.folder = None # type: Path
+        # 加密信息
+        self.xkeys = [] # type: List[XKey]
+        # 分段类型 map or 常规
+        self.segment_type = 'normal'
+        self.has_set_key = False
 
     def set_name(self, name: str):
         self.name = name
@@ -81,5 +88,40 @@ class Segment:
         else:
             self.url = f'{base_url}/{line}'
 
+    def set_map_url(self, home_url: str, base_url: str, line: str):
+        map_uri = re.match('#EXT-X-MAP:URI="(.*?)"', line.strip())
+        if map_uri is None:
+            click.secho('find #EXT-X-MAP tag, however has no uri')
+            return
+        map_uri = map_uri.group(1)
+        if map_uri.startswith('http://') or map_uri.startswith('https://') or map_uri.startswith('ftp://'):
+            self.url = map_uri
+        elif map_uri.startswith('/'):
+            self.url = f'{home_url}/{map_uri}'
+        else:
+            self.url = f'{base_url}/{map_uri}'
+        self.segment_type = 'map'
+        self.set_name('map.mp4')
+
     def get_path(self) -> str:
         return (self.folder / self.name).resolve().as_posix()
+
+    def set_key(self, home_url: str, base_url: str, line: str):
+        self.has_set_key = True
+        self.xkeys.append(XKey().set_key(home_url, base_url, line))
+
+    def get_xkeys(self):
+        return self.xkeys
+
+    def set_xkeys(self, last_segment_has_xkeys: bool, xkeys: List[XKey]):
+        '''
+        如果已经因为#EXT-X-KEY而设置过xkeys了
+        那就不使用之前分段的xkeys了
+        '''
+        if last_segment_has_xkeys is False:
+            return
+        if self.has_set_key is True:
+            return
+        if xkeys is None:
+            return
+        self.xkeys = xkeys
