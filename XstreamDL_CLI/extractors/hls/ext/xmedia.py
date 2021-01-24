@@ -16,6 +16,7 @@ class XMedia:
     - CHANNELS
     '''
     def __init__(self):
+        self.TAG_NAME = '#EXT-X-MEDIA'
         self.media_method = None # type: str
         self.media_uri = None # type: str
         self.media_keyid = None # type: str

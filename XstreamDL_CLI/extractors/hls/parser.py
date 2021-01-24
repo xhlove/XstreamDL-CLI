@@ -43,6 +43,12 @@ class Parser(BaseParser):
                 pass
             elif line.startswith('#EXT-X-MEDIA-SEQUENCE'):
                 pass
+            elif line.startswith('#EXT-X-PROGRAM-DATE-TIME'):
+                # 根据spec 该标签指明的是第一个分段绝对日期/时间
+                stream.set_xprogram_date_time(line)
+            elif line.startswith('#EXT-X-DATERANGE'):
+                # 按设计应该把这个标签认为是一个Stream的属性
+                stream.set_daterange(line)
             elif line.startswith('#EXT-X-TARGETDURATION'):
                 pass
             elif line.startswith('#EXT-X-PLAYLIST-TYPE'):

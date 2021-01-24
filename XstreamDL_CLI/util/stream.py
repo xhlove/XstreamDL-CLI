@@ -3,6 +3,8 @@ from typing import List
 from .segment import Segment
 from ..extractors.hls.ext.xkey import XKey
 from ..extractors.hls.ext.xmedia import XMedia
+from ..extractors.hls.ext.xdaterange import XDateRange
+from ..extractors.hls.ext.xprogram_date_time import XProgramDateTime
 
 
 class Stream:
@@ -149,3 +151,9 @@ class Stream:
         else:
             self.origin_url = f'{base_url}/{xmedia.media_uri}'
         # self.xmedias.append(XMedia().set_media(home_url, base_url, line))
+
+    def set_daterange(self, line: str):
+        self.xdaterange = XDateRange().set_attrs_from_line(line)
+
+    def set_xprogram_date_time(self, line: str):
+        self.xprogram_date_time = XProgramDateTime().set_attrs_from_line(line)
