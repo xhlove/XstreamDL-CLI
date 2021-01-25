@@ -23,7 +23,7 @@ class XDateRange(X):
             'START-DATE': self.set_start_date,
             'END-DATE': self.set_end_date,
             'DURATION': self.set_duration,
-            'PLANNED-DURATION': self.planned_duration,
+            'PLANNED-DURATION': self.set_planned_duration,
             'END-ON-NEXT': 'end_on_next',
         }
 
@@ -57,12 +57,12 @@ class XDateRange(X):
             if key in self.known_attrs:
                 if isinstance(self.known_attrs[key], str):
                     self.__setattr__(self.known_attrs[key], value)
+                elif isinstance(self.known_attrs[key], type):
+                    self.convert_type(key, value, self.known_attrs[key])
                 else:
                     self.known_attrs[key](value)
             elif key.startswith('X-'):
-                _attr_name = key.replace('-', '_').lower()
-                self.known_attrs[key] = _attr_name
-                self.__setattr__(_attr_name, value)
+                self.__setattr__(self.format_key(key), value)
             else:
                 click.secho(f'unknown attr of {self.TAG_NAME}')
         return self

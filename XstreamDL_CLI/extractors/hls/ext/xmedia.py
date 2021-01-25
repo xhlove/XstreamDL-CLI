@@ -1,64 +1,42 @@
-import re
-import click
+from .x import X
 
 
-class XMedia:
+class XMedia(X):
     '''
     #EXT-X-MEDIA 外挂媒体
-    - TYPE
-        - AUDIO
-    - URI
-        - data:text/plain;base64,...
-        - skd://...
-    - NAME
-    - AUTOSELECT
-        - YES/NO
-    - CHANNELS
+    - TYPE=AUDIO,URI="",GROUP-ID="default-audio-group",NAME="stream_0",AUTOSELECT=YES,CHANNELS="2"
     '''
     def __init__(self):
-        self.TAG_NAME = '#EXT-X-MEDIA'
-        self.media_method = None # type: str
-        self.media_uri = None # type: str
-        self.media_keyid = None # type: str
-        self.media_iv = None # type: str
-        self.media_keyformat_ver = None # type: str
-        self.media_keyformat = None # type: str
+        super(XMedia, self).__init__('#EXT-X-MEDIA')
+        self.type = None # type: str
+        self.uri = None # type: str
+        self.group_id = None # type: str
+        self.language = None # type: str
+        self.assoc_language = None # type: str
+        self.name = None # type: str
+        self.default = None # type: str
+        self.autoselect = None # type: str
+        self.forced = None # type: str
+        self.instream_id = None # type: str
+        self.subtitles = None # type: str
+        self.channels = None # type: int
+        self.known_attrs = {
+            'TYPE': 'type',
+            'URI': 'uri',
+            'GROUP-ID': 'group_id',
+            'LANGUAGE': 'language',
+            'ASSOC-LANGUAGE': 'assoc_language',
+            'NAME': 'name',
+            'DEFAULT': 'default',
+            'AUTOSELECT': 'autoselect',
+            'FORCED': 'forced',
+            'INSTREAM-ID': 'instream_id',
+            'CHARACTERISTICS': 'subtitles',
+            'CHANNELS': int,
+        }
 
-    def set_media(self, home_url: str, base_url: str, line: str):
-        # https://stackoverflow.com/questions/34081567
-        # re.findall('([A-Z]+[0-9]*)=("[^"]*"|[^,]*)', s)
-        line = line.replace('#EXT-X-MEDIA:', '')
-        if line.endswith(',') is False:
-            # 末尾缺少逗号会影响正则判断
-            line += ','
-        try:
-            for key, value in re.findall('(.*?)=("[^"]*?"|[^,]*?),', line):
-                value = value.strip('"')
-                if key == 'TYPE':
-                    self.media_method = value
-                elif key == 'URI':
-                    self.media_uri_type, self.media_uri = self.gen_hls_media_uri(value)
-                elif key == 'GROUP-ID':
-                    self.media_groupid = value
-                elif key == 'NAME':
-                    self.media_name = value
-                elif key == 'AUTOSELECT':
-                    self.media_auto_select = value
-                elif key == 'CHANNELS':
-                    self.media_channels = value
-                else:
-                    click.secho(f'unsupport attribute <{key}-{value}> of tag #EXT-X-MEDIA')
-        except Exception:
-            pass
-        return self
-
-    def gen_hls_media_uri(self, uri: str):
+    def set_attrs_from_line(self, line: str):
         '''
-        data:text/plain;base64,AAAASnBzc2gAAAAA7e+LqXnWSs6jyCfc1R0h7QAAACoSEKg079lX5xeK9g/zZPwXENESEKg079lX5xeK9g/zZPwXENFI88aJmwY=
+        这里实际上可以不写
         '''
-        if uri.startswith('data:text/plain;base64,'):
-            return 'base64', uri.split(',', maxsplit=1)[-1]
-        elif uri.startswith('skd://'):
-            return 'skd', uri.split('/', maxsplit=1)[-1]
-        else:
-            return 'unknow', uri
+        return super(XMedia, self).set_attrs_from_line(line)

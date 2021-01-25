@@ -1,3 +1,4 @@
+import os
 import click
 import asyncio
 from typing import List
@@ -62,6 +63,9 @@ class Downloader:
                 stream_id = self.progress.add_task("download", name=stream.name, start=False) # TaskID
                 tasks = []
                 for segment in stream.segments:
+                    if os.path.exists(segment.get_path()) is True:
+                        # 文件落盘 说明下载一定成功了
+                        continue
                     task = loop.create_task(self.download(stream_id, stream, segment))
                     tasks.append(task)
                 finished, unfinished = await asyncio.wait(tasks)
@@ -75,8 +79,8 @@ class Downloader:
 
     async def download(self, stream_id: TaskID, stream: Stream, segment: Segment):
         async with request('GET', segment.url, headers=segment.headers) as r:
-            stream.file_size += int(r.headers["Content-length"])
-            self.progress.update(stream_id, total=stream.file_size)
+            stream.filesize += int(r.headers["Content-length"])
+            self.progress.update(stream_id, total=stream.filesize)
             self.progress.start_task(stream_id)
             while True:
                 data = await r.content.read(1024)

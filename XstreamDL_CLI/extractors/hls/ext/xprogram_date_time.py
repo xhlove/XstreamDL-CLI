@@ -9,20 +9,17 @@ class XProgramDateTime(X):
     '''
     def __init__(self):
         super(XProgramDateTime, self).__init__('#EXT-X-PROGRAM-DATE-TIME')
-        self.time = None # type: datetime
-
-    def get_time(self, text: str):
-        if text.endswith('Z') is True:
-            text = f'{text[:-1]}+00:00'
-        try:
-            time = datetime.fromisoformat(text)
-        except Exception:
-            raise
-        return time
-
-    def set_time(self, text: str):
-        self.time = self.get_time(text)
+        self.program_date_time = None # type: datetime
 
     def set_attrs_from_line(self, line: str):
-        self.set_time(self.get_tag_info(line))
+        '''
+        重写父类同名函数
+        '''
+        line = self.get_tag_info(line)
+        if line.endswith('Z') is True:
+            line = f'{line[:-1]}+00:00'
+        try:
+            self.program_date_time = datetime.fromisoformat(line)
+        except Exception:
+            raise
         return self

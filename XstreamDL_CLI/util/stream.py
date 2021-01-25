@@ -4,6 +4,7 @@ from .segment import Segment
 from ..extractors.hls.ext.xkey import XKey
 from ..extractors.hls.ext.xmedia import XMedia
 from ..extractors.hls.ext.xdaterange import XDateRange
+from ..extractors.hls.ext.xstream_inf import XStreamInf
 from ..extractors.hls.ext.xprogram_date_time import XProgramDateTime
 
 
@@ -24,7 +25,7 @@ class Stream:
         self.name = name
         self.segments = [] # type: List[Segment]
         self.duration = 0.0
-        self.file_size = 0
+        self.filesize = 0
         self.lang = ''
         # <---解析过程中需要设置的属性--->
         self.program_id = None # type: int
@@ -43,6 +44,15 @@ class Stream:
         # 初始化默认设定一个分段
         self.append_segment()
 
+    def segments_extend(self, segments: List[Segment]):
+        '''
+        由#EXT-X-DISCONTINUITY引起的合并 需要更新一下新增分段的文件名
+        '''
+        offset = len(self.segments)
+        for segment in segments:
+            segment.add_offset_for_name(offset)
+        self.segments.extend(segments)
+
     def set_name(self, name: str):
         self.name = name
         return self
@@ -52,16 +62,16 @@ class Stream:
 
     def calc(self):
         self.calc_duration()
-        self.calc_file_size()
+        self.calc_filesize()
 
     def calc_duration(self):
         for segment in self.segments:
             self.duration += segment.duration
 
-    def calc_file_size(self):
+    def calc_filesize(self):
         for segment in self.segments:
-            self.file_size += segment.file_size
-        self.file_size = self.file_size / 1024 / 1024
+            self.filesize += segment.filesize
+        self.filesize = self.filesize / 1024 / 1024
 
     def read_stream_header(self):
         '''
@@ -76,59 +86,21 @@ class Stream:
         click.secho(
             f'dump {len(self.segments)} segments\n\t'
             f'duration -> {self.duration:.2f}s\n\t'
-            f'filesize -> {self.file_size:.2f}MB'
+            f'filesize -> {self.filesize:.2f}MB'
         )
 
     def append_segment(self):
         '''
         新增一个分段
         '''
-        name = f'{len(self.segments):0>4}.ts'
-        segment = Segment().set_name(name).set_folder(self.name)
+        segment = Segment().set_index(len(self.segments)).set_suffix('.ts').set_folder(self.name)
         self.segments.append(segment)
 
     def set_straem_type(self, stream_type: str):
         self.stream_type = stream_type
 
-    def set_stream_info(self, line: str):
-        '''
-        #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1470188,SIZE=468254984,FPS=25,RESOLU=1080,CODECS="avc1,mp4a",QUALITY=5,STREAMTYPE="mp4hd3"
-        '''
-        try:
-            for item in line.split(':', maxsplit=1)[-1].split(','):
-                kv = item.split('=', maxsplit=1)
-                if len(kv) != 2:
-                    continue
-                if kv[0] == 'PROGRAM-ID':
-                    self.program_id = int(kv[1])
-                elif kv[0] == 'BANDWIDTH':
-                    self.bandwidth = int(kv[1])
-                elif kv[0] == 'AVERAGE-BANDWIDTH':
-                    self.average_bandwidth = int(kv[1])
-                elif kv[0] == 'SIZE':
-                    self.size = int(kv[1])
-                elif kv[0] == 'FPS':
-                    self.fps = int(kv[1])
-                elif kv[0] == 'CODECS':
-                    self.codecs = kv[1]
-                elif kv[0] == 'RESOLU':
-                    self.resolution = kv[1]
-                elif kv[0] == 'RESOLUTION':
-                    self.resolution = kv[1]
-                elif kv[0] == 'FRAME-RATE':
-                    self.frame_rate = kv[1]
-                elif kv[0] == 'VIDEO-RANGE':
-                    self.video_range = kv[1]
-                elif kv[0] == 'AUDIO':
-                    self.audio = kv[1]
-                elif kv[0] == 'QUALITY':
-                    self.quality = kv[1]
-                elif kv[0] == 'STREAMTYPE':
-                    self.stream_type = kv[1]
-                else:
-                    click.secho(f'unsupport attribute <{item}> of tag #EXT-X-STREAM-INF')
-        except Exception:
-            pass
+    def set_xstream_inf(self, line: str):
+        self.xstream_inf = XStreamInf().set_attrs_from_line(line)
 
     def set_url(self, home_url: str, base_url: str, line: str):
         if line.startswith('http://') or line.startswith('https://') or line.startswith('ftp://'):
@@ -142,15 +114,18 @@ class Stream:
         self.xkeys.append(XKey().set_key(home_url, base_url, line))
 
     def set_media(self, home_url: str, base_url: str, line: str):
-        xmedia = XMedia().set_media(home_url, base_url, line)
-        # 这里应当处理成 origin_url
-        if xmedia.media_uri.startswith('http://') or line.startswith('https://') or line.startswith('ftp://'):
-            self.origin_url = xmedia.media_uri
-        elif xmedia.media_uri.startswith('/'):
-            self.origin_url = f'{home_url}/{xmedia.media_uri}'
+        self.xmedia = XMedia().set_attrs_from_line(line)
+        self.xmedia.uri = self.set_origin_url(home_url, base_url, self.xmedia.uri)
+
+    def set_origin_url(self, home_url: str, base_url: str, uri: str):
+        # 某些标签 应该被视作一个新的Stream 所以要设置其对应的原始链接
+        if uri.startswith('http://') or uri.startswith('https://') or uri.startswith('ftp://'):
+            self.origin_url = uri
+        elif uri.startswith('/'):
+            self.origin_url = f'{home_url}/{uri}'
         else:
-            self.origin_url = f'{base_url}/{xmedia.media_uri}'
-        # self.xmedias.append(XMedia().set_media(home_url, base_url, line))
+            self.origin_url = f'{base_url}/{uri}'
+        return self.origin_url
 
     def set_daterange(self, line: str):
         self.xdaterange = XDateRange().set_attrs_from_line(line)

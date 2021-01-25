@@ -79,7 +79,7 @@ class Parser(BaseParser):
                 stream = Stream(name, 'hls')
             elif line.startswith('#EXT-X-STREAM-INF'):
                 stream.set_tag('#EXT-X-STREAM-INF')
-                stream.set_stream_info(line)
+                stream.set_xstream_inf(line)
                 content_is_master_type = True
             elif line.startswith('#'):
                 if line.startswith('## Generated with https://github.com/google/shaka-packager'):
@@ -129,6 +129,6 @@ class Parser(BaseParser):
             # 合并去除#EXT-X-DISCONTINUITY后剩下的Stream
             stream = _streams[0]
             for _stream in _streams[1:]:
-                stream.segments.extend(_stream.segments)
+                stream.segments_extend(_stream.segments)
             _streams = [stream]
         return _streams

@@ -3,6 +3,7 @@ import click
 from typing import List
 from pathlib import Path
 from ..extractors.hls.ext.xkey import XKey
+from ..extractors.hls.ext.xprivinf import XPrivinf
 
 
 class Segment:
@@ -15,6 +16,8 @@ class Segment:
     '''
     def __init__(self):
         self.name = ''
+        self.index = 0
+        self.suffix = '.ts'
         self.url = ''
         self.range = ''
         self.user_agent = ''
@@ -25,7 +28,7 @@ class Segment:
                 'Chrome/87.0.4280.141 Safari/537.36'
             )
         }
-        self.file_size = 0
+        self.filesize = 0
         self.duration = 0.0
         self.byterange = [] # type: list
         # <---临时存放二进制内容--->
@@ -34,12 +37,30 @@ class Segment:
         self.folder = None # type: Path
         # 加密信息
         self.xkeys = [] # type: List[XKey]
+        self.__xprivinf = None # type: XPrivinf
         # 分段类型 map or 常规
         self.segment_type = 'normal'
         self.has_set_key = False
 
-    def set_name(self, name: str):
-        self.name = name
+    def is_encrypt(self):
+        if self.__xprivinf is not None:
+            return self.__xprivinf.drm_notencrypt
+        elif len(self.xkeys) > 0:
+            return True
+        else:
+            return False
+
+    def add_offset_for_name(self, offset: int):
+        self.index += offset
+        self.name = f'{self.index:0>4}{self.suffix}'
+
+    def set_index(self, index: str):
+        self.index = index
+        self.name = f'{self.index:0>4}{self.suffix}'
+        return self
+
+    def set_suffix(self, suffix: str):
+        self.suffix = suffix
         return self
 
     def set_folder(self, name: str):
@@ -64,21 +85,12 @@ class Segment:
 
     def set_privinf(self, line: str):
         '''
-        #EXT-X-PRIVINF:FILESIZE=720416,DRM_NOTENCRYPT
+        对于分段来说 标签的属性值 应该归属在标签下面 计算时需要注意
+        不过也可以在解析标签信息之后 进行赋值处理 这样便于调用
         '''
-        try:
-            for item in line.split(':', maxsplit=1)[-1].split(','):
-                kv = item.split('=', maxsplit=1)
-                if kv[0] == 'DRM_NOTENCRYPT':
-                    self.youku_drm_not_encrypt = True
-                if len(kv) != 2:
-                    continue
-                if kv[0] == 'FILESIZE':
-                    self.file_size = int(kv[1])
-                else:
-                    click.secho(f'unsupport attribute <{item}> of tag #EXT-X-PRIVINF')
-        except Exception:
-            pass
+        self.__xprivinf = XPrivinf().set_attrs_from_line(line)
+        if self.__xprivinf.filesize is not None:
+            self.filesize = self.__xprivinf.filesize
 
     def set_url(self, home_url: str, base_url: str, line: str):
         if line.startswith('http://') or line.startswith('https://') or line.startswith('ftp://'):
@@ -101,7 +113,10 @@ class Segment:
         else:
             self.url = f'{base_url}/{map_uri}'
         self.segment_type = 'map'
-        self.set_name('map.mp4')
+        if self.index > 0:
+            self.name = f'map{self.index}.mp4'
+        else:
+            self.name = 'map.mp4'
 
     def get_path(self) -> str:
         return (self.folder / self.name).resolve().as_posix()
