@@ -111,7 +111,7 @@ class Stream:
             self.origin_url = f'{base_url}/{line}'
 
     def set_key(self, home_url: str, base_url: str, line: str):
-        self.xkeys.append(XKey().set_key(home_url, base_url, line))
+        self.xkeys.append(XKey().set_attrs_from_line(home_url, base_url, line))
 
     def set_media(self, home_url: str, base_url: str, line: str):
         self.xmedia = XMedia().set_attrs_from_line(line)
