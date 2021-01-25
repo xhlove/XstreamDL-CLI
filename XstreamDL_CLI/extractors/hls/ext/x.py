@@ -34,6 +34,10 @@ class X:
         return re.findall('(.*?)=("[^"]*?"|[^,]*?),', info)
 
     def set_attrs_from_line(self, line: str):
+        '''
+        https://stackoverflow.com/questions/34081567
+        re.findall('([A-Z]+[0-9]*)=("[^"]*"|[^,]*)', s)
+        '''
         info = self.get_tag_info(line)
         for key, value in self.regex_attrs(info):
             value = value.strip('"')

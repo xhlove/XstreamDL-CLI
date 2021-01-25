@@ -1,8 +1,7 @@
-import re
-import click
+from .x import X
 
 
-class XKey:
+class XKey(X):
     '''
     一组加密参数
     - METHOD
@@ -18,43 +17,31 @@ class XKey:
         - com.apple.streamingkeydelivery
     '''
     def __init__(self):
-        self.encrypt_method = None # type: str
-        self.encrypt_uri = None # type: str
-        self.encrypt_keyid = None # type: str
-        self.encrypt_iv = None # type: str
-        self.encrypt_keyformat_ver = None # type: str
-        self.encrypt_keyformat = None # type: str
+        self.method = None # type: str
+        self.uri = None # type: str
+        self.keyid = None # type: str
+        self.iv = None # type: str
+        self.keyformatversions = None # type: str
+        self.keyformat = None # type: str
+        self.known_attrs = {
+            'METHOD': 'method',
+            'URI': 'uri',
+            'KEYID': 'keyid',
+            'IV': 'iv',
+            'KEYFORMATVERSIONS': 'keyformatversions',
+            'KEYFORMAT': 'keyformat',
+        }
 
-    def set_key(self, home_url: str, base_url: str, line: str):
-        # https://stackoverflow.com/questions/34081567
-        # re.findall('([A-Z]+[0-9]*)=("[^"]*"|[^,]*)', s)
-        line = line.replace('#EXT-X-KEY:', '')
-        try:
-            for key, value in re.findall('(.*?)=("[^"]*?"|[^,]*?),', line):
-                value = value.strip('"')
-                if key == 'METHOD':
-                    self.encrypt_method = value
-                elif key == 'MEATHOD':
-                    # 某些网站会故意这样
-                    self.encrypt_method = value
-                elif key == 'URI':
-                    self.encrypt_uri_type, self.encrypt_uri = self.gen_hls_key_uri(value)
-                elif key == 'KEYID':
-                    self.encrypt_keyid = value
-                elif key == 'IV':
-                    self.encrypt_iv = value
-                elif key == 'KEYFORMATVERSIONS':
-                    self.encrypt_keyformat_ver = value
-                elif key == 'KEYFORMAT':
-                    self.encrypt_keyformat = value
-                else:
-                    click.secho(f'unsupport attribute <{key}-{value}> of tag #EXT-X-KEY')
-        except Exception:
-            pass
-        return self
+    def set_attrs_from_line(self, home_url: str, base_url: str, line: str):
+        '''
+        key的链接可能不全 用home_url或base_url进行补齐 具体处理后面做
+        '''
+        line = line.replace('MEATHOD', 'METHOD')
+        return super(XKey, self).set_attrs_from_line(line)
 
     def gen_hls_key_uri(self, uri: str):
         '''
+        解析时 不具体调用这个函数 需要的地方再转换
         data:text/plain;base64,AAAASnBzc2gAAAAA7e+LqXnWSs6jyCfc1R0h7QAAACoSEKg079lX5xeK9g/zZPwXENESEKg079lX5xeK9g/zZPwXENFI88aJmwY=
         skd://a834efd957e7178af60ff364fc1710d1
         '''
