@@ -56,6 +56,8 @@ class Downloader:
         loop.run_until_complete(self.download_all_segments(loop, streams))
 
     async def download_all_segments(self, loop: asyncio.AbstractEventLoop, streams: List[Stream]):
+        for index, stream in enumerate(streams):
+            stream.show_info(index)
         all_results = []
         with self.progress:
             for stream in streams:

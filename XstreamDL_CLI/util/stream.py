@@ -1,6 +1,8 @@
+import json
 import click
 from typing import List
 from pathlib import Path
+from datetime import datetime
 from .segment import Segment
 from ..extractors.hls.ext.xkey import XKey
 from ..extractors.hls.ext.xmedia import XMedia
@@ -81,15 +83,40 @@ class Stream:
         '''
         pass
 
+    def show_info(self, index: int):
+        '''
+        显示信息 让用户选择下载哪些Stream
+        '''
+        click.secho(
+            f'{index:>3} {self.name} 共计{len(self.segments)}个分段 '
+            f'{self.duration:.2f}s {self.filesize:.2f}MB '
+        )
+        self.dump_segments()
+
     def dump_segments(self):
         '''
         将全部分段保存到本地
         '''
-        click.secho(
-            f'dump {len(self.segments)} segments\n\t'
-            f'duration -> {self.duration:.2f}s\n\t'
-            f'filesize -> {self.filesize:.2f}MB'
-        )
+        # click.secho(
+        #     f'dump {len(self.segments)} segments\n\t'
+        #     f'duration -> {self.duration:.2f}s\n\t'
+        #     f'filesize -> {self.filesize:.2f}MB'
+        # )
+        info = {
+            'name': self.name,
+            'path': self.save_dir,
+            'creatTime': f'{datetime.now()}',
+            'segments': [],
+        }
+        for segment in self.segments:
+            info['segments'].append(
+                {
+                    'url': segment.url,
+                    'size': segment.filesize,
+                }
+            )
+        data = json.dumps(info, ensure_ascii=False, indent=4)
+        Path(self.save_dir, 'raw.json').write_text(data, encoding='utf-8')
 
     def append_segment(self):
         '''

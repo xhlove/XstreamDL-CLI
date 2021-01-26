@@ -1,5 +1,6 @@
 import sys
 import click
+from pathlib import Path
 from argparse import ArgumentParser
 
 from .version import __version__
@@ -20,6 +21,11 @@ def main():
     parser.add_argument('-h', '--help', action='store_true', help='Print this help message and exit')
     parser.add_argument('-save-dir', '--save-dir', default='Downloads', help='Set save dir for Stream')
     parser.add_argument('-base', '--base-url', default='', help='Set base url for Stream')
+    parser.add_argument(
+        '-select',
+        '--select',
+        action='store_true',
+        help='Show stream to select and download, default is to download all')
     parser.add_argument('-split', '--split', action='store_true', help='Split by Period for each full stream')
     parser.add_argument('-repl', '--repl', action='store_true', help='Repl mode')
 
@@ -27,8 +33,9 @@ def main():
     dump_group.add_argument('-n', '--name', default=None, help='Specific stream base name')
 
     parser.add_argument('URI', nargs='*', help='URL/FILE/FOLDER string')
-
     args = parser.parse_args()
+    if Path(args.save_dir).exists() is False:
+        Path(args.save_dir).mkdir()
     if args.help:
         print_version()
         parser.print_help()
