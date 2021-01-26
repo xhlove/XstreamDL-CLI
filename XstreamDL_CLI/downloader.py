@@ -50,7 +50,7 @@ class Downloader:
             break
 
     def download_one_stream(self, args: Namespace):
-        extractor = Extractor()
+        extractor = Extractor(args)
         streams = extractor.fetch_metadata(args.URI[0])
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.download_all_segments(loop, streams))

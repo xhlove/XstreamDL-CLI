@@ -6,6 +6,10 @@ from .ext.xkey import XKey
 
 
 class Parser(BaseParser):
+
+    def __init__(self, args):
+        super(Parser, self).__init__(args)
+
     def parse(self, uri: str, content: str) -> List[Stream]:
         uris = self.parse_uri(uri)
         if uris is None:

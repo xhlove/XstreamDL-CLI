@@ -1,8 +1,9 @@
-# import click
+import click
 import aiohttp
 import asyncio
 from typing import List
 from pathlib import Path
+from argparse import Namespace
 from urllib.request import getproxies
 
 from .util.stream import Stream
@@ -16,26 +17,32 @@ class Extractor:
     或者读取含有多个元数据文件的文件夹
     最终得到一个Stream（流）对象供Downloader（下载器）下载
     '''
-    def __init__(self):
+    def __init__(self, args: Namespace):
+        self.args = args
         self.proxies = getproxies()
 
     def fetch_metadata(self, url: str):
         if url.startswith('http://') or url.startswith('https://') or url.startswith('ftp://'):
             loop = asyncio.get_event_loop()
-            return self.resp2streams(url, loop.run_until_complete(self.fetch(url)))
+            return self.raw2streams(url, loop.run_until_complete(self.fetch(url)))
         else:
-            return self.resp2streams(url, self.load(url))
+            return self.raw2streams(url, self.load_as_file(url))
 
-    def load(self, path: str):
+    def load_as_file(self, path: str):
         if Path(path).exists():
-            return Path(path).read_text(encoding='utf-8')
+            if Path(path).is_dir():
+                click.secho('not support folder now')
+            else:
+                return Path(path).read_text(encoding='utf-8')
+        else:
+            click.secho(f'unknow type for URI -> {path}')
 
     async def fetch(self, url: str) -> str:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 return await response.text(encoding='utf-8')
 
-    def resp2streams(self, uri: str, content: str) -> List[Stream]:
+    def raw2streams(self, uri: str, content: str) -> List[Stream]:
         '''
         解析解码后的返回结果
         '''
@@ -49,7 +56,7 @@ class Extractor:
             return
 
     def parse_as_hls(self, uri: str, content: str) -> List[Stream]:
-        _streams = hls_parser().parse(uri, content)
+        _streams = hls_parser(self.args).parse(uri, content)
         streams = []
         for stream in _streams:
             # 针对master类型加载详细内容
