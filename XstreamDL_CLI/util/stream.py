@@ -1,5 +1,6 @@
 import click
 from typing import List
+from pathlib import Path
 from .segment import Segment
 from ..extractors.hls.ext.xkey import XKey
 from ..extractors.hls.ext.xmedia import XMedia
@@ -21,8 +22,9 @@ class Stream:
     一些可选的属性
     - 语言
     '''
-    def __init__(self, name: str, stream_type: str):
+    def __init__(self, name: str, save_dir: Path, stream_type: str):
         self.name = name
+        self.save_dir = (save_dir / name).resolve().as_posix()
         self.segments = [] # type: List[Segment]
         self.duration = 0.0
         self.filesize = 0
@@ -93,7 +95,7 @@ class Stream:
         '''
         新增一个分段
         '''
-        segment = Segment().set_index(len(self.segments)).set_suffix('.ts').set_folder(self.name)
+        segment = Segment().set_index(len(self.segments)).set_suffix('.ts').set_folder(self.save_dir)
         self.segments.append(segment)
 
     def set_straem_type(self, stream_type: str):

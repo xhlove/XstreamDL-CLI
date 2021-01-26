@@ -6,6 +6,7 @@ class BaseParser:
 
     def __init__(self, args: Namespace):
         self.args = args
+        self.save_dir = Path(args.save_dir)
 
     def parse_uri(self, uri: str) -> tuple:
         name, home_url, base_url = '', '', ''

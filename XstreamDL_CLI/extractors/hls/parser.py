@@ -17,7 +17,7 @@ class Parser(BaseParser):
             return []
         name, home_url, base_url = uris
         streams = []
-        stream = Stream(name, 'hls')
+        stream = Stream(name, self.save_dir, 'hls')
         lines = [line.strip() for line in content.split('\n')]
         offset = 0
         last_segment_xkeys = None # type: List[XKey]
@@ -61,7 +61,7 @@ class Parser(BaseParser):
                 # 此标签后面的分段都认为是一个新的Stream 直到结束或下一个相同标签出现
                 # 对于优酷 根据特征字符匹配 移除不需要的Stream 然后将剩余的Stream合并
                 streams.append(stream)
-                stream = Stream(name, 'hls')
+                stream = Stream(name, self.save_dir, 'hls')
                 stream.set_tag('#EXT-X-DISCONTINUITY')
             elif line.startswith('#EXT-X-MAP'):
                 segment.set_map_url(home_url, base_url, line)
@@ -80,7 +80,7 @@ class Parser(BaseParser):
                 stream.set_media(home_url, base_url, line)
                 content_is_master_type = True
                 streams.append(stream)
-                stream = Stream(name, 'hls')
+                stream = Stream(name, self.save_dir, 'hls')
             elif line.startswith('#EXT-X-STREAM-INF'):
                 stream.set_tag('#EXT-X-STREAM-INF')
                 stream.set_xstream_inf(line)
@@ -107,7 +107,7 @@ class Parser(BaseParser):
                 elif offset > 0 and lines[offset - 1].startswith('#EXT-X-STREAM-INF'):
                     stream.set_url(home_url, base_url, line)
                     streams.append(stream)
-                    stream = Stream(name, 'hls')
+                    stream = Stream(name, self.save_dir, 'hls')
                     do_not_append_at_end_list_tag = True
                 else:
                     click.secho(f'unknow what to do here ->\n\t{line}')

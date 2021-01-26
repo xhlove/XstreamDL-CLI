@@ -18,6 +18,7 @@ def main():
     )
     parser.add_argument('-V', '--version', action='store_true', help='Print version and exit')
     parser.add_argument('-h', '--help', action='store_true', help='Print this help message and exit')
+    parser.add_argument('-save-dir', '--save-dir', default='Downloads', help='Set save dir for Stream')
     parser.add_argument('-base', '--base-url', default='', help='Set base url for Stream')
     parser.add_argument('-split', '--split', action='store_true', help='Split by Period for each full stream')
     parser.add_argument('-repl', '--repl', action='store_true', help='Repl mode')
