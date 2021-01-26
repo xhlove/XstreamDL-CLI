@@ -1,4 +1,3 @@
-import math
 from typing import Dict, List
 from pathlib import Path
 from xml.parsers.expat import ParserCreate
@@ -225,12 +224,12 @@ class MPDPaser(object):
             SegmentTimelines = find_child('SegmentTimeline', _SegmentTemplate) # type: List[SegmentTimeline]
             urls = []
             if len(SegmentTimelines) == 0:
-                interval_duration = float(int(_SegmentTemplate.duration) / int(_SegmentTemplate.timescale))
                 if _SegmentTemplate.presentationTimeOffset is None:
                     _Segment_duration = _Period.duration
                 else:
                     _Segment_duration = _Period.duration
-                repeat = int(math.ceil(_Segment_duration / interval_duration))
+                interval_duration = float(int(_SegmentTemplate.duration) / int(_SegmentTemplate.timescale))
+                repeat = int(round(_Segment_duration / interval_duration))
                 for number in range(start_number, repeat + start_number):
                     _media = _SegmentTemplate.get_media()
                     if '$Number$' in _media:
