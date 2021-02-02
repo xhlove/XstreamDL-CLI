@@ -62,6 +62,7 @@ class Downloader:
         with self.progress:
             for stream in streams:
                 click.secho(f'{stream.name} download start.')
+                stream.try_fetch_key()
                 stream_id = self.progress.add_task("download", name=stream.name, start=False) # TaskID
                 tasks = []
                 for segment in stream.segments:

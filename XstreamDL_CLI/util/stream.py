@@ -125,6 +125,28 @@ class Stream:
         segment = Segment().set_index(len(self.segments)).set_suffix('.ts').set_folder(self.save_dir)
         self.segments.append(segment)
 
+    def try_fetch_key(self):
+        '''
+        在解析过程中 已经设置了key的信息了
+        但是没有请求key 这里是独立加载key的部分
+        放在这个位置的原因是
+            - 解析过程其实很短，没必要在解析时操作
+            - 解析后还有合并流的过程
+        所以最佳的方案是在解析之后再进行key的加载
+        '''
+        if len(self.xkeys) == 0:
+            return
+        for xkey in self.xkeys:
+            if xkey.load() is False:
+                continue
+            self.set_segments_key(xkey)
+
+    def set_segments_key(self, xkey: XKey):
+        '''
+        和每个分段的key对比 设定对应的解密信息
+        '''
+        pass
+
     def set_straem_type(self, stream_type: str):
         self.stream_type = stream_type
 

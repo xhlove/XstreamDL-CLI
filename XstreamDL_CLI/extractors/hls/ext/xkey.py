@@ -51,3 +51,10 @@ class XKey(X):
             return 'skd', uri.split('/', maxsplit=1)[-1]
         else:
             return 'unknow', uri
+
+    def load(self):
+        if self.uri.startswith('http://') or self.uri.startswith('https://'):
+            pass
+        elif self.uri.startswith('ftp://'):
+            return False
+        return True
