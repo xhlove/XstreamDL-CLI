@@ -59,16 +59,21 @@ class Downloader:
         for index, stream in enumerate(streams):
             stream.show_info(index)
         all_results = []
-        with self.progress:
-            for stream in streams:
-                click.secho(f'{stream.name} download start.')
-                stream.try_fetch_key()
+        for stream in streams:
+            click.secho(f'{stream.name} download start.')
+            stream.try_fetch_key()
+            _left_segments = []
+            for segment in stream.segments:
+                if os.path.exists(segment.get_path()) is True:
+                    # 文件落盘 说明下载一定成功了
+                    continue
+                _left_segments.append(segment)
+            if len(_left_segments) == 0:
+                continue
+            with self.progress:
                 stream_id = self.progress.add_task("download", name=stream.name, start=False) # TaskID
                 tasks = []
-                for segment in stream.segments:
-                    if os.path.exists(segment.get_path()) is True:
-                        # 文件落盘 说明下载一定成功了
-                        continue
+                for segment in _left_segments:
                     task = loop.create_task(self.download(stream_id, stream, segment))
                     tasks.append(task)
                 finished, unfinished = await asyncio.wait(tasks)

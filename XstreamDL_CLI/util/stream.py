@@ -87,6 +87,7 @@ class Stream:
         '''
         显示信息 让用户选择下载哪些Stream
         '''
+        self.calc()
         click.secho(
             f'{index:>3} {self.name} 共计{len(self.segments)}个分段 '
             f'{self.duration:.2f}s {self.filesize:.2f}MB '
