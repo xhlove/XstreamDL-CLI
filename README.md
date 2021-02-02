@@ -1,5 +1,5 @@
 # XstreamDL-CLI
-基于`python 3.6+`的，命令行版本的，HLS/DASH流下载器，~~支持标准AES-128-CBC解密（新建文件）~~
+基于`python 3.7.4+`的，命令行版本的，HLS/DASH流下载器，~~支持标准AES-128-CBC解密（新建文件）~~
 
 ## 使用
 
