@@ -36,7 +36,7 @@ class Segment:
         # <---分段临时下载文件夹--->
         self.folder = None # type: Path
         # 加密信息
-        self.xkeys = [] # type: List[XKey]
+        self.xkey = None # type: XKey
         self.__xprivinf = None # type: XPrivinf
         # 分段类型 map or 常规
         self.segment_type = 'normal'
@@ -45,7 +45,7 @@ class Segment:
     def is_encrypt(self):
         if self.__xprivinf is not None:
             return self.__xprivinf.drm_notencrypt
-        elif len(self.xkeys) > 0:
+        elif self.xkey is not None:
             return True
         else:
             return False
@@ -118,25 +118,30 @@ class Segment:
         else:
             self.name = 'map.mp4'
 
-    def get_path(self) -> str:
-        return (self.folder / self.name).resolve().as_posix()
+    def get_path(self) -> Path:
+        return self.folder / self.name
 
     def set_key(self, home_url: str, base_url: str, line: str):
         self.has_set_key = True
-        self.xkeys.append(XKey().set_attrs_from_line(home_url, base_url, line))
+        xkey = XKey().set_attrs_from_line(home_url, base_url, line)
+        if xkey is not None:
+            self.xkey = xkey
 
-    def get_xkeys(self):
-        return self.xkeys
+    def get_xkey(self):
+        return self.xkey
 
-    def set_xkeys(self, last_segment_has_xkeys: bool, xkeys: List[XKey]):
+    def set_xkey(self, last_segment_has_xkey: bool, xkey: XKey):
         '''
-        如果已经因为#EXT-X-KEY而设置过xkeys了
-        那就不使用之前分段的xkeys了
+        如果已经因为#EXT-X-KEY而设置过xkey了
+        那就不使用之前分段的xkey了
         '''
-        if last_segment_has_xkeys is False:
+        if last_segment_has_xkey is False:
             return
         if self.has_set_key is True:
             return
-        if xkeys is None:
+        if xkey is None:
             return
-        self.xkeys = xkeys
+        self.xkey = xkey
+
+    def dump(self):
+        self.get_path().write_bytes(b''.join(self.content))

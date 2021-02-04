@@ -1,5 +1,5 @@
 # XstreamDL-CLI
-基于`python 3.7.4+`的，命令行版本的，HLS/DASH流下载器，~~支持标准AES-128-CBC解密（新建文件）~~
+基于`python 3.7.4+`的，命令行版本的，HLS/DASH流下载器，支持标准AES-128-CBC解密
 
 ## 使用
 
@@ -11,6 +11,14 @@ pip install -r requirements.txt
 ```bash
 python -m XstreamDL_CLI.cli FILEPATH/STREAMURL
 ```
+
+实例
+
+```bash
+python -m XstreamDL_CLI.cli --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8
+```
+
+**合并需要先将ffmpeg置于环境变量**
 
 ## 示意
 

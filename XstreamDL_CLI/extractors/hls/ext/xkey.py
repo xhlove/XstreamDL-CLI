@@ -1,4 +1,10 @@
+
+import aiohttp
+import asyncio
 from .x import X
+
+
+DEFAULT_IV = '0' * 32
 
 
 class XKey(X):
@@ -17,10 +23,12 @@ class XKey(X):
         - com.apple.streamingkeydelivery
     '''
     def __init__(self):
-        self.method = None # type: str
+        super(XKey, self).__init__('#EXT-X-KEY')
+        self.method = 'AES-128' # type: str
         self.uri = None # type: str
+        self.key = b'' # type: bytes
         self.keyid = None # type: str
-        self.iv = None # type: str
+        self.iv = DEFAULT_IV # type: str
         self.keyformatversions = None # type: str
         self.keyformat = None # type: str
         self.known_attrs = {
@@ -31,6 +39,16 @@ class XKey(X):
             'KEYFORMATVERSIONS': 'keyformatversions',
             'KEYFORMAT': 'keyformat',
         }
+
+    def set_key(self, key: bytes):
+        self.key = key
+        return self
+
+    def set_iv(self, iv: str):
+        if iv is None:
+            return
+        self.iv = iv
+        return self
 
     def set_attrs_from_line(self, home_url: str, base_url: str, line: str):
         '''
@@ -52,9 +70,24 @@ class XKey(X):
         else:
             return 'unknow', uri
 
-    def load(self):
+    async def fetch(self, url: str) -> bytes:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                return await response.content.read()
+
+    def load(self, custom_xkey: 'XKey'):
+        '''
+        如果custom_xkey存在key 那么覆盖解析结果中的key
+        并且不进行请求key的动作 同时覆盖iv 如果有自定义iv的话
+        '''
+        if custom_xkey.iv != DEFAULT_IV:
+            self.iv = custom_xkey.iv
+        if custom_xkey.key != b'':
+            self.key = custom_xkey.key
+            return
         if self.uri.startswith('http://') or self.uri.startswith('https://'):
-            pass
+            loop = asyncio.get_event_loop()
+            self.key = loop.run_until_complete(self.fetch(self.uri))
         elif self.uri.startswith('ftp://'):
             return False
         return True

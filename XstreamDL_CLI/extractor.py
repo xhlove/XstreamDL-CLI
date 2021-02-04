@@ -67,6 +67,9 @@ class Extractor:
             if new_streams is None:
                 continue
             streams.extend(new_streams)
+        # 在全部流解析完成后 再处理key
+        for stream in streams:
+            stream.try_fetch_key(self.args.b64key, self.args.hexiv)
         return streams
 
     def parse_as_dash(self, uri: str, content: str) -> List[Stream]:

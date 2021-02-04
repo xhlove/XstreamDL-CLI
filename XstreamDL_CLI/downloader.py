@@ -1,6 +1,6 @@
-import os
 import click
 import asyncio
+import binascii
 from typing import List
 from aiohttp import request
 from argparse import Namespace
@@ -17,6 +17,7 @@ from rich.progress import (
 from .extractor import Extractor
 from .util.stream import Stream
 from .util.segment import Segment
+from .util.decryptors.aes import CommonAES
 
 
 class Downloader:
@@ -61,14 +62,18 @@ class Downloader:
         all_results = []
         for stream in streams:
             click.secho(f'{stream.name} download start.')
-            stream.try_fetch_key()
             _left_segments = []
             for segment in stream.segments:
-                if os.path.exists(segment.get_path()) is True:
+                segment_path = segment.get_path()
+                if segment_path.exists() is True:
                     # 文件落盘 说明下载一定成功了
-                    continue
+                    if segment_path.stat().st_size == 0:
+                        segment_path.unlink()
+                    else:
+                        continue
                 _left_segments.append(segment)
             if len(_left_segments) == 0:
+                stream.concat()
                 continue
             with self.progress:
                 stream_id = self.progress.add_task("download", name=stream.name, start=False) # TaskID
@@ -83,28 +88,28 @@ class Downloader:
                     results.append(result)
                 all_results.append(results)
                 # click.secho(f'{stream.name} download end.')
+            stream.concat()
         return all_results
 
     async def download(self, stream_id: TaskID, stream: Stream, segment: Segment):
-        async with request('GET', segment.url, headers=segment.headers) as r:
-            stream.filesize += int(r.headers["Content-length"])
+        async with request('GET', segment.url, headers=segment.headers) as response:
+            stream.filesize += int(response.headers["Content-length"])
             self.progress.update(stream_id, total=stream.filesize)
             self.progress.start_task(stream_id)
             while True:
-                data = await r.content.read(1024)
+                data = await response.content.read(1024)
                 if not data:
                     break
                 segment.content.append(data)
                 self.progress.update(stream_id, advance=len(data))
-        return self.decrypt(segment)
+        return await self.decrypt(segment)
 
-    def decrypt(self, segment: Segment):
+    async def decrypt(self, segment: Segment):
         '''
-        解密部分 后面再写
+        解密部分
         '''
-        return self.dump(segment)
-
-    def dump(self, segment: Segment):
-        # click.secho(f'{segment.name} download end.')
-        with open(segment.get_path(), 'wb') as f:
-            f.write(b''.join(segment.content))
+        if segment.is_encrypt():
+            cipher = CommonAES(segment.xkey.key, binascii.a2b_hex(segment.xkey.iv))
+            cipher.decrypt(segment)
+        else:
+            return segment.dump()

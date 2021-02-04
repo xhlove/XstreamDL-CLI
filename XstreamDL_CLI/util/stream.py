@@ -1,8 +1,11 @@
+import os
 import json
 import click
+import base64
 from typing import List
 from pathlib import Path
 from datetime import datetime
+from .concat import Concat
 from .segment import Segment
 from ..extractors.hls.ext.xkey import XKey
 from ..extractors.hls.ext.xmedia import XMedia
@@ -41,7 +44,8 @@ class Stream:
         self.codecs = None # type: str
         self.quality = None # type: str
         self.stream_type = None # type: str
-        self.xkeys = [] # type: List[XKey]
+        self.xkey = None # type: XKey
+        self.bakcup_xkey = None # type: XKey
         self.xmedias = [] # type: List[XMedia]
         # 初始化默认设定流类型
         self.set_straem_type(stream_type)
@@ -103,10 +107,20 @@ class Stream:
         #     f'duration -> {self.duration:.2f}s\n\t'
         #     f'filesize -> {self.filesize:.2f}MB'
         # )
+        if self.xkey is not None:
+            key = base64.b64encode(self.xkey.key).decode('utf-8')
+            iv = self.xkey.iv
+        else:
+            key = ''
+            iv = '0' * 32
         info = {
             'name': self.name,
             'path': self.save_dir,
             'creatTime': f'{datetime.now()}',
+            'xkey': {
+                'key': key,
+                'iv': iv,
+            },
             'segments': [],
         }
         for segment in self.segments:
@@ -126,7 +140,7 @@ class Stream:
         segment = Segment().set_index(len(self.segments)).set_suffix('.ts').set_folder(self.save_dir)
         self.segments.append(segment)
 
-    def try_fetch_key(self):
+    def try_fetch_key(self, custom_key: str, custom_iv: str):
         '''
         在解析过程中 已经设置了key的信息了
         但是没有请求key 这里是独立加载key的部分
@@ -135,18 +149,28 @@ class Stream:
             - 解析后还有合并流的过程
         所以最佳的方案是在解析之后再进行key的加载
         '''
-        if len(self.xkeys) == 0:
+        custom_xkey = XKey()
+        if custom_key is not None:
+            _key = base64.b64decode(custom_key.encode('utf-8'))
+            custom_xkey.set_key(_key)
+            if custom_iv is not None:
+                custom_xkey.set_iv(custom_iv)
+        if self.xkey is None:
+            if custom_key:
+                # 如果解析后没有密钥相关信息
+                # 而命令行又指定了 也进行设定
+                self.set_segments_key(custom_xkey)
             return
-        for xkey in self.xkeys:
-            if xkey.load() is False:
-                continue
-            self.set_segments_key(xkey)
+        if self.xkey.load(custom_xkey) is True:
+            self.set_segments_key(self.xkey)
 
     def set_segments_key(self, xkey: XKey):
         '''
         和每个分段的key对比 设定对应的解密信息
         '''
-        pass
+        self.xkey = xkey
+        for segment in self.segments:
+            segment.xkey = xkey
 
     def set_straem_type(self, stream_type: str):
         self.stream_type = stream_type
@@ -163,7 +187,13 @@ class Stream:
             self.origin_url = f'{base_url}/{line}'
 
     def set_key(self, home_url: str, base_url: str, line: str):
-        self.xkeys.append(XKey().set_attrs_from_line(home_url, base_url, line))
+        xkey = XKey().set_attrs_from_line(home_url, base_url, line)
+        if xkey is None:
+            return
+        if self.xkey is None:
+            self.xkey = xkey
+        else:
+            self.bakcup_xkey = xkey
 
     def set_media(self, home_url: str, base_url: str, line: str):
         self.xmedia = XMedia().set_attrs_from_line(line)
@@ -184,3 +214,23 @@ class Stream:
 
     def set_xprogram_date_time(self, line: str):
         self.xprogram_date_time = XProgramDateTime().set_attrs_from_line(line)
+
+    def concat(self):
+        out = Path(self.save_dir).with_suffix('.mp4')
+        if out.exists() is True:
+            click.secho(f'尝试合并 {self.name} 但是已经存在合并文件')
+            return
+        names = []
+        for segment in self.segments:
+            segment_path = Path(self.save_dir) / segment.name
+            if segment_path.exists() is False:
+                continue
+            names.append(segment.name)
+        if len(names) != len(self.segments):
+            click.secho(f'尝试合并 {self.name} 但是未下载完成')
+            return
+        cmd = Concat.gen_cmd(out.resolve().as_posix(), names)
+        ori_path = os.getcwd()
+        os.chdir(self.save_dir)
+        os.system(cmd)
+        os.chdir(ori_path)

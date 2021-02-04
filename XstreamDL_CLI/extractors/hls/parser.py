@@ -20,9 +20,9 @@ class Parser(BaseParser):
         stream = Stream(name, self.save_dir, 'hls')
         lines = [line.strip() for line in content.split('\n')]
         offset = 0
-        last_segment_xkeys = None # type: List[XKey]
+        last_segment_xkey = None # type: XKey
         content_is_master_type = False
-        last_segment_has_xkeys = False
+        last_segment_has_xkey = False
         do_not_append_at_end_list_tag = False
         while offset < len(lines):
             segment = stream.segments[-1]
@@ -40,9 +40,9 @@ class Parser(BaseParser):
                     stream.set_key(home_url, base_url, line)
                 else:
                     segment.set_key(home_url, base_url, line)
-                    if last_segment_has_xkeys is False:
-                        last_segment_has_xkeys = True
-                        last_segment_xkeys = segment.get_xkeys()
+                    if last_segment_has_xkey is False:
+                        last_segment_has_xkey = True
+                        last_segment_xkey = segment.get_xkey()
             elif line.startswith('#EXT-X-ALLOW-CACHE'):
                 pass
             elif line.startswith('#EXT-X-MEDIA-SEQUENCE'):
@@ -93,15 +93,15 @@ class Parser(BaseParser):
             else:
                 # 进入此处 说明这一行没有任何已知的#EXT标签 也就是具体媒体文件的链接
                 if offset > 0 and lines[offset - 1].startswith('#EXT-X-BYTERANGE'):
-                    segment.set_xkeys(last_segment_has_xkeys, last_segment_xkeys)
+                    segment.set_xkey(last_segment_has_xkey, last_segment_xkey)
                     segment.set_url(home_url, base_url, line)
                     stream.append_segment()
                 elif offset > 0 and lines[offset - 1].startswith('#EXT-X-PRIVINF'):
-                    segment.set_xkeys(last_segment_has_xkeys, last_segment_xkeys)
+                    segment.set_xkey(last_segment_has_xkey, last_segment_xkey)
                     segment.set_url(home_url, base_url, line)
                     stream.append_segment()
                 elif offset > 0 and lines[offset - 1].startswith('#EXTINF'):
-                    segment.set_xkeys(last_segment_has_xkeys, last_segment_xkeys)
+                    segment.set_xkey(last_segment_has_xkey, last_segment_xkey)
                     segment.set_url(home_url, base_url, line)
                     stream.append_segment()
                 elif offset > 0 and lines[offset - 1].startswith('#EXT-X-STREAM-INF'):

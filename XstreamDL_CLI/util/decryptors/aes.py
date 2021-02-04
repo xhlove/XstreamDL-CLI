@@ -1,9 +1,11 @@
 from Crypto.Cipher import AES
+from ..segment import Segment
 
 
 class CommonAES:
     '''
     这是一个常规的AES-128-CBC解密类
+    或许应该将这个类注册为分段的一个属性？
     '''
 
     def __init__(self, aes_key: bytes, aes_iv: bytes = None):
@@ -12,9 +14,14 @@ class CommonAES:
         if self.aes_iv is None:
             self.aes_iv = bytes([0] * 16)
 
-    def decrypt(self, data: bytes) -> bytes:
+    def decrypt(self, segment: Segment):
         '''
-        初始化解密器
+        解密 落盘
         '''
-        cipher = AES.new(self.aes_key, AES.MODE_CBC, iv=self.aes_iv)
-        return cipher.decrypt(data)
+        try:
+            cipher = AES.new(self.aes_key, AES.MODE_CBC, iv=self.aes_iv)
+            content = cipher.decrypt(b''.join(segment.content))
+        except Exception as e:
+            print(f'decrypt {segment.name} error -> {e}')
+        else:
+            segment.get_path().write_bytes(content)
