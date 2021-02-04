@@ -18,7 +18,17 @@ python -m XstreamDL_CLI.cli FILEPATH/STREAMURL
 python -m XstreamDL_CLI.cli --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8
 ```
 
+```bash
+XstreamDL-CLI_v1.0.0.exe --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8
+```
+
 **合并需要先将ffmpeg置于环境变量**
+
+## pyinstaller打包
+
+```bash
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.0.0 -F XstreamDL_CLI\__main__.py
+```
 
 ## 示意
 
