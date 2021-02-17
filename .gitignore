@@ -3,6 +3,7 @@ tests/
 *.ts
 *.mp4
 sample/*
+releases/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

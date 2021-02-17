@@ -61,7 +61,14 @@ def main():
         print_version()
         sys.exit()
     if len(args.URI) == 0:
-        sys.exit('Paste your URL/FILE/FOLDER string at the end of commands, plz')
+        try:
+            uri = input('Paste your URL/FILE/FOLDER string at the end of commands, plz.\nCtrl C to exit or input here:')
+        except KeyboardInterrupt:
+            sys.exit()
+        if uri.strip() != '':
+            args.URI.append(uri.strip())
+    if len(args.URI) == 0:
+        sys.exit('No URL/FILE/FOLDER input')
     downloader = Downloader()
     downloader.daemon(args)
 

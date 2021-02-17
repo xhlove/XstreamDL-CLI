@@ -47,13 +47,13 @@ class Extractor:
         解析解码后的返回结果
         '''
         if not content:
-            return
+            return []
         if content.startswith('#EXTM3U'):
             return self.parse_as_hls(uri, content)
         elif '<MPD' in content and '</MPD>' in content:
             return self.parse_as_dash(uri, content)
         else:
-            return
+            return []
 
     def parse_as_hls(self, uri: str, content: str) -> List[Stream]:
         _streams = hls_parser(self.args).parse(uri, content)
