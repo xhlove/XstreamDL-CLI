@@ -3,6 +3,8 @@ import asyncio
 import binascii
 from typing import List
 from aiohttp import request
+from aiohttp import TCPConnector
+from aiohttp.client_exceptions import ClientPayloadError, ClientConnectorError
 from argparse import Namespace
 from rich.progress import (
     BarColumn,
@@ -55,6 +57,7 @@ class Downloader:
         streams = extractor.fetch_metadata(args.URI[0])
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.download_all_segments(loop, streams))
+        loop.close()
 
     async def download_all_segments(self, loop: asyncio.AbstractEventLoop, streams: List[Stream]):
         for index, stream in enumerate(streams):
@@ -62,46 +65,79 @@ class Downloader:
         all_results = []
         for stream in streams:
             click.secho(f'{stream.name} download start.')
-            _left_segments = []
-            for segment in stream.segments:
-                segment_path = segment.get_path()
-                if segment_path.exists() is True:
-                    # 文件落盘 说明下载一定成功了
-                    if segment_path.stat().st_size == 0:
-                        segment_path.unlink()
-                    else:
-                        continue
-                _left_segments.append(segment)
-            if len(_left_segments) == 0:
-                stream.concat()
-                continue
-            with self.progress:
-                stream_id = self.progress.add_task("download", name=stream.name, start=False) # TaskID
+            max_failed = 5
+            while max_failed > 0:
+                completed = 0
+                _left_segments = []
+                for segment in stream.segments:
+                    segment_path = segment.get_path()
+                    if segment_path.exists() is True:
+                        # 文件落盘 说明下载一定成功了
+                        if segment_path.stat().st_size == 0:
+                            segment_path.unlink()
+                        else:
+                            completed += segment_path.stat().st_size
+                            continue
+                    _left_segments.append(segment)
+                if len(_left_segments) == 0:
+                    stream.concat()
+                    break
                 tasks = []
-                for segment in _left_segments:
-                    task = loop.create_task(self.download(stream_id, stream, segment))
-                    tasks.append(task)
-                finished, unfinished = await asyncio.wait(tasks)
-                results = []
-                for task in finished:
-                    result = task.result()
-                    results.append(result)
-                all_results.append(results)
-                # click.secho(f'{stream.name} download end.')
-            stream.concat()
+                with self.progress:
+                    stream_id = self.progress.add_task("download", name=stream.name, start=False) # TaskID
+                    if completed > 0:
+                        if stream.filesize > 0:
+                            total = stream.filesize
+                        else:
+                            total = completed
+                            stream.filesize = total
+                        self.progress.update(stream_id, completed=completed, total=total)
+                    else:
+                        if stream.filesize > 0:
+                            total = stream.filesize
+                        else:
+                            total = 0
+                            stream.filesize = total
+                        self.progress.update(stream_id, total=total)
+                    connector = TCPConnector(ttl_dns_cache=300, limit_per_host=4, limit=100, force_close=True, enable_cleanup_closed=True)
+                    for segment in _left_segments:
+                        task = loop.create_task(self.download(connector, stream_id, stream, segment))
+                        tasks.append(task)
+                    finished, unfinished = await asyncio.wait(tasks)
+                    results = []
+                    for task in finished:
+                        result = task.result()
+                        if result is not None:
+                            results.append(result)
+                    all_results.append(results)
+                    # click.secho(f'{stream.name} download end.')
+                if len(results) == len(tasks):
+                    stream.concat()
+                    break
+                max_failed -= 1
         return all_results
 
-    async def download(self, stream_id: TaskID, stream: Stream, segment: Segment):
-        async with request('GET', segment.url, headers=segment.headers) as response:
-            stream.filesize += int(response.headers["Content-length"])
-            self.progress.update(stream_id, total=stream.filesize)
-            self.progress.start_task(stream_id)
-            while True:
-                data = await response.content.read(1024)
-                if not data:
-                    break
-                segment.content.append(data)
-                self.progress.update(stream_id, advance=len(data))
+    async def download(self, connector: TCPConnector, stream_id: TaskID, stream: Stream, segment: Segment):
+        try:
+            async with request('GET', segment.url, connector=connector, headers=segment.headers) as response:
+                stream.filesize += int(response.headers["Content-length"])
+                self.progress.update(stream_id, total=stream.filesize)
+                self.progress.start_task(stream_id)
+                while True:
+                    data = await response.content.read(512)
+                    if not data:
+                        break
+                    segment.content.append(data)
+                    self.progress.update(stream_id, advance=len(data))
+        except ClientConnectorError:
+            return
+        except ClientPayloadError:
+            return
+        except ConnectionResetError:
+            return
+        except Exception as e:
+            print(e, '\n')
+            return
         return await self.decrypt(segment)
 
     async def decrypt(self, segment: Segment):
