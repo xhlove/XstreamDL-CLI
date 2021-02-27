@@ -21,6 +21,7 @@ class CommonAES:
         try:
             cipher = AES.new(self.aes_key, AES.MODE_CBC, iv=self.aes_iv)
             content = cipher.decrypt(b''.join(segment.content))
+            segment.content = []
         except Exception as e:
             print(f'decrypt {segment.name} error -> {e}')
             return False

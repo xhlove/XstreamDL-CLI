@@ -145,4 +145,5 @@ class Segment:
 
     def dump(self) -> bool:
         self.get_path().write_bytes(b''.join(self.content))
+        self.content = []
         return True
