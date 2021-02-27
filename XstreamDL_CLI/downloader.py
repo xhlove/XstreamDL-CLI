@@ -141,7 +141,7 @@ class Downloader:
                         # print('无法下载的m3u8 退出其他下载任务\n')
                         cancel_all_task()
                     else:
-                        print('出现未知status -> {status} 退出其他下载任务\n')
+                        print(f'出现未知status -> {status} 退出其他下载任务\n')
                         cancel_all_task()
                 results[segment] = flag
             else:
