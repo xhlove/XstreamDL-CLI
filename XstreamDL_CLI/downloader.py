@@ -134,15 +134,15 @@ class Downloader:
             if _future.exception() is None:
                 segment, status, flag = _future.result()
                 if flag is None:
-                    print('下载过程中出现已知异常 需重新下载\n')
+                    pass
+                    # print('下载过程中出现已知异常 需重新下载\n')
                 elif flag is False:
                     # 某几类已知异常 如状态码不对 返回头没有文件大小 视为无法下载 主动退出
+                    cancel_all_task()
                     if status in ['STATUS_CODE_ERROR', 'NO_CONTENT_LENGTH']:
-                        # print('无法下载的m3u8 退出其他下载任务\n')
-                        cancel_all_task()
+                        print('无法下载的m3u8 退出其他下载任务\n')
                     else:
                         print(f'出现未知status -> {status} 退出其他下载任务\n')
-                        cancel_all_task()
                 results[segment] = flag
             else:
                 # 出现未知异常 强制退出全部task
@@ -198,7 +198,7 @@ class Downloader:
         except ConnectionResetError:
             return segment, 'ConnectionResetError', None
         except Exception:
-            # print(e, f'{status}\n')
+            print(f'{Exception}\n')
             return segment, status, False
         if flag is False:
             return segment, status, False
