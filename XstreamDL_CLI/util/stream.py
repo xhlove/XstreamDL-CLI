@@ -219,7 +219,7 @@ class Stream:
         out = Path(self.save_dir).with_suffix('.mp4')
         if out.exists() is True:
             click.secho(f'尝试合并 {self.name} 但是已经存在合并文件')
-            return
+            return True
         names = []
         for segment in self.segments:
             segment_path = Path(self.save_dir) / segment.name
@@ -228,9 +228,10 @@ class Stream:
             names.append(segment.name)
         if len(names) != len(self.segments):
             click.secho(f'尝试合并 {self.name} 但是未下载完成')
-            return
+            return False
         cmd = Concat.gen_cmd(out.resolve().as_posix(), names)
         ori_path = os.getcwd()
         os.chdir(self.save_dir)
         os.system(cmd)
         os.chdir(ori_path)
+        return True

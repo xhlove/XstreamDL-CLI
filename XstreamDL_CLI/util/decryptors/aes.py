@@ -14,7 +14,7 @@ class CommonAES:
         if self.aes_iv is None:
             self.aes_iv = bytes([0] * 16)
 
-    def decrypt(self, segment: Segment):
+    def decrypt(self, segment: Segment) -> bool:
         '''
         解密 落盘
         '''
@@ -23,5 +23,7 @@ class CommonAES:
             content = cipher.decrypt(b''.join(segment.content))
         except Exception as e:
             print(f'decrypt {segment.name} error -> {e}')
+            return False
         else:
             segment.get_path().write_bytes(content)
+            return True

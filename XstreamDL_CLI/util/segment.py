@@ -143,5 +143,6 @@ class Segment:
             return
         self.xkey = xkey
 
-    def dump(self):
+    def dump(self) -> bool:
         self.get_path().write_bytes(b''.join(self.content))
+        return True
