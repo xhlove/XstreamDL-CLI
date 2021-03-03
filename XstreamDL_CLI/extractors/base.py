@@ -4,12 +4,15 @@ from argparse import Namespace
 
 class BaseParser:
 
-    def __init__(self, args: Namespace):
+    def __init__(self, args: Namespace, uri_type: str):
         self.args = args
+        self.uri_type = uri_type
         self.save_dir = Path(args.save_dir)
 
     def parse_uri(self, uri: str) -> tuple:
         name = self.args.name
+        if self.uri_type == 'path':
+            name = Path(uri).stem
         home_url, base_url = '', ''
         if uri.startswith('http://') or uri.startswith('https://') or uri.startswith('ftp://'):
             uris = uri.split('?', maxsplit=1)

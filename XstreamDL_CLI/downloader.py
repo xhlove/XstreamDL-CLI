@@ -1,6 +1,7 @@
 import click
 import asyncio
 import binascii
+from concurrent.futures._base import TimeoutError
 from typing import List, Set, Dict
 from asyncio import get_event_loop
 from asyncio import AbstractEventLoop, Future, Task
@@ -46,24 +47,58 @@ class Downloader:
         一直循环调度下载和更新进度
         '''
         if args.repl is False:
-            self.download_one_stream(args)
-            # click.secho('Download end.')
+            self.download_stream(args)
             return
         while self.exit:
             break
 
-    def download_one_stream(self, args: Namespace):
+    def download_stream(self, args: Namespace):
         extractor = Extractor(args)
         streams = extractor.fetch_metadata(args.URI[0])
         loop = get_event_loop()
-        loop.run_until_complete(self.download_all_segments(loop, streams))
+        loop.run_until_complete(self.download_all_segments(args, loop, streams))
         loop.close()
 
-    async def download_all_segments(self, loop: AbstractEventLoop, streams: List[Stream]):
+    def get_selected_index(self, length: int) -> list:
+        selected = []
+        text = input('请输入要下载流的序号：').strip()
+        if text == '':
+            return [index for index in range(length + 1)]
+        elif text.isdigit():
+            return [int(text)]
+        elif '-' in text and len(text.split('-')) == 2:
+            start, end = text.split('-')
+            if start.strip().isdigit() and end.strip().isdigit():
+                return [index for index in range(int(start.strip()), int(end.strip()) + 1)]
+        elif text.replace(' ', '').isdigit():
+            for index in text.split(' '):
+                if index.strip().isdigit():
+                    if int(index.strip()) <= length:
+                        selected.append(int(index))
+            return selected
+        elif text.replace(',', '').replace(' ', '').isdigit():
+            for index in text.split(','):
+                if index.strip().isdigit():
+                    if int(index.strip()) <= length:
+                        selected.append(int(index))
+            return selected
+        return selected
+
+    async def download_all_segments(self, args: Namespace, loop: AbstractEventLoop, streams: List[Stream]):
+        if streams is None:
+            return
+        if len(streams) == 0:
+            return
         for index, stream in enumerate(streams):
             stream.show_info(index)
+        if args.select is True:
+            selected = self.get_selected_index(len(streams))
+        else:
+            selected = [index for index in range(len(streams) + 1)]
         all_results = []
-        for stream in streams:
+        for index, stream in enumerate(streams):
+            if index not in selected:
+                continue
             click.secho(f'{stream.name} download start.')
             max_failed = 5
             while max_failed > 0:
@@ -162,7 +197,7 @@ class Downloader:
         # 没有需要下载的则尝试合并 返回False则说明需要继续下载完整
         with self.progress:
             stream_id = self.init_progress(stream, completed)
-            connector = TCPConnector(ttl_dns_cache=300, limit_per_host=4, limit=100, force_close=True, enable_cleanup_closed=True)
+            connector = TCPConnector(ttl_dns_cache=300, limit_per_host=4, limit=100, force_close=False, enable_cleanup_closed=False)
             for segment in _left:
                 task = loop.create_task(self.download(connector, stream_id, stream, segment))
                 task.add_done_callback(_done_callback)
@@ -191,6 +226,8 @@ class Downloader:
                             break
                         segment.content.append(data)
                         self.progress.update(stream_id, advance=len(data))
+        except TimeoutError:
+            return segment, 'TimeoutError', None
         except ClientConnectorError:
             return segment, 'ClientConnectorError', None
         except ClientPayloadError:
@@ -198,7 +235,6 @@ class Downloader:
         except ConnectionResetError:
             return segment, 'ConnectionResetError', None
         except Exception:
-            print(f'{Exception}\n')
             return segment, status, False
         if flag is False:
             return segment, status, False

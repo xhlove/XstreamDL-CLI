@@ -2,6 +2,7 @@
 tests/
 *.ts
 *.mp4
+*.m3u8
 sample/*
 releases/*
 

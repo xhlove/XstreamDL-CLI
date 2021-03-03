@@ -1,5 +1,6 @@
 import click
 from typing import List
+from argparse import Namespace
 from ...util.stream import Stream
 from ..base import BaseParser
 from .ext.xkey import XKey
@@ -7,8 +8,8 @@ from .ext.xkey import XKey
 
 class Parser(BaseParser):
 
-    def __init__(self, args):
-        super(Parser, self).__init__(args)
+    def __init__(self, args: Namespace, uri_type: str):
+        super(Parser, self).__init__(args, uri_type)
 
     def parse(self, uri: str, content: str) -> List[Stream]:
         uris = self.parse_uri(uri)
