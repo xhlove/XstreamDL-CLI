@@ -58,8 +58,6 @@ def main():
 
     parser.add_argument('URI', nargs='*', help='URL/FILE/FOLDER string')
     args = parser.parse_args()
-    print(type(args.URI))
-    exit()
     command_handler(args)
     if args.help:
         print_version()
