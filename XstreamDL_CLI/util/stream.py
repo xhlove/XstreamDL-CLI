@@ -27,9 +27,9 @@ class Stream:
     一些可选的属性
     - 语言
     '''
-    def __init__(self, name: str, save_dir: Path, stream_type: str):
+    def __init__(self, name: str, save_dir: str, stream_type: str):
         self.name = name
-        self.save_dir = (save_dir / name).resolve().as_posix()
+        self.save_dir = (Path(save_dir) / name).resolve().as_posix()
         self.segments = [] # type: List[Segment]
         self.duration = 0.0
         self.filesize = 0

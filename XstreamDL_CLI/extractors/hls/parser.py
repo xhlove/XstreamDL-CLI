@@ -83,7 +83,7 @@ class Parser:
                 # 此标签后面的分段都认为是一个新的Stream 直到结束或下一个相同标签出现
                 # 对于优酷 根据特征字符匹配 移除不需要的Stream 然后将剩余的Stream合并
                 streams.append(stream)
-                stream = Stream(name, self.aegs.save_dir, 'hls')
+                stream = Stream(name, self.args.save_dir, 'hls')
                 stream.set_tag('#EXT-X-DISCONTINUITY')
             elif line.startswith('#EXT-X-MAP'):
                 segment.set_map_url(home_url, base_url, line)
