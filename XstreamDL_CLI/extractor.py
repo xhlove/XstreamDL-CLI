@@ -1,4 +1,3 @@
-import click
 import aiohttp
 import asyncio
 from typing import List
@@ -27,7 +26,7 @@ class Extractor:
         '''
         if uri.startswith('http://') or uri.startswith('https://') or uri.startswith('ftp://'):
             loop = asyncio.get_event_loop()
-            return self.raw2streams(uri, loop.run_until_complete(self.fetch(uri)))
+            return self.raw2streams('url', uri, loop.run_until_complete(self.fetch(uri)))
         illegal_symbols = ["\\", "/", ":", "：", "*", "?", "\"", "<", ">", "|", "\r", "\n", "\t"]
         is_illegal_path = True
         for illegal_symbol in illegal_symbols:
@@ -39,7 +38,7 @@ class Extractor:
         if Path(uri).exists() is False:
             return
         if Path(uri).is_file():
-            return self.raw2streams('url', uri, Path(uri).read_text(encoding='utf-8'))
+            return self.raw2streams('path', uri, Path(uri).read_text(encoding='utf-8'))
         if Path(uri).is_dir() is False:
             return
         streams = []
