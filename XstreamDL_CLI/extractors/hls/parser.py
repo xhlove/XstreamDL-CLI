@@ -1,15 +1,36 @@
 import click
 from typing import List
-from argparse import Namespace
-from ...util.stream import Stream
-from ..base import BaseParser
-from .ext.xkey import XKey
+from pathlib import Path
+from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.util.stream import Stream
+from XstreamDL_CLI.extractors.hls.ext.xkey import XKey
 
 
-class Parser(BaseParser):
+class Parser:
+    def __init__(self, args: CmdArgs, uri_type: str):
+        self.args = args
+        self.uri_type = uri_type
 
-    def __init__(self, args: Namespace, uri_type: str):
-        super(Parser, self).__init__(args, uri_type)
+    def parse_uri(self, uri: str) -> tuple:
+        name = self.args.name
+        if self.uri_type == 'path':
+            name = Path(uri).stem
+        home_url, base_url = '', ''
+        if uri.startswith('http://') or uri.startswith('https://') or uri.startswith('ftp://'):
+            uris = uri.split('?', maxsplit=1)
+            if name == '':
+                name = uris[0][::-1].split('/', maxsplit=1)[0][::-1]
+            if name.endswith('.m3u8'):
+                name = name[:-5]
+            home_url = '/'.join(uris[0].split('/', maxsplit=3)[:-1])
+            base_url = uris[0][::-1].split('/', maxsplit=1)[-1][::-1]
+        elif Path(uri).exists():
+            if name == '':
+                name = Path(uri).stem
+        if self.args.base_url != '':
+            base_url = self.args.base_url
+            home_url = '/'.join(base_url.split('/', maxsplit=3)[:-1])
+        return name, home_url, base_url
 
     def parse(self, uri: str, content: str) -> List[Stream]:
         uris = self.parse_uri(uri)
@@ -18,7 +39,7 @@ class Parser(BaseParser):
             return []
         name, home_url, base_url = uris
         streams = []
-        stream = Stream(name, self.save_dir, 'hls')
+        stream = Stream(name, self.args.save_dir, 'hls')
         lines = [line.strip() for line in content.split('\n')]
         offset = 0
         last_segment_xkey = None # type: XKey
@@ -62,7 +83,7 @@ class Parser(BaseParser):
                 # 此标签后面的分段都认为是一个新的Stream 直到结束或下一个相同标签出现
                 # 对于优酷 根据特征字符匹配 移除不需要的Stream 然后将剩余的Stream合并
                 streams.append(stream)
-                stream = Stream(name, self.save_dir, 'hls')
+                stream = Stream(name, self.aegs.save_dir, 'hls')
                 stream.set_tag('#EXT-X-DISCONTINUITY')
             elif line.startswith('#EXT-X-MAP'):
                 segment.set_map_url(home_url, base_url, line)
@@ -81,7 +102,7 @@ class Parser(BaseParser):
                 stream.set_media(home_url, base_url, line)
                 content_is_master_type = True
                 streams.append(stream)
-                stream = Stream(name, self.save_dir, 'hls')
+                stream = Stream(name, self.args.save_dir, 'hls')
             elif line.startswith('#EXT-X-STREAM-INF'):
                 stream.set_tag('#EXT-X-STREAM-INF')
                 stream.set_xstream_inf(line)
@@ -108,7 +129,7 @@ class Parser(BaseParser):
                 elif offset > 0 and lines[offset - 1].startswith('#EXT-X-STREAM-INF'):
                     stream.set_url(home_url, base_url, line)
                     streams.append(stream)
-                    stream = Stream(name, self.save_dir, 'hls')
+                    stream = Stream(name, self.args.save_dir, 'hls')
                     do_not_append_at_end_list_tag = True
                 else:
                     click.secho(f'unknow what to do here ->\n\t{line}')

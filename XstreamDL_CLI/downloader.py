@@ -7,7 +7,6 @@ from asyncio import get_event_loop
 from asyncio import AbstractEventLoop, Future, Task
 from aiohttp import request, TCPConnector
 from aiohttp.client_exceptions import ClientPayloadError, ClientConnectorError
-from argparse import Namespace
 from rich.progress import (
     BarColumn,
     DownloadColumn,
@@ -17,6 +16,7 @@ from rich.progress import (
     Progress,
     TaskID,
 )
+from .cmdargs import CmdArgs
 from .extractor import Extractor
 from .util.stream import Stream
 from .util.segment import Segment
@@ -25,7 +25,8 @@ from .util.decryptors.aes import CommonAES
 
 class Downloader:
 
-    def __init__(self):
+    def __init__(self, args: CmdArgs):
+        self.args = args
         self.exit = False
         # <---来自命令行的设置--->
         self.max_concurrent_downloads = 1
@@ -42,21 +43,21 @@ class Downloader:
             TimeRemainingColumn(),
         )
 
-    def daemon(self, args: Namespace):
+    def daemon(self):
         '''
         一直循环调度下载和更新进度
         '''
-        if args.repl is False:
-            self.download_stream(args)
+        if self.args.repl is False:
+            self.download_stream()
             return
         while self.exit:
             break
 
-    def download_stream(self, args: Namespace):
-        extractor = Extractor(args)
-        streams = extractor.fetch_metadata(args.URI[0])
+    def download_stream(self):
+        extractor = Extractor(self.args)
+        streams = extractor.fetch_metadata(self.args.URI[0])
         loop = get_event_loop()
-        loop.run_until_complete(self.download_all_segments(args, loop, streams))
+        loop.run_until_complete(self.download_all_segments(loop, streams))
         loop.close()
 
     def get_selected_index(self, length: int) -> list:
@@ -84,14 +85,14 @@ class Downloader:
             return selected
         return selected
 
-    async def download_all_segments(self, args: Namespace, loop: AbstractEventLoop, streams: List[Stream]):
+    async def download_all_segments(self, loop: AbstractEventLoop, streams: List[Stream]):
         if streams is None:
             return
         if len(streams) == 0:
             return
         for index, stream in enumerate(streams):
             stream.show_info(index)
-        if args.select is True:
+        if self.args.select is True:
             selected = self.get_selected_index(len(streams))
         else:
             selected = [index for index in range(len(streams) + 1)]
@@ -190,14 +191,19 @@ class Downloader:
                 task.remove_done_callback(_done_callback)
             for task in filter(lambda task: not task.done(), tasks):
                 task.cancel()
-
+        connector = TCPConnector(
+            ttl_dns_cache=300,
+            limit_per_host=4,
+            limit=500,
+            force_close=self.args.force_close,
+            enable_cleanup_closed=self.args.force_close
+        )
         completed, _left = self.get_left_segments(stream)
         if len(_left) == 0:
             return results
         # 没有需要下载的则尝试合并 返回False则说明需要继续下载完整
         with self.progress:
             stream_id = self.init_progress(stream, completed)
-            connector = TCPConnector(ttl_dns_cache=300, limit_per_host=4, limit=100, force_close=False, enable_cleanup_closed=False)
             for segment in _left:
                 task = loop.create_task(self.download(connector, stream_id, stream, segment))
                 task.add_done_callback(_done_callback)

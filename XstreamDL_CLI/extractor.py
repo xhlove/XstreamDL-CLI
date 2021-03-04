@@ -2,11 +2,10 @@ import aiohttp
 import asyncio
 from typing import List
 from pathlib import Path
-from argparse import Namespace
 from urllib.request import getproxies
-
-from .util.stream import Stream
-from .extractors.hls.parser import Parser as hls_parser
+from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.util.stream import Stream
+from XstreamDL_CLI.extractors.hls.parser import Parser as HLSParser
 
 
 class Extractor:
@@ -16,7 +15,7 @@ class Extractor:
     或者读取含有多个元数据文件的文件夹
     最终得到一个Stream（流）对象供Downloader（下载器）下载
     '''
-    def __init__(self, args: Namespace):
+    def __init__(self, args: CmdArgs):
         self.args = args
         self.proxies = getproxies()
 
@@ -68,7 +67,7 @@ class Extractor:
             return []
 
     def parse_as_hls(self, uri_type: str, uri: str, content: str) -> List[Stream]:
-        _streams = hls_parser(self.args, uri_type).parse(uri, content)
+        _streams = HLSParser(self.args, uri_type).parse(uri, content)
         streams = []
         for stream in _streams:
             # 针对master类型加载详细内容

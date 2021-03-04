@@ -43,6 +43,12 @@ def main():
         '--select',
         action='store_true',
         help='Show stream to select and download, default is to download all')
+    parser.add_argument(
+        '-force-close',
+        '--force-close',
+        action='store_true',
+        help='Make all connections closed securely, but it will make DL speed slower'
+    )
     parser.add_argument('-b64key', '--b64key', default=None, help='base64 format aes key')
     parser.add_argument('-hexiv', '--hexiv', default=None, help='hex format aes iv')
     parser.add_argument('-repl', '--repl', action='store_true', help='Repl mode')
@@ -52,6 +58,8 @@ def main():
 
     parser.add_argument('URI', nargs='*', help='URL/FILE/FOLDER string')
     args = parser.parse_args()
+    print(type(args.URI))
+    exit()
     command_handler(args)
     if args.help:
         print_version()
@@ -69,8 +77,8 @@ def main():
             args.URI.append(uri.strip())
     if len(args.URI) == 0:
         sys.exit('No URL/FILE/FOLDER input')
-    downloader = Downloader()
-    downloader.daemon(args)
+    downloader = Downloader(args)
+    downloader.daemon()
 
 
 if __name__ == '__main__':
