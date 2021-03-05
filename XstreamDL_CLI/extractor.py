@@ -18,6 +18,13 @@ class Extractor:
     def __init__(self, args: CmdArgs):
         self.args = args
         self.proxies = getproxies()
+        self.headers = {
+            'user-agent': (
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                'AppleWebKit/537.36 (KHTML, like Gecko) '
+                'Chrome/87.0.4280.141 Safari/537.36'
+            )
+        }
 
     def fetch_metadata(self, uri: str):
         '''
@@ -50,7 +57,7 @@ class Extractor:
 
     async def fetch(self, url: str) -> str:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, proxy=self.args.proxy, headers=self.headers) as response:
                 return await response.text(encoding='utf-8')
 
     def raw2streams(self, uri_type: str, uri: str, content: str) -> List[Stream]:
@@ -80,7 +87,7 @@ class Extractor:
             streams.extend(new_streams)
         # 在全部流解析完成后 再处理key
         for stream in streams:
-            stream.try_fetch_key(self.args.b64key, self.args.hexiv)
+            stream.try_fetch_key(self.args)
         return streams
 
     def parse_as_dash(self, uri: str, content: str) -> List[Stream]:
