@@ -184,7 +184,7 @@ class Downloader:
                 # 出现未知异常 强制退出全部task
                 print('出现未知异常 强制退出全部task\n')
                 cancel_all_task()
-                results[segment] = False
+                results['未知segment'] = False
 
         def cancel_all_task() -> None:
             for task in tasks:
@@ -193,8 +193,8 @@ class Downloader:
                 task.cancel()
         connector = TCPConnector(
             ttl_dns_cache=300,
-            limit_per_host=4,
-            limit=500,
+            limit_per_host=1000,
+            limit=1000,
             force_close=self.args.force_close,
             enable_cleanup_closed=self.args.force_close
         )
@@ -215,7 +215,7 @@ class Downloader:
     async def download(self, connector: TCPConnector, stream_id: TaskID, stream: Stream, segment: Segment):
         status, flag = 'EXIT', True
         try:
-            async with request('GET', segment.url, connector=connector, headers=segment.headers) as response:
+            async with request('GET', segment.url, proxy=self.args.proxy, connector=connector, headers=segment.headers) as response:
                 if response.status == 405:
                     status = 'STATUS_CODE_ERROR'
                     flag = False
