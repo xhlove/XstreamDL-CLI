@@ -57,7 +57,7 @@ class Parser:
             elif line.startswith('#EXT-X-VERSION'):
                 pass
             elif line.startswith('#EXT-X-KEY'):
-                if offset > 0 and lines[offset - 1].startswith('#EXT-X-VERSION'):
+                if offset > 0 and lines[offset - 1].startswith('#EXT-X-'):
                     # 把这个位置的#EXT-X-KEY认为是全局的
                     stream.set_key(home_url, base_url, line)
                 else:
