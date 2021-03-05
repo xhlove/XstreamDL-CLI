@@ -3,7 +3,7 @@ class CmdArgs:
     def __init__(self):
         self.save_dir = None # type: str
         self.base_url = None # type: str
-        self.force_close = None # type: bool
+        self.disable_force_close = None # type: bool
         self.b64key = None # type: str
         self.hexiv = None # type: str
         self.proxy = None # type: str

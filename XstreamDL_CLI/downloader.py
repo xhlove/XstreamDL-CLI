@@ -1,12 +1,13 @@
 import click
 import asyncio
 import binascii
+import logging
 from concurrent.futures._base import TimeoutError
 from typing import List, Set, Dict
 from asyncio import get_event_loop
 from asyncio import AbstractEventLoop, Future, Task
 from aiohttp import request, TCPConnector
-from aiohttp.client_exceptions import ClientPayloadError, ClientConnectorError
+import aiohttp.client_exceptions
 from rich.progress import (
     BarColumn,
     DownloadColumn,
@@ -26,6 +27,7 @@ from .util.decryptors.aes import CommonAES
 class Downloader:
 
     def __init__(self, args: CmdArgs):
+        self.logger = logging.getLogger('downloader')
         self.args = args
         self.exit = False
         # <---来自命令行的设置--->
@@ -193,11 +195,12 @@ class Downloader:
                 task.cancel()
         connector = TCPConnector(
             ttl_dns_cache=300,
-            limit_per_host=1000,
-            limit=1000,
-            force_close=self.args.force_close,
-            enable_cleanup_closed=self.args.force_close
+            limit_per_host=4,
+            limit=500,
+            force_close=self.args.disable_force_close,
+            enable_cleanup_closed=self.args.disable_force_close
         )
+        # limit_per_host 根据不同网站和网络状况调整 如果与目标地址连接性较好 那么设置小一点比较好
         completed, _left = self.get_left_segments(stream)
         if len(_left) == 0:
             return results
@@ -234,13 +237,16 @@ class Downloader:
                         self.progress.update(stream_id, advance=len(data))
         except TimeoutError:
             return segment, 'TimeoutError', None
-        except ClientConnectorError:
+        except aiohttp.client_exceptions.ClientConnectorError:
             return segment, 'ClientConnectorError', None
-        except ClientPayloadError:
+        except aiohttp.client_exceptions.ClientPayloadError:
             return segment, 'ClientPayloadError', None
         except ConnectionResetError:
             return segment, 'ConnectionResetError', None
-        except Exception:
+        except aiohttp.client_exceptions.ClientOSError:
+            return segment, 'ClientOSError', None
+        except Exception as e:
+            self.logger.error('!', exc_info=e)
             return segment, status, False
         if flag is False:
             return segment, status, False

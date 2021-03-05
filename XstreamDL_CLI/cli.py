@@ -45,10 +45,10 @@ def main():
         action='store_true',
         help='Show stream to select and download, default is to download all')
     parser.add_argument(
-        '-force-close',
-        '--force-close',
+        '-disable-force-close',
+        '--disable-force-close',
         action='store_true',
-        help='Make all connections closed securely, but it will make DL speed slower'
+        help='Default make all connections closed securely, but it will make DL speed slower'
     )
     parser.add_argument('-b64key', '--b64key', default=None, help='base64 format aes key')
     parser.add_argument('-hexiv', '--hexiv', default=None, help='hex format aes iv')
