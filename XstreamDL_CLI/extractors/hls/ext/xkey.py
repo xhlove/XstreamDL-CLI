@@ -2,7 +2,7 @@
 import aiohttp
 import asyncio
 from .x import X
-
+from XstreamDL_CLI.cmdargs import CmdArgs
 
 DEFAULT_IV = '0' * 32
 
@@ -39,6 +39,13 @@ class XKey(X):
             'KEYFORMATVERSIONS': 'keyformatversions',
             'KEYFORMAT': 'keyformat',
         }
+        self.headers = {
+            'user-agent': (
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                'AppleWebKit/537.36 (KHTML, like Gecko) '
+                'Chrome/87.0.4280.141 Safari/537.36'
+            )
+        }
 
     def set_key(self, key: bytes):
         self.key = key
@@ -55,27 +62,35 @@ class XKey(X):
         key的链接可能不全 用home_url或base_url进行补齐 具体处理后面做
         '''
         line = line.replace('MEATHOD', 'METHOD')
-        return super(XKey, self).set_attrs_from_line(line)
+        super(XKey, self).set_attrs_from_line(line)
+        key_type, self.uri = self.gen_hls_key_uri(home_url, base_url)
+        if self.iv.lower().startswith('0x'):
+            self.iv = self.iv[2:]
+        return self
 
-    def gen_hls_key_uri(self, uri: str):
+    def gen_hls_key_uri(self, home_url: str, base_url: str):
         '''
         解析时 不具体调用这个函数 需要的地方再转换
         data:text/plain;base64,AAAASnBzc2gAAAAA7e+LqXnWSs6jyCfc1R0h7QAAACoSEKg079lX5xeK9g/zZPwXENESEKg079lX5xeK9g/zZPwXENFI88aJmwY=
         skd://a834efd957e7178af60ff364fc1710d1
         '''
-        if uri.startswith('data:text/plain;base64,'):
-            return 'base64', uri.split(',', maxsplit=1)[-1]
-        elif uri.startswith('skd://'):
-            return 'skd', uri.split('/', maxsplit=1)[-1]
+        if self.uri.startswith('data:text/plain;base64,'):
+            return 'base64', self.uri.split(',', maxsplit=1)[-1]
+        elif self.uri.startswith('skd://'):
+            return 'skd', self.uri.split('/', maxsplit=1)[-1]
+        elif self.uri.startswith('http'):
+            return 'http', self.uri
+        elif self.uri.startswith('/'):
+            return 'http', home_url + self.uri
         else:
-            return 'unknow', uri
+            return 'http', base_url + '/' + self.uri
 
-    async def fetch(self, url: str) -> bytes:
+    async def fetch(self, url: str, proxy: str) -> bytes:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, proxy=proxy, headers=self.headers) as response:
                 return await response.content.read()
 
-    def load(self, custom_xkey: 'XKey'):
+    def load(self, args: CmdArgs, custom_xkey: 'XKey'):
         '''
         如果custom_xkey存在key 那么覆盖解析结果中的key
         并且不进行请求key的动作 同时覆盖iv 如果有自定义iv的话
@@ -87,7 +102,7 @@ class XKey(X):
             return
         if self.uri.startswith('http://') or self.uri.startswith('https://'):
             loop = asyncio.get_event_loop()
-            self.key = loop.run_until_complete(self.fetch(self.uri))
+            self.key = loop.run_until_complete(self.fetch(self.uri, args.proxy))
         elif self.uri.startswith('ftp://'):
             return False
         return True

@@ -12,6 +12,7 @@ from ..extractors.hls.ext.xmedia import XMedia
 from ..extractors.hls.ext.xdaterange import XDateRange
 from ..extractors.hls.ext.xstream_inf import XStreamInf
 from ..extractors.hls.ext.xprogram_date_time import XProgramDateTime
+from XstreamDL_CLI.cmdargs import CmdArgs
 
 
 class Stream:
@@ -140,7 +141,7 @@ class Stream:
         segment = Segment().set_index(len(self.segments)).set_suffix('.ts').set_folder(self.save_dir)
         self.segments.append(segment)
 
-    def try_fetch_key(self, custom_key: str, custom_iv: str):
+    def try_fetch_key(self, args: CmdArgs):
         '''
         在解析过程中 已经设置了key的信息了
         但是没有请求key 这里是独立加载key的部分
@@ -150,18 +151,18 @@ class Stream:
         所以最佳的方案是在解析之后再进行key的加载
         '''
         custom_xkey = XKey()
-        if custom_key is not None:
-            _key = base64.b64decode(custom_key.encode('utf-8'))
+        if args.b64key is not None:
+            _key = base64.b64decode(args.b64key.encode('utf-8'))
             custom_xkey.set_key(_key)
-            if custom_iv is not None:
-                custom_xkey.set_iv(custom_iv)
+            if args.hexiv is not None:
+                custom_xkey.set_iv(args.hexiv)
         if self.xkey is None:
-            if custom_key:
+            if args.b64key:
                 # 如果解析后没有密钥相关信息
                 # 而命令行又指定了 也进行设定
                 self.set_segments_key(custom_xkey)
             return
-        if self.xkey.load(custom_xkey) is True:
+        if self.xkey.load(args, custom_xkey) is True:
             self.set_segments_key(self.xkey)
 
     def set_segments_key(self, xkey: XKey):
