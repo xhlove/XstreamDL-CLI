@@ -6,6 +6,7 @@ class CmdArgs:
         self.force_close = None # type: bool
         self.b64key = None # type: str
         self.hexiv = None # type: str
+        self.proxy = None # type: str
         self.repl = None # type: bool
         self.name = None # type: str
         self.URI = None # type: list

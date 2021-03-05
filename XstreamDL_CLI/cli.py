@@ -2,13 +2,14 @@ import sys
 import click
 import base64
 from pathlib import Path
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser
 
+from .cmdargs import CmdArgs
 from .version import __version__
 from .downloader import Downloader
 
 
-def command_handler(args: Namespace):
+def command_handler(args: CmdArgs):
     '''
     对命令参数进行校验和修正
     '''
@@ -51,7 +52,8 @@ def main():
     )
     parser.add_argument('-b64key', '--b64key', default=None, help='base64 format aes key')
     parser.add_argument('-hexiv', '--hexiv', default=None, help='hex format aes iv')
-    parser.add_argument('-repl', '--repl', action='store_true', help='Repl mode')
+    parser.add_argument('-proxy', '--proxy', default=None, help='use http proxy, e.g. http://127.0.0.1:1080')
+    parser.add_argument('-repl', '--repl', action='store_true', help='REPL mode')
 
     dump_group = parser.add_argument_group('Dump options')
     dump_group.add_argument('-name', '--name', default='', help='Specific stream base name')
