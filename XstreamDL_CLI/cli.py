@@ -17,6 +17,7 @@ def command_handler(args: CmdArgs):
     if Path(args.save_dir).exists() is False:
         Path(args.save_dir).mkdir()
     args.headers = Headers().get(args)
+    args.limit_per_host = int(args.limit_per_host)
     if args.b64key is not None:
         try:
             _ = base64.b64decode(args.b64key)
