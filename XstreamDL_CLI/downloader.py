@@ -197,8 +197,8 @@ class Downloader:
             ttl_dns_cache=300,
             limit_per_host=4,
             limit=500,
-            force_close=self.args.disable_force_close,
-            enable_cleanup_closed=self.args.disable_force_close
+            force_close=not self.args.disable_force_close,
+            enable_cleanup_closed=not self.args.disable_force_close
         )
         # limit_per_host 根据不同网站和网络状况调整 如果与目标地址连接性较好 那么设置小一点比较好
         completed, _left = self.get_left_segments(stream)
