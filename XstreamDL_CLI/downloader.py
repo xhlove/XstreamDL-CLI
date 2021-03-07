@@ -5,8 +5,7 @@ import logging
 from typing import List, Set, Dict
 from asyncio import get_event_loop
 from asyncio import AbstractEventLoop, Future, Task
-from aiohttp import ClientSession, ClientResponse, TCPConnector
-import aiohttp.client_exceptions
+from aiohttp import ClientSession, ClientResponse, TCPConnector, client_exceptions
 from concurrent.futures._base import TimeoutError
 from rich.progress import (
     BarColumn,
@@ -219,7 +218,7 @@ class Downloader:
         proxy, headers = self.args.proxy, self.args.headers
         status, flag = 'EXIT', True
         try:
-            async with aiohttp.ClientSession(connector=self.connector) as client: # type: ClientSession
+            async with ClientSession(connector=self.connector) as client: # type: ClientSession
                 async with client.get(segment.url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
                     if resp.status == 405:
                         status = 'STATUS_CODE_ERROR'
@@ -239,13 +238,11 @@ class Downloader:
                             self.progress.update(stream_id, advance=len(data))
         except TimeoutError:
             return segment, 'TimeoutError', None
-        except aiohttp.client_exceptions.ClientConnectorError:
+        except client_exceptions.ClientConnectorError:
             return segment, 'ClientConnectorError', None
-        except aiohttp.client_exceptions.ClientPayloadError:
+        except client_exceptions.ClientPayloadError:
             return segment, 'ClientPayloadError', None
-        except ConnectionResetError:
-            return segment, 'ConnectionResetError', None
-        except aiohttp.client_exceptions.ClientOSError:
+        except client_exceptions.ClientOSError:
             return segment, 'ClientOSError', None
         except Exception as e:
             self.logger.error('!', exc_info=e)

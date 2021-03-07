@@ -37,10 +37,11 @@ def main():
         description='A downloader that download the HLS/DASH stream',
         add_help=False,
     )
-    parser.add_argument('-V', '--version', action='store_true', help='Print version and exit')
-    parser.add_argument('-h', '--help', action='store_true', help='Print this help message and exit')
-    parser.add_argument('-save-dir', '--save-dir', default='Downloads', help='Set save dir for Stream')
+    parser.add_argument('-v', '--version', action='store_true', help='Print version and exit')
+    parser.add_argument('-h', '--help', action='store_true', help='Print help message and exit')
+    parser.add_argument('-name', '--name', default='', help='Specific stream base name')
     parser.add_argument('-base', '--base-url', default='', help='Set base url for Stream')
+    parser.add_argument('-save-dir', '--save-dir', default='Downloads', help='Set save dir for Stream')
     parser.add_argument(
         '--select',
         action='store_true',
@@ -62,14 +63,10 @@ def main():
         default='',
         help='set custom headers for request, separators is |, e.g. "header1:value1|header2:value2"'
     )
-    parser.add_argument('-b64key', '--b64key', default=None, help='base64 format aes key')
-    parser.add_argument('-hexiv', '--hexiv', default=None, help='hex format aes iv')
-    parser.add_argument('-proxy', '--proxy', default=None, help='use http proxy, e.g. http://127.0.0.1:1080')
-    parser.add_argument('-repl', '--repl', action='store_true', help='REPL mode')
-
-    dump_group = parser.add_argument_group('Dump options')
-    dump_group.add_argument('-name', '--name', default='', help='Specific stream base name')
-
+    parser.add_argument('--b64key', default=None, help='base64 format aes key')
+    parser.add_argument('--hexiv', default=None, help='hex format aes iv')
+    parser.add_argument('--proxy', default=None, help='use http proxy, e.g. http://127.0.0.1:1080')
+    parser.add_argument('--repl', action='store_true', help='REPL mode')
     parser.add_argument('URI', nargs='*', help='URL/FILE/FOLDER string')
     args = parser.parse_args()
     command_handler(args)
