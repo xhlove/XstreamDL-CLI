@@ -135,7 +135,8 @@ class Downloader:
                     max_failed -= 1
                     continue
                 else:
-                    stream.concat()
+                    if self.args.disable_auto_concat is False:
+                        stream.concat()
                     break
         return all_results
 
@@ -261,7 +262,7 @@ class Downloader:
         '''
         解密部分
         '''
-        if segment.is_encrypt():
+        if segment.is_encrypt() and segment.is_supported_encryption():
             cipher = CommonAES(segment.xkey.key, binascii.a2b_hex(segment.xkey.iv))
             return cipher.decrypt(segment)
         else:

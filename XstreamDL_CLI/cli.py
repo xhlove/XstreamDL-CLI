@@ -64,6 +64,7 @@ def main():
         default='',
         help='set custom headers for request, separators is |, e.g. "header1:value1|header2:value2"'
     )
+    parser.add_argument('--disable-auto-concat', action='store_true', help='Disable auto concat')
     parser.add_argument('--b64key', default=None, help='base64 format aes key')
     parser.add_argument('--hexiv', default=None, help='hex format aes iv')
     parser.add_argument('--proxy', default=None, help='use http proxy, e.g. http://127.0.0.1:1080')

@@ -81,7 +81,7 @@ optional arguments:
 ## pyinstaller打包
 
 ```bash
-pyinstaller -i logo.ico -n XstreamDL-CLI_v1.0.0 -F XstreamDL_CLI\__main__.py
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.1.0 -F XstreamDL_CLI\__main__.py
 ```
 
 ## 示意

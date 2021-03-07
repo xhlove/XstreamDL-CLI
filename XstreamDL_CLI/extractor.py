@@ -1,7 +1,6 @@
 import asyncio
 from typing import List
 from pathlib import Path
-from urllib.request import getproxies
 from aiohttp import ClientSession, ClientResponse
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.util.stream import Stream
@@ -17,14 +16,6 @@ class Extractor:
     '''
     def __init__(self, args: CmdArgs):
         self.args = args
-        self.proxies = getproxies()
-        self.headers = {
-            'user-agent': (
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                'AppleWebKit/537.36 (KHTML, like Gecko) '
-                'Chrome/87.0.4280.141 Safari/537.36'
-            )
-        }
 
     def fetch_metadata(self, uri: str):
         '''

@@ -11,6 +11,7 @@ class CmdArgs:
         self.user_agent = None # type: str
         self.referer = None # type: str
         self.headers = None # type: Union[str, dict]
+        self.disable_auto_concat = None # type: bool
         self.b64key = None # type: str
         self.hexiv = None # type: str
         self.proxy = None # type: Union[str, None]

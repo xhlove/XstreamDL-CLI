@@ -39,7 +39,8 @@ class HLSParser:
             return []
         name, home_url, base_url = uris
         streams = []
-        stream = Stream(name, self.args.save_dir, 'hls')
+        sindex = 0
+        stream = Stream(sindex, name, self.args.save_dir, 'hls')
         lines = [line.strip() for line in content.split('\n')]
         offset = 0
         last_segment_xkey = None # type: XKey
@@ -82,11 +83,17 @@ class HLSParser:
             elif line.startswith('#EXT-X-DISCONTINUITY'):
                 # 此标签后面的分段都认为是一个新的Stream 直到结束或下一个相同标签出现
                 # 对于优酷 根据特征字符匹配 移除不需要的Stream 然后将剩余的Stream合并
+                sindex += 1
+                _xkey = stream.xkey
+                _bakcup_xkey = stream.bakcup_xkey
                 streams.append(stream)
-                stream = Stream(name, self.args.save_dir, 'hls')
+                stream = Stream(sindex, name, self.args.save_dir, 'hls')
+                stream.set_xkey(_xkey)
+                stream.set_bakcup_xkey(_bakcup_xkey)
                 stream.set_tag('#EXT-X-DISCONTINUITY')
             elif line.startswith('#EXT-X-MAP'):
                 segment.set_map_url(home_url, base_url, line)
+                stream.set_map_flag()
                 stream.append_segment()
             elif line.startswith('#EXTINF'):
                 segment.set_duration(line)
@@ -98,11 +105,12 @@ class HLSParser:
                 pass
             elif line.startswith('#EXT-X-MEDIA'):
                 # 外挂媒体 视为单独的一条流
+                sindex += 1
                 stream.set_tag('#EXT-X-MEDIA')
                 stream.set_media(home_url, base_url, line)
                 content_is_master_type = True
                 streams.append(stream)
-                stream = Stream(name, self.args.save_dir, 'hls')
+                stream = Stream(sindex, name, self.args.save_dir, 'hls')
             elif line.startswith('#EXT-X-STREAM-INF'):
                 stream.set_tag('#EXT-X-STREAM-INF')
                 stream.set_xstream_inf(line)
@@ -127,9 +135,10 @@ class HLSParser:
                     segment.set_url(home_url, base_url, line)
                     stream.append_segment()
                 elif offset > 0 and lines[offset - 1].startswith('#EXT-X-STREAM-INF'):
+                    sindex += 1
                     stream.set_url(home_url, base_url, line)
                     streams.append(stream)
-                    stream = Stream(name, self.args.save_dir, 'hls')
+                    stream = Stream(sindex, name, self.args.save_dir, 'hls')
                     do_not_append_at_end_list_tag = True
                 else:
                     click.secho(f'unknow what to do here ->\n\t{line}')
@@ -151,10 +160,18 @@ class HLSParser:
             # 保留过滤掉广告片段分段数大于0的Stream
             if len(stream.segments) > 0 or stream.tag == '#EXT-X-STREAM-INF' or stream.tag == '#EXT-X-MEDIA':
                 _streams.append(stream)
-        if content_is_master_type is False and len(_streams) > 0:
+        if content_is_master_type is False and len(_streams) > 1:
+            streams = []
             # 合并去除#EXT-X-DISCONTINUITY后剩下的Stream
             stream = _streams[0]
             for _stream in _streams[1:]:
-                stream.segments_extend(_stream.segments)
-            _streams = [stream]
+                # 一条流中有map时不参与合并
+                if _stream.has_map_segment:
+                    streams.append(stream)
+                    stream = _stream
+                    continue
+                else:
+                    stream.segments_extend(_stream.segments)
+            streams.append(stream)
+            _streams = streams
         return _streams

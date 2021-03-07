@@ -28,7 +28,8 @@ class Stream:
     一些可选的属性
     - 语言
     '''
-    def __init__(self, name: str, save_dir: str, stream_type: str):
+    def __init__(self, index: int, name: str, save_dir: str, stream_type: str):
+        self.index = index
         self.name = name
         self.save_dir = (Path(save_dir) / name).resolve().as_posix()
         self.segments = [] # type: List[Segment]
@@ -47,6 +48,7 @@ class Stream:
         self.stream_type = None # type: str
         self.xkey = None # type: XKey
         self.bakcup_xkey = None # type: XKey
+        self.has_map_segment = False
         self.xmedias = [] # type: List[XMedia]
         # 初始化默认设定流类型
         self.set_straem_type(stream_type)
@@ -134,11 +136,21 @@ class Stream:
         data = json.dumps(info, ensure_ascii=False, indent=4)
         Path(self.save_dir, 'raw.json').write_text(data, encoding='utf-8')
 
+    def set_map_flag(self):
+        self.has_map_segment = True
+        self.name += f'_{self.index}'
+        self.save_dir = (Path(self.save_dir).parent / self.name).resolve().as_posix()
+        for segment in self.segments:
+            segment.set_folder(self.save_dir)
+
     def append_segment(self):
         '''
         新增一个分段
         '''
-        segment = Segment().set_index(len(self.segments)).set_suffix('.ts').set_folder(self.save_dir)
+        index = len(self.segments)
+        if self.has_map_segment:
+            index -= 1
+        segment = Segment().set_index(index).set_suffix('.ts').set_folder(self.save_dir)
         self.segments.append(segment)
 
     def try_fetch_key(self, args: CmdArgs):
@@ -172,6 +184,12 @@ class Stream:
         self.xkey = xkey
         for segment in self.segments:
             segment.xkey = xkey
+
+    def set_xkey(self, xkey: XKey):
+        self.xkey = xkey
+
+    def set_bakcup_xkey(self, bakcup_xkey: XKey):
+        self.bakcup_xkey = bakcup_xkey
 
     def set_straem_type(self, stream_type: str):
         self.stream_type = stream_type

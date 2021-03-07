@@ -42,6 +42,11 @@ class Segment:
         else:
             return False
 
+    def is_supported_encryption(self):
+        if self.xkey is not None and self.xkey.method.upper() in ['AES-128']:
+            return True
+        return False
+
     def add_offset_for_name(self, offset: int):
         self.index += offset
         self.name = f'{self.index:0>4}{self.suffix}'
@@ -105,10 +110,9 @@ class Segment:
         else:
             self.url = f'{base_url}/{map_uri}'
         self.segment_type = 'map'
-        if self.index > 0:
-            self.name = f'map{self.index}.mp4'
-        else:
-            self.name = 'map.mp4'
+        # 每一条流理应只有一个map
+        self.name = 'map.mp4'
+        self.index = -1
 
     def get_path(self) -> Path:
         return self.folder / self.name
