@@ -94,7 +94,7 @@ class XKey(X):
             self.iv = custom_xkey.iv
         if custom_xkey.key != b'':
             self.key = custom_xkey.key
-            return
+            return True
         if self.uri.startswith('http://') or self.uri.startswith('https://'):
             loop = asyncio.get_event_loop()
             self.key = loop.run_until_complete(self.fetch(self.uri, args))
