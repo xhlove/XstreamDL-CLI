@@ -9,7 +9,7 @@ pip install -r requirements.txt
 ```
 
 ```bash
-python -m XstreamDL_CLI.cli FILEPATH/STREAMURL
+python -m XstreamDL_CLI.cli [OPTION]... URL/FILE/FOLDER...
 ```
 
 实例
@@ -31,6 +31,52 @@ python -m XstreamDL_CLI.cli FILEPATH/STREAMURL
     ![](images/Snipaste_2021-02-04_19-13-09.png)
 
 **合并需要先将ffmpeg置于环境变量**
+
+**HELP INFO**
+
+```bash
+version 1.1.0, A downloader that download the HLS/DASH stream.
+usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
+
+A downloader that download the HLS/DASH stream
+
+positional arguments:
+  URI                   URL/FILE/FOLDER string
+
+optional arguments:
+  -v, --version         Print version and exit
+  -h, --help            Print help message and exit
+  -name NAME, --name NAME
+                        Specific stream base name
+  -base BASE_URL, --base-url BASE_URL
+                        Set base url for Stream
+  -save-dir SAVE_DIR, --save-dir SAVE_DIR
+                        Set save dir for Stream
+  --select              Show stream to select and download, default is to download all
+  --disable-force-close
+                        Default make all connections closed securely, but it will make DL speed slower
+  --limit-per-host LIMIT_PER_HOST
+                        Increase the value if your connection to the stream host is poor
+  --user-agent USER_AGENT
+                        set user-agent headers for request
+  --referer REFERER     set custom referer for request
+  --headers HEADERS     set custom headers for request, separators is |, e.g. "header1:value1|header2:value2"
+  --b64key B64KEY       base64 format aes key
+  --hexiv HEXIV         hex format aes iv
+  --proxy PROXY         use http proxy, e.g. http://127.0.0.1:1080
+  --repl                REPL mode
+```
+
+部分参数说明
+
+- `--select`
+    选择要下载的流，如遇到master类型m3u8且不止一条流时
+- `--disable-force-close`
+    使用此选项可提升下载速度，但可能会造成部分连接在下载完成后无法关闭，影响网络连接性
+- `--limit-per-host`
+    设定单个域名的连接数，网络较差，使用代理等情况下适当增加可以提升下载速度
+- `--proxy`
+    暂时只支持HTTP代理
 
 ## pyinstaller打包
 

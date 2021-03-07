@@ -95,7 +95,7 @@ class Stream:
         self.calc()
         click.secho(
             f'{index:>3} {self.name} 共计{len(self.segments)}个分段 '
-            f'{self.duration:.2f}s {self.filesize:.2f}MB '
+            f'{self.duration:.2f}s {self.filesize:.2f}MiB '
         )
         self.dump_segments()
 
@@ -106,7 +106,7 @@ class Stream:
         # click.secho(
         #     f'dump {len(self.segments)} segments\n\t'
         #     f'duration -> {self.duration:.2f}s\n\t'
-        #     f'filesize -> {self.filesize:.2f}MB'
+        #     f'filesize -> {self.filesize:.2f}MiB'
         # )
         if self.xkey is not None:
             key = base64.b64encode(self.xkey.key).decode('utf-8')
