@@ -31,24 +31,30 @@ class Downloader:
         self.exit = False
         # <---来自命令行的设置--->
         self.max_concurrent_downloads = 1
-        self.connector = TCPConnector(
-            ttl_dns_cache=300,
-            limit_per_host=self.args.limit_per_host,
-            limit=500,
-            force_close=not self.args.disable_force_close,
-            enable_cleanup_closed=not self.args.disable_force_close
-        )
         # <---进度条--->
         self.progress = Progress(
             TextColumn("[bold blue]{task.fields[name]}", justify="right"),
             BarColumn(bar_width=None),
             "[progress.percentage]{task.percentage:>3.2f}%",
             "•",
-            DownloadColumn(),
+            DownloadColumn(binary_units=True),
             "•",
             TransferSpeedColumn(),
             "•",
             TimeRemainingColumn(),
+        )
+
+    def get_conn(self):
+        '''
+        connector在一个ClientSession使用后可能就会关闭
+        若需要再次使用则需要重新生成
+        '''
+        return TCPConnector(
+            ttl_dns_cache=300,
+            limit_per_host=self.args.limit_per_host,
+            limit=500,
+            force_close=not self.args.disable_force_close,
+            enable_cleanup_closed=not self.args.disable_force_close
         )
 
     def daemon(self):
@@ -206,36 +212,36 @@ class Downloader:
         # 没有需要下载的则尝试合并 返回False则说明需要继续下载完整
         with self.progress:
             stream_id = self.init_progress(stream, completed)
+            client = ClientSession(connector=self.get_conn()) # type: ClientSession
             for segment in _left:
-                task = loop.create_task(self.download(stream_id, stream, segment))
+                task = loop.create_task(self.download(client, stream_id, stream, segment))
                 task.add_done_callback(_done_callback)
                 tasks.add(task)
             finished, unfinished = await asyncio.wait(tasks)
             # 阻塞并等待运行完成
         return results
 
-    async def download(self, stream_id: TaskID, stream: Stream, segment: Segment):
+    async def download(self, client: ClientSession, stream_id: TaskID, stream: Stream, segment: Segment):
         proxy, headers = self.args.proxy, self.args.headers
         status, flag = 'EXIT', True
         try:
-            async with ClientSession(connector=self.connector) as client: # type: ClientSession
-                async with client.get(segment.url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
-                    if resp.status == 405:
-                        status = 'STATUS_CODE_ERROR'
-                        flag = False
-                    elif resp.headers.get('Content-length') is None:
-                        status = 'NO_CONTENT_LENGTH'
-                        flag = False
-                    else:
-                        stream.filesize += int(resp.headers["Content-length"])
-                        self.progress.update(stream_id, total=stream.filesize)
-                        self.progress.start_task(stream_id)
-                        while True:
-                            data = await resp.content.read(512)
-                            if not data:
-                                break
-                            segment.content.append(data)
-                            self.progress.update(stream_id, advance=len(data))
+            async with client.get(segment.url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
+                if resp.status == 405:
+                    status = 'STATUS_CODE_ERROR'
+                    flag = False
+                elif resp.headers.get('Content-length') is None:
+                    status = 'NO_CONTENT_LENGTH'
+                    flag = False
+                else:
+                    stream.filesize += int(resp.headers["Content-length"])
+                    self.progress.update(stream_id, total=stream.filesize)
+                    self.progress.start_task(stream_id)
+                    while True:
+                        data = await resp.content.read(512)
+                        if not data:
+                            break
+                        segment.content.append(data)
+                        self.progress.update(stream_id, advance=len(data))
         except TimeoutError:
             return segment, 'TimeoutError', None
         except client_exceptions.ClientConnectorError:
