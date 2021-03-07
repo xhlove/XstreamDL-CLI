@@ -4,9 +4,10 @@ import base64
 from pathlib import Path
 from argparse import ArgumentParser
 
-from .cmdargs import CmdArgs
-from .version import __version__
-from .downloader import Downloader
+from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.version import __version__
+from XstreamDL_CLI.downloader import Downloader
+from XstreamDL_CLI.headers.default import Headers
 
 
 def command_handler(args: CmdArgs):
@@ -15,6 +16,7 @@ def command_handler(args: CmdArgs):
     '''
     if Path(args.save_dir).exists() is False:
         Path(args.save_dir).mkdir()
+    args.headers = Headers().get(args)
     if args.b64key is not None:
         try:
             _ = base64.b64decode(args.b64key)
@@ -52,6 +54,13 @@ def main():
         '--limit-per-host',
         default=4,
         help='Increase the value if your connection to the stream host is poor'
+    )
+    parser.add_argument('--user-agent', default='', help='set user-agent headers for request')
+    parser.add_argument('--referer', default='', help='set custom referer for request')
+    parser.add_argument(
+        '--headers',
+        default='',
+        help='set custom headers for request, separators is |, e.g. "header1:value1|header2:value2"'
     )
     parser.add_argument('-b64key', '--b64key', default=None, help='base64 format aes key')
     parser.add_argument('-hexiv', '--hexiv', default=None, help='hex format aes iv')

@@ -2,12 +2,12 @@ import click
 import asyncio
 import binascii
 import logging
-from concurrent.futures._base import TimeoutError
 from typing import List, Set, Dict
 from asyncio import get_event_loop
 from asyncio import AbstractEventLoop, Future, Task
-from aiohttp import request, TCPConnector
+from aiohttp import ClientSession, ClientResponse, TCPConnector
 import aiohttp.client_exceptions
+from concurrent.futures._base import TimeoutError
 from rich.progress import (
     BarColumn,
     DownloadColumn,
@@ -17,11 +17,11 @@ from rich.progress import (
     Progress,
     TaskID,
 )
-from .cmdargs import CmdArgs
-from .extractor import Extractor
-from .util.stream import Stream
-from .util.segment import Segment
-from .util.decryptors.aes import CommonAES
+from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.util.stream import Stream
+from XstreamDL_CLI.extractor import Extractor
+from XstreamDL_CLI.util.segment import Segment
+from XstreamDL_CLI.util.decryptors.aes import CommonAES
 
 
 class Downloader:
@@ -32,6 +32,13 @@ class Downloader:
         self.exit = False
         # <---来自命令行的设置--->
         self.max_concurrent_downloads = 1
+        self.connector = TCPConnector(
+            ttl_dns_cache=300,
+            limit_per_host=self.args.limit_per_host,
+            limit=500,
+            force_close=not self.args.disable_force_close,
+            enable_cleanup_closed=not self.args.disable_force_close
+        )
         # <---进度条--->
         self.progress = Progress(
             TextColumn("[bold blue]{task.fields[name]}", justify="right"),
@@ -193,13 +200,6 @@ class Downloader:
                 task.remove_done_callback(_done_callback)
             for task in filter(lambda task: not task.done(), tasks):
                 task.cancel()
-        connector = TCPConnector(
-            ttl_dns_cache=300,
-            limit_per_host=self.args.limit_per_host,
-            limit=500,
-            force_close=not self.args.disable_force_close,
-            enable_cleanup_closed=not self.args.disable_force_close
-        )
         # limit_per_host 根据不同网站和网络状况调整 如果与目标地址连接性较好 那么设置小一点比较好
         completed, _left = self.get_left_segments(stream)
         if len(_left) == 0:
@@ -208,33 +208,35 @@ class Downloader:
         with self.progress:
             stream_id = self.init_progress(stream, completed)
             for segment in _left:
-                task = loop.create_task(self.download(connector, stream_id, stream, segment))
+                task = loop.create_task(self.download(stream_id, stream, segment))
                 task.add_done_callback(_done_callback)
                 tasks.add(task)
             finished, unfinished = await asyncio.wait(tasks)
             # 阻塞并等待运行完成
         return results
 
-    async def download(self, connector: TCPConnector, stream_id: TaskID, stream: Stream, segment: Segment):
+    async def download(self, stream_id: TaskID, stream: Stream, segment: Segment):
+        proxy, headers = self.args.proxy, self.args.headers
         status, flag = 'EXIT', True
         try:
-            async with request('GET', segment.url, proxy=self.args.proxy, connector=connector, headers=segment.headers) as response:
-                if response.status == 405:
-                    status = 'STATUS_CODE_ERROR'
-                    flag = False
-                elif response.headers.get('Content-length') is None:
-                    status = 'NO_CONTENT_LENGTH'
-                    flag = False
-                else:
-                    stream.filesize += int(response.headers["Content-length"])
-                    self.progress.update(stream_id, total=stream.filesize)
-                    self.progress.start_task(stream_id)
-                    while True:
-                        data = await response.content.read(512)
-                        if not data:
-                            break
-                        segment.content.append(data)
-                        self.progress.update(stream_id, advance=len(data))
+            async with aiohttp.ClientSession(connector=self.connector) as client: # type: ClientSession
+                async with client.get(segment.url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
+                    if resp.status == 405:
+                        status = 'STATUS_CODE_ERROR'
+                        flag = False
+                    elif resp.headers.get('Content-length') is None:
+                        status = 'NO_CONTENT_LENGTH'
+                        flag = False
+                    else:
+                        stream.filesize += int(resp.headers["Content-length"])
+                        self.progress.update(stream_id, total=stream.filesize)
+                        self.progress.start_task(stream_id)
+                        while True:
+                            data = await resp.content.read(512)
+                            if not data:
+                                break
+                            segment.content.append(data)
+                            self.progress.update(stream_id, advance=len(data))
         except TimeoutError:
             return segment, 'TimeoutError', None
         except aiohttp.client_exceptions.ClientConnectorError:

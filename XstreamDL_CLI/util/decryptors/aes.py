@@ -1,5 +1,5 @@
 from Crypto.Cipher import AES
-from ..segment import Segment
+from XstreamDL_CLI.util.segment import Segment
 
 
 class CommonAES:

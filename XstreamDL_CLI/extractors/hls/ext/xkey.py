@@ -1,6 +1,7 @@
 
-import aiohttp
 import asyncio
+from aiohttp import ClientSession, ClientResponse
+
 from .x import X
 from XstreamDL_CLI.cmdargs import CmdArgs
 
@@ -38,13 +39,6 @@ class XKey(X):
             'IV': 'iv',
             'KEYFORMATVERSIONS': 'keyformatversions',
             'KEYFORMAT': 'keyformat',
-        }
-        self.headers = {
-            'user-agent': (
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                'AppleWebKit/537.36 (KHTML, like Gecko) '
-                'Chrome/87.0.4280.141 Safari/537.36'
-            )
         }
 
     def set_key(self, key: bytes):
@@ -85,10 +79,11 @@ class XKey(X):
         else:
             return 'http', base_url + '/' + self.uri
 
-    async def fetch(self, url: str, proxy: str) -> bytes:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, proxy=proxy, headers=self.headers) as response:
-                return await response.content.read()
+    async def fetch(self, url: str, args: CmdArgs) -> bytes:
+        proxy, headers = args.proxy, args.headers
+        async with ClientSession() as client: # type: ClientSession
+            async with client.get(url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
+                return await resp.content.read()
 
     def load(self, args: CmdArgs, custom_xkey: 'XKey'):
         '''
@@ -102,7 +97,7 @@ class XKey(X):
             return
         if self.uri.startswith('http://') or self.uri.startswith('https://'):
             loop = asyncio.get_event_loop()
-            self.key = loop.run_until_complete(self.fetch(self.uri, args.proxy))
+            self.key = loop.run_until_complete(self.fetch(self.uri, args))
         elif self.uri.startswith('ftp://'):
             return False
         return True

@@ -6,7 +6,7 @@ from XstreamDL_CLI.util.stream import Stream
 from XstreamDL_CLI.extractors.hls.ext.xkey import XKey
 
 
-class Parser:
+class HLSParser:
     def __init__(self, args: CmdArgs, uri_type: str):
         self.args = args
         self.uri_type = uri_type

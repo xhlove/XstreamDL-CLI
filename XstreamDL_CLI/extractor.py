@@ -1,11 +1,11 @@
-import aiohttp
 import asyncio
 from typing import List
 from pathlib import Path
 from urllib.request import getproxies
+from aiohttp import ClientSession, ClientResponse
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.util.stream import Stream
-from XstreamDL_CLI.extractors.hls.parser import Parser as HLSParser
+from XstreamDL_CLI.extractors.hls.parser import HLSParser
 
 
 class Extractor:
@@ -56,9 +56,10 @@ class Extractor:
         return streams
 
     async def fetch(self, url: str) -> str:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, proxy=self.args.proxy, headers=self.headers) as response:
-                return await response.text(encoding='utf-8')
+        proxy, headers = self.args.proxy, self.args.headers
+        async with ClientSession() as client: # type: ClientSession
+            async with client.get(url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
+                return await resp.text(encoding='utf-8')
 
     def raw2streams(self, uri_type: str, uri: str, content: str) -> List[Stream]:
         '''

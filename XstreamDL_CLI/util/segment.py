@@ -2,8 +2,8 @@ import re
 import click
 from typing import List
 from pathlib import Path
-from ..extractors.hls.ext.xkey import XKey
-from ..extractors.hls.ext.xprivinf import XPrivinf
+from XstreamDL_CLI.extractors.hls.ext.xkey import XKey
+from XstreamDL_CLI.extractors.hls.ext.xprivinf import XPrivinf
 
 
 class Segment:
@@ -20,14 +20,6 @@ class Segment:
         self.suffix = '.ts'
         self.url = ''
         self.range = ''
-        self.user_agent = ''
-        self.headers = {
-            'user-agent': (
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                'AppleWebKit/537.36 (KHTML, like Gecko) '
-                'Chrome/87.0.4280.141 Safari/537.36'
-            )
-        }
         self.filesize = 0
         self.duration = 0.0
         self.byterange = [] # type: list
