@@ -40,15 +40,18 @@ def main():
     parser.add_argument('-save-dir', '--save-dir', default='Downloads', help='Set save dir for Stream')
     parser.add_argument('-base', '--base-url', default='', help='Set base url for Stream')
     parser.add_argument(
-        '-select',
         '--select',
         action='store_true',
         help='Show stream to select and download, default is to download all')
     parser.add_argument(
-        '-disable-force-close',
         '--disable-force-close',
         action='store_true',
         help='Default make all connections closed securely, but it will make DL speed slower'
+    )
+    parser.add_argument(
+        '--limit-per-host',
+        default=4,
+        help='Increase the value if your connection to the stream host is poor'
     )
     parser.add_argument('-b64key', '--b64key', default=None, help='base64 format aes key')
     parser.add_argument('-hexiv', '--hexiv', default=None, help='hex format aes iv')

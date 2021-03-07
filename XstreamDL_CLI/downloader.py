@@ -195,7 +195,7 @@ class Downloader:
                 task.cancel()
         connector = TCPConnector(
             ttl_dns_cache=300,
-            limit_per_host=4,
+            limit_per_host=self.args.limit_per_host,
             limit=500,
             force_close=not self.args.disable_force_close,
             enable_cleanup_closed=not self.args.disable_force_close
