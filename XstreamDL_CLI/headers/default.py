@@ -21,7 +21,7 @@ class Headers:
         - 指定user-agent 使用指定值 如果为"" 那么user-agent就是""
         - 不指定referer 就不设定referer 否则设定
         '''
-        if args.user_agent is not None:
+        if args.user_agent != '':
             self.headers['user-agent'] = args.user_agent
         else:
             self.headers['user-agent'] = self.user_agent
