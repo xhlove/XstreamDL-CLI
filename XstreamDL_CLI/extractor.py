@@ -3,8 +3,11 @@ from typing import List
 from pathlib import Path
 from aiohttp import ClientSession, ClientResponse
 from XstreamDL_CLI.cmdargs import CmdArgs
-from XstreamDL_CLI.util.stream import Stream
+from XstreamDL_CLI.models.stream import Stream
 from XstreamDL_CLI.extractors.hls.parser import HLSParser
+from XstreamDL_CLI.extractors.hls.stream import HLSStream
+from XstreamDL_CLI.extractors.dash.parser import DASHParser
+from XstreamDL_CLI.extractors.dash.stream import DASHStream
 
 
 class Extractor:
@@ -61,11 +64,11 @@ class Extractor:
         if content.startswith('#EXTM3U'):
             return self.parse_as_hls(uri_type, uri, content)
         elif '<MPD' in content and '</MPD>' in content:
-            return self.parse_as_dash(uri, content)
+            return self.parse_as_dash(uri_type, uri, content)
         else:
             return []
 
-    def parse_as_hls(self, uri_type: str, uri: str, content: str) -> List[Stream]:
+    def parse_as_hls(self, uri_type: str, uri: str, content: str) -> List[HLSStream]:
         _streams = HLSParser(self.args, uri_type).parse(uri, content)
         streams = []
         for stream in _streams:
@@ -82,8 +85,9 @@ class Extractor:
             stream.try_fetch_key(self.args)
         return streams
 
-    def parse_as_dash(self, uri: str, content: str) -> List[Stream]:
-        streams = []
-        stream = Stream('dash')
-        streams.append(stream)
+    def parse_as_dash(self, uri_type: str, uri: str, content: str) -> List[DASHStream]:
+        streams = DASHParser(self.args, uri_type).parse(uri, content)
+        for stream in streams:
+            if stream.segments[-1].url == '':
+                _ = stream.segments.pop(-1)
         return streams

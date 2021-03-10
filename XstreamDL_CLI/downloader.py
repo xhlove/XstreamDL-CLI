@@ -17,9 +17,9 @@ from rich.progress import (
     TaskID,
 )
 from XstreamDL_CLI.cmdargs import CmdArgs
-from XstreamDL_CLI.util.stream import Stream
+from XstreamDL_CLI.models.stream import Stream
 from XstreamDL_CLI.extractor import Extractor
-from XstreamDL_CLI.util.segment import Segment
+from XstreamDL_CLI.models.segment import Segment
 from XstreamDL_CLI.util.decryptors.aes import CommonAES
 
 
@@ -115,6 +115,7 @@ class Downloader:
             if index not in selected:
                 continue
             click.secho(f'{stream.name} download start.')
+            stream.dump_segments()
             max_failed = 5
             while max_failed > 0:
                 results = await self.do_with_progress(loop, stream)
@@ -218,8 +219,10 @@ class Downloader:
                 task = loop.create_task(self.download(client, stream_id, stream, segment))
                 task.add_done_callback(_done_callback)
                 tasks.add(task)
-            finished, unfinished = await asyncio.wait(tasks)
             # 阻塞并等待运行完成
+            finished, unfinished = await asyncio.wait(tasks)
+            # 关闭ClientSession
+            await client.close()
         return results
 
     async def download(self, client: ClientSession, stream_id: TaskID, stream: Stream, segment: Segment):

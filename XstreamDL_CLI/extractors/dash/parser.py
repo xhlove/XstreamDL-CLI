@@ -1,159 +1,132 @@
-from typing import Dict, List
+import click
+from typing import List
 from pathlib import Path
-from xml.parsers.expat import ParserCreate
-
 
 from .mpd import MPD
 from .links import Links
-from .funcs import tree, find_child, dump, match_duration
+from .funcs import tree, dump
+from .handler import xml_handler
 
 from .childs.adaptationset import AdaptationSet
 from .childs.baseurl import BaseURL
-from .childs.cencpssh import CencPssh
 from .childs.contentprotection import ContentProtection
 from .childs.period import Period
 from .childs.representation import Representation
-from .childs.role import Role
 from .childs.s import S
 from .childs.segmenttemplate import SegmentTemplate
 from .childs.segmenttimeline import SegmentTimeline
 
+from .stream import DASHStream
+from ..base import BaseParser
+from .key import DASHKey
+from XstreamDL_CLI.cmdargs import CmdArgs
 
-class MPDPaser(object):
-    def __init__(self, basename: str, xmlraw: str, split: bool):
-        self.step = 0
-        self.basename = basename
-        self.xmlraw = xmlraw
-        self.split = split
-        self.obj = None # type: MPD
-        self.parser = ParserCreate()
-        self.stack = list()
-        self.tracks = {}  # type: Dict[str, Links]
-        self.objs = {
-            'MPD': MPD,
-            'BaseURL': BaseURL,
-            'Period': Period,
-            'AdaptationSet': AdaptationSet,
-            'Representation': Representation,
-            'SegmentTemplate': SegmentTemplate,
-            'SegmentTimeline': SegmentTimeline,
-            'Role': Role,
-            'S': S,
-            'ContentProtection': ContentProtection,
-            'cenc:pssh': CencPssh,
-        }
 
-    def work(self):
-        self.parser.StartElementHandler = self.handle_start_element
-        self.parser.EndElementHandler = self.handle_end_element
-        self.parser.CharacterDataHandler = self.handle_character_data
-        self.parser.Parse(self.xmlraw)
+class DASHParser(BaseParser):
+    def __init__(self, args: CmdArgs, uri_type: str):
+        super(DASHParser, self).__init__(args, uri_type)
+        self.suffix = '.mpd'
 
-    def handle_start_element(self, tag, attrs):
-        if self.obj is None:
-            if tag != 'MPD':
-                raise Exception('the first tag is not MPD!')
-            self.obj = MPD(tag)
-            self.obj.addattrs(attrs)
-            self.stack.append(self.obj)
-        else:
-            if self.objs.get(tag) is None:
-                return
-            child = self.objs[tag](tag)
-            child.addattrs(attrs)
-            child.generate()
-            self.obj.childs.append(child)
-            self.obj = child
-            self.stack.append(child)
+    def parse(self, uri: str, content: str) -> List[DASHStream]:
+        uris = self.parse_uri(uri)
+        if uris is None:
+            click.secho(f'parse {uri} failed')
+            return []
+        name, home_url, base_url = uris
+        # 解析转换内容为期望的对象
+        mpd = xml_handler(content)
+        # 检查有没有baseurl
+        base_urls = mpd.find('BaseURL') # type: List[BaseURL]
+        if len(base_urls) > 0:
+            base_url = base_urls[0].innertext
+            uris = [name, home_url, base_url]
+        return self.walk_period(mpd, uris)
 
-    def handle_end_element(self, tag):
-        if self.objs.get(tag) is None:
-            return
-        if len(self.stack) > 1:
-            _ = self.stack.pop(-1)
-            self.obj = self.stack[-1]
+    def walk_period(self, mpd: MPD, uris: list):
+        periods = mpd.find('Period')  # type: List[Period]
+        # 根据Period数量处理时长参数
+        if len(periods) == 1 and periods[0].duration is None:
+            # 当只存在一条流 且当前Period没有duration属性
+            # 则使用mediaPresentationDuration作为当前Period的时长
+            if hasattr(mpd, 'mediaPresentationDuration'):
+                periods[0].duration = mpd.mediaPresentationDuration
+            else:
+                periods[0].duration = 0.0
+        # 遍历处理periods
+        streams = []
+        for period in periods:
+            _streams = self.walk_adaptationset(period, len(streams), uris)
+            streams.extend(_streams)
+        return streams
 
-    def handle_character_data(self, texts: str):
-        if texts.strip() != '':
-            self.obj.innertext = texts
+    def walk_adaptationset(self, period: Period, sindex: int, uris: list):
+        adaptationsets = period.find('AdaptationSet')  # type: List[AdaptationSet]
+        streams = []
+        for adaptationset in adaptationsets:
+            _streams = self.walk_representation(adaptationset, period, sindex + len(streams), uris)
+            streams.extend(_streams)
+        return streams
 
-    def parse(self, _baseurl: str):
-        mediaPresentationDuration = self.obj.__dict__.get('mediaPresentationDuration')
-        self.mediaPresentationDuration = match_duration(mediaPresentationDuration)
-        if _baseurl == '':
-            BaseURLs = find_child('BaseURL', self.obj)
-            baseurl = None if len(BaseURLs) == 0 else BaseURLs[0].innertext
-        else:
-            baseurl = _baseurl
-        Periods = find_child('Period', self.obj)  # type: List[Period]
-        for _Period in Periods:
-            if isinstance(_Period.start, str):
-                _Period.start = match_duration(_Period.duration)
-            if isinstance(_Period.duration, str):
-                _Period.duration = match_duration(_Period.duration)
-            AdaptationSets = find_child('AdaptationSet', _Period)  # type: List[AdaptationSet]
-            for _AdaptationSet in AdaptationSets:
-                if baseurl is None:
-                    BaseURLs = find_child('BaseURL', _AdaptationSet)
-                    baseurl = None if len(BaseURLs) == 0 else BaseURLs[0].innertext
-                Representations = find_child('Representation', _AdaptationSet) # type: List[Representation]
-                SegmentTemplates = find_child('SegmentTemplate', _AdaptationSet) # type: List[SegmentTemplate]
-                for _Representation in Representations:
-                    if len(SegmentTemplates) == 0:
-                        self.generate(baseurl, _Period, _AdaptationSet, _Representation)
-                    else:
-                        # SegmentTemplate和Representation同一级的话，解析不一样
-                        self.generate(baseurl,
-                                      _Period,
-                                      _AdaptationSet,
-                                      _Representation,
-                                      isInnerSeg=False)
-        return self.tracks
-
-    def walk_mpd(self, _baseurl: str):
-        grandchilds = find_child('Period', self.obj)  # type: List[Period]
-        self.walk_adaptationset(grandchilds, _mpd=self.obj)
-
-    def walk_period(self, childs: List[Period], **kwargs):
-        for child in childs:
-            grandchilds = find_child('AdaptationSet', child)  # type: List[AdaptationSet]
-            self.walk_adaptationset(grandchilds, _Period=child, **kwargs)
-
-    def walk_adaptationset(self, childs: List[AdaptationSet], **kwargs):
-        for child in childs:
-            grandchilds = find_child('Representation', child) # type: List[Representation]
-            self.walk_representation(grandchilds, _AdaptationSet=child, **kwargs)
-
-    def walk_representation(self, childs: List[Representation], **kwargs):
+    def walk_representation(self, adaptationset: AdaptationSet, period: Period, sindex: int, uris: list):
         '''
         每一个<Representation></Representation>都对应轨道的一/整段
         '''
-        for child in childs:
-            grandchilds = find_child('SegmentTemplate', child) # type: List[SegmentTemplate]
-            self.walk_segmenttemplate(grandchilds, _Representation=child, **kwargs)
+        name, home_url, base_url = uris
+        representations = adaptationset.find('Representation') # type: List[Representation]
+        segmenttemplates = adaptationset.find('SegmentTemplate') # type: List[SegmentTemplate]
+        streams = []
+        for representation in representations:
+            track_type, suffix = representation.mimeType.split('/')
+            _name = f'{name}_{sindex}_{track_type}_{representation.id}'
+            stream = DASHStream(sindex, _name, home_url, base_url, self.args.save_dir)
+            sindex += 1
+            self.walk_contentprotection(representation, stream)
+            if len(segmenttemplates) == 0:
+                self.walk_segmenttemplate(representation, stream)
+            else:
+                # SegmentTemplate 和多个 Representation 在同一级
+                # 那么 SegmentTemplate 的时长参数等就是多个 Representation 的参数
+                # 同一级的时候 只有一个 SegmentTemplate
+                self.generate_v1(period, representation.id, segmenttemplates[0], stream)
+            streams.append(stream)
+        return streams
 
-    def walk_segmenttemplate(self, childs: List[SegmentTemplate], **kwargs):
+    def walk_contentprotection(self, representation: Representation, stream: DASHStream):
+        ''' 流的加密方案 '''
+        contentprotections = representation.find('ContentProtection') # type: List[ContentProtection]
+        for contentprotection in contentprotections:
+            # DASH流的解密通常是合并完整后一次解密
+            # 不适宜每个分段单独解密
+            # 那么这里就不用给每个分段设置解密key了
+            # 而且往往key不好拿到 所以这里仅仅做一个存储
+            stream.append_key(DASHKey(contentprotection))
+
+    def walk_segmenttemplate(self, representation: Representation):
         '''
         进入这个函数的条件是SegmentTemplate是Representation子一级
         '''
-        for child in childs:
-            grandchilds = find_child('SegmentTimeline', child) # type: List[SegmentTimeline]
-            self.walk_segmenttimeline(grandchilds, _SegmentTemplate=child, **kwargs)
+        segmenttemplates = representation.find('SegmentTemplate') # type: List[SegmentTemplate]
+        if len(segmenttemplates) == 0:
+            return
+        for segmenttemplate in segmenttemplates:
+            self.walk_segmenttimeline(segmenttemplate)
 
-    def walk_segmenttimeline(self, childs: List[SegmentTimeline], **kwargs):
-        for child in childs:
-            grandchilds = find_child('S', child) # type: List[S]
-            self.walk_s(grandchilds, _SegmentTimeline=child, **kwargs)
+    def walk_segmenttimeline(self, segmenttemplate: SegmentTemplate, **kwargs):
+        segmenttimelines = segmenttemplate.find('SegmentTimeline') # type: List[SegmentTimeline]
+        for segmenttimeline in segmenttimelines:
+            self.walk_s(segmenttimeline, **kwargs)
 
-    def walk_s(self, childs: List[S], **kwargs):
+    def walk_s(self, segmenttimeline: SegmentTimeline, **kwargs):
+        ss = segmenttimeline.find('S') # type: List[S]
+
         _SegmentTemplate = kwargs['_SegmentTemplate'] # type: SegmentTemplate
         _media = _SegmentTemplate.media
         _Number = _SegmentTemplate.startNumber
         _Time = _SegmentTemplate.presentationTimeOffset
         _Representation = kwargs['_Representation'] # type: Representation
         _RepresentationID = _Representation.id
-        for child in childs:
-            for offset in range(child.r):
+        for s in ss:
+            for offset in range(s.r):
                 if '$Number$' in _media:
                     _media = _media.replace('$Number$', str(_Number))
                     _Number += 1
@@ -161,15 +134,25 @@ class MPDPaser(object):
                     _media = _media.replace('$RepresentationID$', _RepresentationID)
                 if '$Time$' in _media:
                     _media = _media.replace('$Time$', str(_Time))
-                    _Time += child.d
+                    _Time += s.d
                     yield _media
 
-    def generate(self,
-                 baseurl: str,
-                 _Period: Period,
-                 _AdaptationSet: AdaptationSet,
-                 _Representation: Representation,
-                 isInnerSeg: bool = True):
+    def generate_v1(self, period: Period, rid: str, st: SegmentTemplate, stream: DASHStream):
+        init_url = st.get_url()
+        if '$RepresentationID$' in init_url:
+            init_url = init_url.replace('$RepresentationID$', rid)
+        stream.set_init_url(init_url)
+        interval = float(int(st.duration) / int(st.timescale))
+        repeat = int(round(period.duration / interval))
+        for number in range(int(st.startNumber), repeat + int(st.startNumber)):
+            media_url = st.get_media_url()
+            if '$Number$' in media_url:
+                media_url = media_url.replace('$Number$', str(number))
+            if '$RepresentationID$' in media_url:
+                media_url = media_url.replace('$RepresentationID$', rid)
+            stream.set_media_url(media_url)
+
+    def generate(self, baseurl: str, _Period: Period, _AdaptationSet: AdaptationSet, _Representation: Representation, isInnerSeg: bool = True):
         _contentType = _AdaptationSet.get_contenttype()
         if _contentType is None:
             _contentType = _Representation.get_contenttype()
@@ -180,18 +163,18 @@ class MPDPaser(object):
         elif _Representation.codecs is not None:
             _codecs = _Representation.codecs
         else:
-            _Roles = find_child('Role', _AdaptationSet)
+            _Roles = _AdaptationSet.find('Role')
             _codecs = _Roles[0].value
         if isInnerSeg is True:
             key = f'{_AdaptationSet.id}-{_Representation.id}-{_contentType}'
         else:
             key = f'{_Representation.id}-{_contentType}'
-        if self.split and _Period.id is not None:
+        if self.args.split and _Period.id is not None:
             key = f'{_Period.id}-' + key
         if _Period.duration == 0.0 and self.mediaPresentationDuration is not None:
             _Period.duration = self.mediaPresentationDuration
         key = key.replace('/', '_')
-        links = Links(self.basename, _Period.duration, key, _Representation.bandwidth, _codecs)
+        links = Links(self.args.name, _Period.duration, key, _Representation.bandwidth, _codecs)
         if _AdaptationSet.lang is not None:
             links.lang = _AdaptationSet.lang
         if _AdaptationSet.mimeType is not None:
@@ -203,9 +186,9 @@ class MPDPaser(object):
         elif _AdaptationSet.width is not None:
             links.resolution = _AdaptationSet.get_resolution()
         if isInnerSeg is True:
-            SegmentTemplates = find_child('SegmentTemplate', _Representation) # type: List[SegmentTemplate]
+            SegmentTemplates = _Representation.find('SegmentTemplate') # type: List[SegmentTemplate]
         else:
-            SegmentTemplates = find_child('SegmentTemplate', _AdaptationSet) # type: List[SegmentTemplate]
+            SegmentTemplates = _AdaptationSet.find('SegmentTemplate') # type: List[SegmentTemplate]
         for _SegmentTemplate in SegmentTemplates:
             start_number = int(_SegmentTemplate.startNumber)  # type: int
             if self.tracks.get(links.key) is None:
@@ -217,11 +200,11 @@ class MPDPaser(object):
                 links.urls.append(_initialization)
                 self.tracks[links.key] = links
             else:
-                if self.split is True:
+                if self.args.split is True:
                     self.tracks[links.key] = links
                 else:
                     self.tracks[links.key].update(_Period.duration, _Representation.bandwidth)
-            SegmentTimelines = find_child('SegmentTimeline', _SegmentTemplate) # type: List[SegmentTimeline]
+            SegmentTimelines = _SegmentTemplate.find('SegmentTimeline') # type: List[SegmentTimeline]
             urls = []
             if len(SegmentTimelines) == 0:
                 if _SegmentTemplate.presentationTimeOffset is None:
@@ -244,7 +227,7 @@ class MPDPaser(object):
                 for _SegmentTimeline in SegmentTimelines:
                     # repeat = 0
                     _last_time_offset = 0  # _Period.start
-                    SS = find_child('S', _SegmentTimeline) # type: List[S]
+                    SS = _SegmentTimeline.find('S') # type: List[S]
                     for _S in SS:
                         repeat = 1 if _S.r is None else int(_S.r) + 1
                         for offset in range(repeat):
@@ -262,7 +245,7 @@ class MPDPaser(object):
                                 _url = baseurl + _url
                             urls.append(_url)
             self.tracks[links.key].urls.extend(urls)
-            if self.split is True:
+            if self.args.split is True:
                 self.tracks[links.key].dump_urls()
 
 
@@ -283,7 +266,7 @@ if __name__ == '__main__':
     xmlpath = Path(args.path).resolve()
     if xmlpath.exists():
         xmlraw = xmlpath.read_text(encoding='utf-8')
-        parser = MPDPaser(xmlpath.stem, xmlraw, args.split)
+        parser = DASHParser(xmlpath.stem, xmlraw, args.split)
         parser.work()
         if args.tree:
             tree(parser.obj)

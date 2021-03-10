@@ -1,6 +1,5 @@
 import re
 from typing import Dict
-
 from .links import Links
 
 
@@ -12,10 +11,6 @@ def tree(obj, step: int = 0):
     step -= 1
     print(f"{step * '--'}>{obj.name}")
     return step
-
-
-def find_child(name: str, parent):
-    return [child for child in parent.childs if child.name == name]
 
 
 def dump(tracks: Dict[str, Links]):

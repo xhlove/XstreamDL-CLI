@@ -68,6 +68,7 @@ def main():
     parser.add_argument('--b64key', default=None, help='base64 format aes key')
     parser.add_argument('--hexiv', default=None, help='hex format aes iv')
     parser.add_argument('--proxy', default=None, help='use http proxy, e.g. http://127.0.0.1:1080')
+    parser.add_argument('--split', action='store_true', help='Dash option, split one stream to multi sections')
     parser.add_argument('--repl', action='store_true', help='REPL mode')
     parser.add_argument('URI', nargs='*', help='URL/FILE/FOLDER string')
     args = parser.parse_args()

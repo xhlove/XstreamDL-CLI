@@ -1,7 +1,7 @@
 class MPDItem(object):
     def __init__(self, name: str = "MPDItem"):
         self.name = name
-        self.childs = list()
+        self.childs = []
 
     def addattr(self, name: str, value):
         self.__setattr__(name, value)
@@ -11,6 +11,9 @@ class MPDItem(object):
             attr_name: str
             attr_name = attr_name.replace(":", "_")
             self.addattr(attr_name, attr_value)
+
+    def find(self, name: str):
+        return [child for child in self.childs if child.name == name]
 
     def generate(self):
         pass

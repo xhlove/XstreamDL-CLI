@@ -27,8 +27,8 @@ class SegmentTemplate(MPDItem):
         self.presentationTimeOffset = int(self.presentationTimeOffset)
         self.startNumber = int(self.startNumber)
 
-    def get_initialization(self) -> str:
+    def get_url(self) -> str:
         return self.initialization.replace('..', '')
 
-    def get_media(self) -> str:
+    def get_media_url(self) -> str:
         return self.media.replace('..', '')

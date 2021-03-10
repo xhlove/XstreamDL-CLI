@@ -15,6 +15,7 @@ class CmdArgs:
         self.b64key = None # type: str
         self.hexiv = None # type: str
         self.proxy = None # type: Union[str, None]
+        self.split = None # type: bool
         self.repl = None # type: bool
         self.name = None # type: str
         self.URI = None # type: list

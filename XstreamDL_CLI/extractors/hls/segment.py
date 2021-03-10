@@ -1,37 +1,17 @@
 import re
 import click
-from typing import List
-from pathlib import Path
+from XstreamDL_CLI.models.segment import Segment
 from XstreamDL_CLI.extractors.hls.ext.xkey import XKey
 from XstreamDL_CLI.extractors.hls.ext.xprivinf import XPrivinf
 
 
-class Segment:
-    '''
-    每一个分段应当具有以下基本属性：
-    - 名称
-    - 链接
-    - Range
-    - User-Agent
-    '''
+class HLSSegment(Segment):
     def __init__(self):
-        self.name = ''
-        self.index = 0
-        self.suffix = '.ts'
-        self.url = ''
-        self.range = ''
-        self.filesize = 0
-        self.duration = 0.0
+        super(HLSSegment, self).__init__()
         self.byterange = [] # type: list
-        # <---临时存放二进制内容--->
-        self.content = [] # type: List[bytes]
-        # <---分段临时下载文件夹--->
-        self.folder = None # type: Path
         # 加密信息
         self.xkey = None # type: XKey
         self.__xprivinf = None # type: XPrivinf
-        # 分段类型 map or 常规
-        self.segment_type = 'normal'
         self.has_set_key = False
 
     def is_encrypt(self):
@@ -46,25 +26,6 @@ class Segment:
         if self.xkey is not None and self.xkey.method.upper() in ['AES-128']:
             return True
         return False
-
-    def add_offset_for_name(self, offset: int):
-        self.index += offset
-        self.name = f'{self.index:0>4}{self.suffix}'
-
-    def set_index(self, index: str):
-        self.index = index
-        self.name = f'{self.index:0>4}{self.suffix}'
-        return self
-
-    def set_suffix(self, suffix: str):
-        self.suffix = suffix
-        return self
-
-    def set_folder(self, name: str):
-        self.folder = Path(name)
-        if self.folder.exists() is False:
-            self.folder.mkdir()
-        return self
 
     def set_duration(self, line: str):
         try:
@@ -106,16 +67,13 @@ class Segment:
         if map_uri.startswith('http://') or map_uri.startswith('https://') or map_uri.startswith('ftp://'):
             self.url = map_uri
         elif map_uri.startswith('/'):
-            self.url = f'{home_url}/{map_uri}'
+            self.url = f'{home_url}{map_uri}'
         else:
             self.url = f'{base_url}/{map_uri}'
         self.segment_type = 'map'
         # 每一条流理应只有一个map
         self.name = 'map.mp4'
         self.index = -1
-
-    def get_path(self) -> Path:
-        return self.folder / self.name
 
     def set_key(self, home_url: str, base_url: str, line: str):
         self.has_set_key = True
@@ -138,8 +96,3 @@ class Segment:
         if xkey is None:
             return
         self.xkey = xkey
-
-    def dump(self) -> bool:
-        self.get_path().write_bytes(b''.join(self.content))
-        self.content = []
-        return True
