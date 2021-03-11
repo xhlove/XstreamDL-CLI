@@ -66,7 +66,7 @@ class HLSParser(BaseParser):
                 _xkey = stream.xkey
                 _bakcup_xkey = stream.bakcup_xkey
                 streams.append(stream)
-                stream = HLSStream(sindex, name, self.args.save_dir)
+                stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir)
                 stream.set_xkey(_xkey)
                 stream.set_bakcup_xkey(_bakcup_xkey)
                 stream.set_tag('#EXT-X-DISCONTINUITY')
@@ -89,7 +89,7 @@ class HLSParser(BaseParser):
                 stream.set_media(home_url, base_url, line)
                 content_is_master_type = True
                 streams.append(stream)
-                stream = HLSStream(sindex, name, self.args.save_dir)
+                stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir)
             elif line.startswith('#EXT-X-STREAM-INF'):
                 stream.set_tag('#EXT-X-STREAM-INF')
                 stream.set_xstream_inf(line)
@@ -117,7 +117,7 @@ class HLSParser(BaseParser):
                     sindex += 1
                     stream.set_url(home_url, base_url, line)
                     streams.append(stream)
-                    stream = HLSStream(sindex, name, self.args.save_dir)
+                    stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir)
                     do_not_append_at_end_list_tag = True
                 else:
                     click.secho(f'unknow what to do here ->\n\t{line}')

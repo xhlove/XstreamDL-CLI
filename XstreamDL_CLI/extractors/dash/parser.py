@@ -87,6 +87,10 @@ class DASHParser(BaseParser):
                 # SegmentTemplate 和多个 Representation 在同一级
                 # 那么 SegmentTemplate 的时长参数等就是多个 Representation 的参数
                 # 同一级的时候 只有一个 SegmentTemplate
+                stream.set_bandwidth(representation.bandwidth)
+                stream.set_codecs(representation.codecs)
+                stream.set_resolution(representation.width, representation.height)
+                stream.set_stream_type(representation.mimeType)
                 self.generate_v1(period, representation.id, segmenttemplates[0], stream)
             streams.append(stream)
         return streams
@@ -151,6 +155,7 @@ class DASHParser(BaseParser):
             if '$RepresentationID$' in media_url:
                 media_url = media_url.replace('$RepresentationID$', rid)
             stream.set_media_url(media_url)
+        stream.set_segments_duration(interval)
 
     def generate(self, baseurl: str, _Period: Period, _AdaptationSet: AdaptationSet, _Representation: Representation, isInnerSeg: bool = True):
         _contentType = _AdaptationSet.get_contenttype()

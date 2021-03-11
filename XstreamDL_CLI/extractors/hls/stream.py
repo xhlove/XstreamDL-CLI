@@ -25,7 +25,7 @@ class HLSStream(Stream):
     - 语言
     '''
     def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: str):
-        super(HLSStream, self).__init__(index, name, home_url, base_url, save_dir, 'hls')
+        super(HLSStream, self).__init__(index, name, home_url, base_url, save_dir)
         self.segments = [] # type: List[HLSSegment]
         # <------对于HLS类型的流额外的属性------>
         self.xkey = None

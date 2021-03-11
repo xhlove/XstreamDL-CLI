@@ -30,7 +30,7 @@ class Stream:
         - 增加密钥信息
         - 合并 一般在下载完成之后
     '''
-    def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: str, stream_type: str):
+    def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: str):
         self.index = index
         self.name = name
         self.home_url = home_url
@@ -44,10 +44,9 @@ class Stream:
         self.fps = None # type: int
         self.resolution = None # type: str
         self.codecs = None # type: str
-        self.stream_type = None # type: str
         self.streamkeys = [] # type: List[StreamKey]
         # 初始化默认设定流类型
-        self.stream_type = stream_type
+        self.stream_type = None # type: str
         self.suffix = '.mp4'
 
     def segments_extend(self, segments: List[Segment]):
