@@ -27,10 +27,16 @@ class Extractor:
         if uri.startswith('http://') or uri.startswith('https://') or uri.startswith('ftp://'):
             loop = asyncio.get_event_loop()
             return self.raw2streams('url', uri, loop.run_until_complete(self.fetch(uri)))
+        if '\\' in uri:
+            _file_name = uri.split('\\')[-1]
+        elif '/' in uri:
+            _file_name = uri.split('/')[-1]
+        else:
+            _file_name = uri
         illegal_symbols = ["\\", "/", ":", "：", "*", "?", "\"", "<", ">", "|", "\r", "\n", "\t"]
         is_illegal_path = True
         for illegal_symbol in illegal_symbols:
-            if illegal_symbol in uri:
+            if illegal_symbol in _file_name:
                 is_illegal_path = False
                 break
         if is_illegal_path is False:
@@ -87,7 +93,4 @@ class Extractor:
 
     def parse_as_dash(self, uri_type: str, uri: str, content: str) -> List[DASHStream]:
         streams = DASHParser(self.args, uri_type).parse(uri, content)
-        for stream in streams:
-            if stream.segments[-1].url == '':
-                _ = stream.segments.pop(-1)
         return streams

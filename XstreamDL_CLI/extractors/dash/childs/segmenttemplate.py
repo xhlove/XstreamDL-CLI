@@ -8,7 +8,7 @@ class SegmentTemplate(MPDItem):
     def __init__(self, name: str):
         super(SegmentTemplate, self).__init__(name)
         self.timescale = None # type: int
-        self.duration = None # type: int
+        self.duration = 0 # type: int
         self.presentationTimeOffset = None # type: int
         self.initialization = None # type: str
         self.media = None # type: str

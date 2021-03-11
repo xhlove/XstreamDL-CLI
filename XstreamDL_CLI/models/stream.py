@@ -42,7 +42,7 @@ class Stream:
         self.lang = ''
         self.bandwidth = None # type: int
         self.fps = None # type: int
-        self.resolution = None # type: str
+        self.resolution = '' # type: str
         self.codecs = None # type: str
         self.streamkeys = [] # type: List[StreamKey]
         # 初始化默认设定流类型
@@ -62,12 +62,15 @@ class Stream:
             self.filesize += segment.filesize
         self.filesize = self.filesize / 1024 / 1024
 
+    def get_name(self):
+        return self.name
+
     def show_info(self, index: int):
         ''' 显示信息 '''
         self.calc()
         click.secho(
-            f'{index:>3} {self.name} 共计{len(self.segments)}个分段 '
-            f'{self.duration:.2f}s {self.filesize:.2f}MiB '
+            f'{index:>3} 共计{len(self.segments):>4}个分段 '
+            f'{self.duration:.2f}s {self.filesize:.2f}MiB {self.get_name()}'
         )
 
     def read_stream_header(self):
