@@ -87,7 +87,7 @@ class Stream:
             for streamkey in self.streamkeys:
                 keys.append(streamkey.dump())
         info = {
-            'name': self.name,
+            'name': self.get_name(),
             'path': self.save_dir.resolve().as_posix(),
             'creatTime': f'{datetime.now()}',
             'key': keys,

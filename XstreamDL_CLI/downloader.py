@@ -114,7 +114,7 @@ class Downloader:
         for index, stream in enumerate(streams):
             if index not in selected:
                 continue
-            click.secho(f'{stream.name} download start.')
+            click.secho(f'{stream.get_name()} download start.')
             stream.dump_segments()
             max_failed = 5
             while max_failed > 0:
@@ -157,7 +157,7 @@ class Downloader:
         return completed, _left_segments
 
     def init_progress(self, stream: Stream, completed: int):
-        stream_id = self.progress.add_task("download", name=stream.name, start=False) # TaskID
+        stream_id = self.progress.add_task("download", name=stream.get_name(), start=False) # TaskID
         if completed > 0:
             if stream.filesize > 0:
                 total = stream.filesize

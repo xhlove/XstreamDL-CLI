@@ -23,6 +23,8 @@ class DASHStream(Stream):
             base_name += f'_{self.resolution}'
         elif self.stream_type == 'audio' and self.lang != '':
             base_name += f'_{self.lang}'
+        if self.stream_type in ['audio', 'video'] and self.bandwidth is not None:
+            base_name += f'_{self.bandwidth / 1000:.2f}kbps'
         return base_name
 
     def append_segment(self):
