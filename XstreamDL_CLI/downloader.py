@@ -192,7 +192,7 @@ class Downloader:
                     # 某几类已知异常 如状态码不对 返回头没有文件大小 视为无法下载 主动退出
                     cancel_all_task()
                     if status in ['STATUS_CODE_ERROR', 'NO_CONTENT_LENGTH']:
-                        print('无法下载的m3u8 退出其他下载任务\n')
+                        print(f'无法下载的m3u8 {status} 退出其他下载任务\n')
                     else:
                         print(f'出现未知status -> {status} 退出其他下载任务\n')
                 results[segment] = flag
