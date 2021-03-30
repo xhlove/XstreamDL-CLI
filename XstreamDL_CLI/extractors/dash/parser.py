@@ -73,6 +73,8 @@ class DASHParser(BaseParser):
         adaptationsets = period.find('AdaptationSet')  # type: List[AdaptationSet]
         streams = []
         for adaptationset in adaptationsets:
+            if adaptationset.mimeType == 'image/jpeg':
+                continue
             _streams = self.walk_representation(adaptationset, period, sindex + len(streams), uris)
             streams.extend(_streams)
         return streams
