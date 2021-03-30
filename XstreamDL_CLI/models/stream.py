@@ -79,6 +79,7 @@ class Stream:
 
     def dump_segments(self):
         ''' 保存分段信息 '''
+        self.save_dir = self.save_dir.parent / self.get_name()
         if self.save_dir.exists() is False:
             self.save_dir.mkdir()
         keys = []
@@ -93,6 +94,7 @@ class Stream:
             'segments': [],
         }
         for segment in self.segments:
+            segment.folder = self.save_dir
             info['segments'].append(
                 {
                     'url': segment.url,
