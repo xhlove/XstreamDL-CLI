@@ -48,7 +48,7 @@ class HLSStream(Stream):
     def set_map_flag(self):
         self.has_map_segment = True
         self.name += f'_{self.index}'
-        self.save_dir = (Path(self.save_dir).parent / self.name).resolve().as_posix()
+        self.save_dir = (Path(self.save_dir).parent / self.name).resolve()
         for segment in self.segments:
             segment.set_folder(self.save_dir)
 
