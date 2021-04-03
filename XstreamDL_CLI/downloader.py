@@ -1,4 +1,5 @@
 import click
+import signal
 import asyncio
 import binascii
 import logging
@@ -6,7 +7,7 @@ from typing import List, Set, Dict
 from asyncio import get_event_loop
 from asyncio import AbstractEventLoop, Future, Task
 from aiohttp import ClientSession, ClientResponse, TCPConnector, client_exceptions
-from concurrent.futures._base import TimeoutError
+from concurrent.futures._base import TimeoutError, CancelledError
 from rich.progress import (
     BarColumn,
     DownloadColumn,
@@ -43,6 +44,12 @@ class Downloader:
             "•",
             TimeRemainingColumn(),
         )
+        self.terminate = False
+        signal.signal(signal.SIGINT, self.stop)
+        signal.signal(signal.SIGTERM, self.stop)
+
+    def stop(self, signum: int, frame):
+        self.terminate = True
 
     def get_conn(self):
         '''
@@ -193,6 +200,8 @@ class Downloader:
                     cancel_all_task()
                     if status in ['STATUS_CODE_ERROR', 'NO_CONTENT_LENGTH']:
                         print(f'无法下载的m3u8 {status} 退出其他下载任务\n')
+                    elif status == 'EXIT':
+                        pass
                     else:
                         print(f'出现未知status -> {status} 退出其他下载任务\n')
                 results[segment] = flag
@@ -240,7 +249,7 @@ class Downloader:
                     stream.filesize += int(resp.headers["Content-length"])
                     self.progress.update(stream_id, total=stream.filesize)
                     self.progress.start_task(stream_id)
-                    while True:
+                    while self.terminate is False:
                         data = await resp.content.read(512)
                         if not data:
                             break
@@ -254,9 +263,13 @@ class Downloader:
             return segment, 'ClientPayloadError', None
         except client_exceptions.ClientOSError:
             return segment, 'ClientOSError', None
+        except CancelledError:
+            return segment, 'EXIT', False
         except Exception as e:
             self.logger.error('!', exc_info=e)
             return segment, status, False
+        if self.terminate:
+            return segment, 'EXIT', False
         if flag is False:
             return segment, status, False
         return segment, 'SUCCESS', await self.decrypt(segment)
