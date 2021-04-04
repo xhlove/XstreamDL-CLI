@@ -45,6 +45,9 @@ class HLSParser(BaseParser):
                     if last_segment_has_xkey is False:
                         last_segment_has_xkey = True
                         last_segment_xkey = segment.get_xkey()
+            elif line.startswith('#EXT-X-SESSION-KEY'):
+                # 某些网站的
+                pass
             elif line.startswith('#EXT-X-INDEPENDENT-SEGMENTS'):
                 pass
             elif line.startswith('#EXT-X-ALLOW-CACHE'):
@@ -92,7 +95,9 @@ class HLSParser(BaseParser):
                 content_is_master_type = True
                 streams.append(stream)
                 stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir)
-            elif line.startswith('#EXT-X-STREAM-INF'):
+            # elif line.startswith('#EXT-X-STREAM-INF'):
+            elif line.startswith('#EXT-X-') and 'STREAM-INF' in line:
+                # patch for #EXT-X-I-FRAME-STREAM-INF
                 stream.set_tag('#EXT-X-STREAM-INF')
                 stream.set_xstream_inf(line)
                 content_is_master_type = True
@@ -115,7 +120,7 @@ class HLSParser(BaseParser):
                     segment.set_xkey(last_segment_has_xkey, last_segment_xkey)
                     segment.set_url(home_url, base_url, line)
                     stream.append_segment()
-                elif offset > 0 and lines[offset - 1].startswith('#EXT-X-STREAM-INF'):
+                elif offset > 0 and lines[offset - 1].startswith('#EXT-X-') and 'STREAM-INF' in line:
                     sindex += 1
                     stream.set_url(home_url, base_url, line)
                     streams.append(stream)

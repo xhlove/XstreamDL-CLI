@@ -36,6 +36,7 @@ class HLSStream(Stream):
         self.has_map_segment = False
         self.xmedias = [] # type: List[XMedia]
         self.xstream_inf = None # type: XStreamInf
+        self.bakcup_xkey = None
         # 初始化默认设定一个分段
         self.append_segment()
 

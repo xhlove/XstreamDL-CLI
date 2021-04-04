@@ -123,6 +123,8 @@ class Downloader:
             selected = [index for index in range(len(streams) + 1)]
         all_results = []
         for index, stream in enumerate(streams):
+            if self.terminate is True:
+                break
             if index not in selected:
                 continue
             click.secho(f'{stream.get_name()} download start.')
