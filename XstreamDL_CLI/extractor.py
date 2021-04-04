@@ -85,6 +85,8 @@ class Extractor:
             new_streams = self.fetch_metadata(stream.origin_url)
             if new_streams is None:
                 continue
+            if len(new_streams) == 1:
+                new_streams[0].patch_stream_info(stream)
             streams.extend(new_streams)
         # 在全部流解析完成后 再处理key
         for stream in streams:

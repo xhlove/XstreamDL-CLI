@@ -35,8 +35,29 @@ class HLSStream(Stream):
         self.quality = None # type: str
         self.has_map_segment = False
         self.xmedias = [] # type: List[XMedia]
+        self.xstream_inf = None # type: XStreamInf
         # 初始化默认设定一个分段
         self.append_segment()
+
+    def get_name(self):
+        base_name = self.name
+        if self.resolution != '':
+            base_name += f'_{self.resolution}'
+        if self.bandwidth is not None:
+            base_name += f'_{self.bandwidth / 1000:.2f}kbps'
+        return base_name
+
+    def patch_stream_info(self, stream: 'HLSStream'):
+        if stream.codecs is not None:
+            self.codecs = stream.codecs
+        if stream.resolution != '':
+            self.resolution = stream.resolution
+        if stream.lang != '':
+            self.lang = stream.lang
+        if stream.fps is not None:
+            self.fps = stream.fps
+        if stream.bandwidth is not None:
+            self.bandwidth = stream.bandwidth
 
     def set_name(self, name: str):
         self.name = name
@@ -102,6 +123,11 @@ class HLSStream(Stream):
 
     def set_xstream_inf(self, line: str):
         self.xstream_inf = XStreamInf().set_attrs_from_line(line)
+        if self.xstream_inf is not None:
+            self.fps = self.xstream_inf.fps
+            self.codecs = self.xstream_inf.codecs
+            self.bandwidth = self.xstream_inf.bandwidth
+            self.resolution = self.xstream_inf.resolution
 
     def set_url(self, home_url: str, base_url: str, line: str):
         if line.startswith('http://') or line.startswith('https://') or line.startswith('ftp://'):

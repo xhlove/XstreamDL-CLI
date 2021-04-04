@@ -83,7 +83,11 @@ class Downloader:
 
     def get_selected_index(self, length: int) -> list:
         selected = []
-        text = input('请输入要下载流的序号：').strip()
+        try:
+            text = input('请输入要下载流的序号：').strip()
+        except EOFError:
+            click.secho('未选择流，退出')
+            return []
         if text == '':
             return [index for index in range(length + 1)]
         elif text.isdigit():

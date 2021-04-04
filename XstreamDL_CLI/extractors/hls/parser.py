@@ -45,6 +45,8 @@ class HLSParser(BaseParser):
                     if last_segment_has_xkey is False:
                         last_segment_has_xkey = True
                         last_segment_xkey = segment.get_xkey()
+            elif line.startswith('#EXT-X-INDEPENDENT-SEGMENTS'):
+                pass
             elif line.startswith('#EXT-X-ALLOW-CACHE'):
                 pass
             elif line.startswith('#EXT-X-MEDIA-SEQUENCE'):

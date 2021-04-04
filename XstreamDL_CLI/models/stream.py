@@ -68,10 +68,16 @@ class Stream:
     def show_info(self, index: int):
         ''' 显示信息 '''
         self.calc()
-        click.secho(
-            f'{index:>3} 共计{len(self.segments):>4}个分段 '
-            f'{self.duration:.2f}s {self.filesize:.2f}MiB {self.get_name()}'
-        )
+        if self.filesize > 0:
+            click.secho(
+                f'{index:>3} 共计{len(self.segments):>4}个分段 '
+                f'{self.duration:.2f}s {self.filesize:.2f}MiB {self.get_name()}'
+            )
+        else:
+            click.secho(
+                f'{index:>3} 共计{len(self.segments):>4}个分段 '
+                f'{self.duration:.2f}s {self.get_name()}'
+            )
 
     def read_stream_header(self):
         ''' 读取一部分数据 获取流的信息 '''
