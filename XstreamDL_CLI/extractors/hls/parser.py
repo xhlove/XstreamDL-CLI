@@ -11,7 +11,7 @@ class HLSParser(BaseParser):
         super(HLSParser, self).__init__(args, uri_type)
         self.suffix = '.m3u8'
 
-    def parse(self, uri: str, content: str) -> List[HLSStream]:
+    def parse(self, uri: str, content: str, parent_stream: HLSStream) -> List[HLSStream]:
         uris = self.parse_uri(uri)
         if uris is None:
             click.secho(f'parse {uri} failed')
@@ -19,7 +19,8 @@ class HLSParser(BaseParser):
         name, home_url, base_url = uris
         streams = []
         sindex = 0
-        stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir)
+        stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
+        stream.set_origin_url(home_url, base_url, uri)
         lines = [line.strip() for line in content.split('\n')]
         offset = 0
         last_segment_xkey = None # type: XKey
@@ -48,6 +49,8 @@ class HLSParser(BaseParser):
             elif line.startswith('#EXT-X-SESSION-KEY'):
                 # 某些网站的
                 pass
+            elif line.startswith('#EXT-X-I-FRAMES-ONLY'):
+                pass
             elif line.startswith('#EXT-X-INDEPENDENT-SEGMENTS'):
                 pass
             elif line.startswith('#EXT-X-ALLOW-CACHE'):
@@ -71,7 +74,8 @@ class HLSParser(BaseParser):
                 _xkey = stream.xkey
                 _bakcup_xkey = stream.bakcup_xkey
                 streams.append(stream)
-                stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir)
+                stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
+                stream.set_origin_url(home_url, base_url, uri)
                 stream.set_xkey(_xkey)
                 stream.set_bakcup_xkey(_bakcup_xkey)
                 stream.set_tag('#EXT-X-DISCONTINUITY')
@@ -94,13 +98,21 @@ class HLSParser(BaseParser):
                 stream.set_media(home_url, base_url, line)
                 content_is_master_type = True
                 streams.append(stream)
-                stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir)
+                stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
             # elif line.startswith('#EXT-X-STREAM-INF'):
             elif line.startswith('#EXT-X-') and 'STREAM-INF' in line:
-                # patch for #EXT-X-I-FRAME-STREAM-INF
                 stream.set_tag('#EXT-X-STREAM-INF')
                 stream.set_xstream_inf(line)
                 content_is_master_type = True
+                if stream.xstream_inf.uri is None:
+                    pass
+                else:
+                    # handle for #EXT-X-I-FRAME-STREAM-INF
+                    sindex += 1
+                    do_not_append_at_end_list_tag = True
+                    stream.set_origin_url(home_url, base_url, stream.xstream_inf.uri)
+                    streams.append(stream)
+                    stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
             elif line.startswith('#'):
                 if line.startswith('## Generated with https://github.com/google/shaka-packager'):
                     pass
@@ -120,11 +132,11 @@ class HLSParser(BaseParser):
                     segment.set_xkey(last_segment_has_xkey, last_segment_xkey)
                     segment.set_url(home_url, base_url, line)
                     stream.append_segment()
-                elif offset > 0 and lines[offset - 1].startswith('#EXT-X-') and 'STREAM-INF' in line:
+                elif offset > 0 and lines[offset - 1].startswith('#EXT-X-') and 'STREAM-INF' in lines[offset - 1]:
                     sindex += 1
                     stream.set_url(home_url, base_url, line)
                     streams.append(stream)
-                    stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir)
+                    stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
                     do_not_append_at_end_list_tag = True
                 else:
                     click.secho(f'unknow what to do here ->\n\t{line}')
@@ -132,8 +144,19 @@ class HLSParser(BaseParser):
         if do_not_append_at_end_list_tag is False:
             streams.append(stream)
         # 下面的for循环中stream/segment是浅拷贝
+        _stream_paths = []
         _streams = []
         for stream in streams:
+            # 去重
+            if stream.tag == '#EXT-X-STREAM-INF':
+                stream_path = stream.get_path()
+                if stream_path in _stream_paths:
+                    continue
+                elif stream_path == '':
+                    # 文件类型
+                    pass
+                else:
+                    _stream_paths.append(stream_path)
             # 处理掉末尾空的分段
             if stream.segments[-1].url == '':
                 _ = stream.segments.pop(-1)
@@ -146,6 +169,7 @@ class HLSParser(BaseParser):
             # 保留过滤掉广告片段分段数大于0的Stream
             if len(stream.segments) > 0 or stream.tag == '#EXT-X-STREAM-INF' or stream.tag == '#EXT-X-MEDIA':
                 _streams.append(stream)
+        # if content_is_master_type is False and len(_streams) > 1:
         if content_is_master_type is False and len(_streams) > 1:
             streams = []
             # 合并去除#EXT-X-DISCONTINUITY后剩下的Stream

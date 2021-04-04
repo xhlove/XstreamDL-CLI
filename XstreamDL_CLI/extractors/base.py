@@ -27,7 +27,7 @@ class BaseParser:
         elif Path(uri).exists():
             if name == '':
                 name = Path(uri).stem
-        if self.args.base_url != '':
+        if base_url == '' and self.args.base_url != '':
             base_url = self.args.base_url
             home_url = '/'.join(base_url.split('/', maxsplit=3)[:-1])
         return name, home_url, base_url

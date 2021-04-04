@@ -17,7 +17,15 @@ class X:
         return f'{self.TAG_NAME}'
 
     def __strip(self, line: str):
-        return line[len(self.TAG_NAME) + 1:]
+        # return line[len(self.TAG_NAME) + 1:]
+        data = line.split(':', maxsplit=1)
+        if len(data) == 2:
+            _, no_tag_line = data
+        elif len(data) == 0:
+            raise 'm3u8格式错误 无法处理的异常'
+        else:
+            no_tag_line = data[0]
+        return no_tag_line
 
     def get_tag_info(self, line: str):
         return self.__strip(line)
@@ -49,5 +57,5 @@ class X:
                 else:
                     self.known_attrs[key](value)
             else:
-                click.secho(f'unknown attr of {self.TAG_NAME}')
+                click.secho(f'unknown attr -> {key} <- of {self.TAG_NAME}')
         return self

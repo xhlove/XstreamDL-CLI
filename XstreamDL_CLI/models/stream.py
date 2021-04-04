@@ -46,7 +46,7 @@ class Stream:
         self.codecs = None # type: str
         self.streamkeys = [] # type: List[StreamKey]
         # 初始化默认设定流类型
-        self.stream_type = None # type: str
+        self.stream_type = 'VIDEO' # type: str
         self.suffix = '.mp4'
 
     def segments_extend(self, segments: List[Segment]):
@@ -71,12 +71,12 @@ class Stream:
         if self.filesize > 0:
             click.secho(
                 f'{index:>3} 共计{len(self.segments):>4}个分段 '
-                f'{self.duration:.2f}s {self.filesize:.2f}MiB {self.get_name()}'
+                f'{self.duration:>7.2f}s {self.filesize:.2f}MiB {self.get_name()}'
             )
         else:
             click.secho(
                 f'{index:>3} 共计{len(self.segments):>4}个分段 '
-                f'{self.duration:.2f}s {self.get_name()}'
+                f'{self.duration:>7.2f}s {self.get_name()}'
             )
 
     def read_stream_header(self):
@@ -105,6 +105,7 @@ class Stream:
                 {
                     'url': segment.url,
                     'size': segment.filesize,
+                    'byterange': segment.byterange,
                 }
             )
         data = json.dumps(info, ensure_ascii=False, indent=4)

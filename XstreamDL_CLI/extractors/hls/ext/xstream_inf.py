@@ -5,6 +5,7 @@ class XStreamInf(X):
     '''
     #EXT-X-STREAM-INF 紧接着该标签的实际上是一个Stream
     - PROGRAM-ID=1,BANDWIDTH=1470188,SIZE=468254984,FPS=25,RESOLU=1080,CODECS="avc1,mp4a",QUALITY=5,STREAMTYPE="mp4hd3"
+    #EXT-X-I-FRAME-STREAM-INF 也被归类于此 有一个额外属性 URI
     '''
     def __init__(self):
         super(XStreamInf, self).__init__('#EXT-X-STREAM-INF')
@@ -12,9 +13,11 @@ class XStreamInf(X):
         self.bandwidth = None # type: int
         self.average_bandwidth = None # type: int
         self.codecs = None # type: str
-        self.resolution = None # type: str
+        self.resolution = '' # type: str
         self.frame_rate = None # type: float
         self.hdcp_level = None # type: str
+        self.characteristics = None # type: str
+        self.uri = None # type: str
         self.audio = None # type: str
         self.video = None # type: str
         self.subtitles = None # type: str
@@ -23,7 +26,7 @@ class XStreamInf(X):
         self.size = None # type: int
         self.fps = None # type: float
         self.quality = None # type: int
-        self.streamtype = None # type: str
+        self.streamtype = 'VIDEO' # type: str
         # VIDEO-RANGE是苹果的标准 往下的是非标准属性
         self.known_attrs = {
             'PROGRAM-ID': int,
@@ -33,6 +36,8 @@ class XStreamInf(X):
             'RESOLUTION': 'resolution',
             'FRAME-RATE': float,
             'HDCP-LEVEL': 'hdcp_level',
+            'CHARACTERISTICS': 'characteristics',
+            'URI': 'uri',
             'AUDIO': 'audio',
             'VIDEO': 'video',
             'SUBTITLES': 'subtitles',

@@ -24,7 +24,7 @@ class HLSStream(Stream):
     一些可选的属性
     - 语言
     '''
-    def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: str):
+    def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: str, parent_stream: 'HLSStream'):
         super(HLSStream, self).__init__(index, name, home_url, base_url, save_dir)
         self.segments = [] # type: List[HLSSegment]
         # <------对于HLS类型的流额外的属性------>
@@ -37,11 +37,23 @@ class HLSStream(Stream):
         self.xmedias = [] # type: List[XMedia]
         self.xstream_inf = None # type: XStreamInf
         self.bakcup_xkey = None
+        # 如果parent_stream不为空 那么将一些属性进行赋值
+        if parent_stream is not None:
+            self.fps = parent_stream.fps
+            self.lang = parent_stream.lang
+            self.codecs = parent_stream.codecs
+            self.bandwidth = parent_stream.bandwidth
+            self.resolution = parent_stream.resolution
+            self.stream_type = parent_stream.stream_type
         # 初始化默认设定一个分段
         self.append_segment()
 
+    def set_stream_type(self, stream_type: str):
+        ''' #EXT-X-MEDIA 会表明流类型 '''
+        self.stream_type = stream_type
+
     def get_name(self):
-        base_name = self.name
+        base_name = f'{self.name}_{self.stream_type}'
         if self.resolution != '':
             base_name += f'_{self.resolution}'
         if self.bandwidth is not None:
@@ -129,6 +141,11 @@ class HLSStream(Stream):
             self.codecs = self.xstream_inf.codecs
             self.bandwidth = self.xstream_inf.bandwidth
             self.resolution = self.xstream_inf.resolution
+            self.stream_type = self.xstream_inf.streamtype
+
+    def get_path(self):
+        ''' 某些m3u8会有重复的 例如D+ 这里辅助去重 '''
+        return self.origin_url.split('?', maxsplit=1)[0].split('/')[-1]
 
     def set_url(self, home_url: str, base_url: str, line: str):
         if line.startswith('http://') or line.startswith('https://') or line.startswith('ftp://'):
@@ -148,8 +165,10 @@ class HLSStream(Stream):
             self.bakcup_xkey = xkey
 
     def set_media(self, home_url: str, base_url: str, line: str):
-        xmedia = XMedia().set_attrs_from_line(line)
+        xmedia = XMedia()
+        xmedia.set_attrs_from_line(line)
         xmedia.uri = self.set_origin_url(home_url, base_url, xmedia.uri)
+        self.set_stream_type(xmedia.type)
         self.xmedias.append(xmedia)
 
     def set_origin_url(self, home_url: str, base_url: str, uri: str):
@@ -158,8 +177,12 @@ class HLSStream(Stream):
             self.origin_url = uri
         elif uri.startswith('/'):
             self.origin_url = f'{home_url}{uri}'
+            # 更新 base_url
+            self.base_url = self.origin_url.split('?', maxsplit=1)[0][::-1].split('/', maxsplit=1)[-1][::-1]
         else:
             self.origin_url = f'{base_url}/{uri}'
+            # 更新 base_url
+            self.base_url = self.origin_url.split('?', maxsplit=1)[0][::-1].split('/', maxsplit=1)[-1][::-1]
         return self.origin_url
 
     def set_daterange(self, line: str):
