@@ -115,6 +115,10 @@ pyinstaller -i logo.ico -n XstreamDL-CLI_v1.1.0 -F XstreamDL_CLI\__main__.py
 
 - 逐步完善中
 
+## 交流&Chat
+
+https://discord.gg/tKrHJ9KFxW
+
 # 参考
 
 - https://tools.ietf.org/html/rfc8216
