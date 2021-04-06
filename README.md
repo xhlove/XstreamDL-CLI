@@ -1,5 +1,5 @@
 # XstreamDL-CLI
-基于`python 3.7.4+`的，命令行版本的，HLS/DASH流下载器，支持标准AES-128-CBC解密
+基于`python 3.7.4+`的，命令行版本的，HLS/DASH流下载器，仅支持**HLS标准AES-128-CBC**解密
 
 ## 使用
 
@@ -52,18 +52,25 @@ optional arguments:
                         Set base url for Stream
   -save-dir SAVE_DIR, --save-dir SAVE_DIR
                         Set save dir for Stream
-  --select              Show stream to select and download, default is to download all
+  --select              Show stream to select and download, default is to
+                        download all
   --disable-force-close
-                        Default make all connections closed securely, but it will make DL speed slower
+                        Default make all connections closed securely, but it
+                        will make DL speed slower
   --limit-per-host LIMIT_PER_HOST
-                        Increase the value if your connection to the stream host is poor
+                        Increase the value if your connection to the stream
+                        host is poor
   --user-agent USER_AGENT
                         set user-agent headers for request
   --referer REFERER     set custom referer for request
-  --headers HEADERS     set custom headers for request, separators is |, e.g. "header1:value1|header2:value2"
+  --headers HEADERS     set custom headers for request, separators is |, e.g.
+                        "header1:value1|header2:value2"
+  --disable-auto-concat
+                        Disable auto concat
   --b64key B64KEY       base64 format aes key
   --hexiv HEXIV         hex format aes iv
   --proxy PROXY         use http proxy, e.g. http://127.0.0.1:1080
+  --split               Dash option, split one stream to multi sections
   --repl                REPL mode
 ```
 
