@@ -116,6 +116,8 @@ class DASHParser(BaseParser):
             # 针对视频音频流处理 分情况生成链接
             if len(segmenttemplates) == 0:
                 self.walk_segmenttemplate(representation, stream)
+            elif len(segmenttemplates) == 1 and len(segmenttemplates[0].find('SegmentTimeline')) == 1:
+                self.walk_segmenttimeline(segmenttemplates[0], representation, stream)
             else:
                 # SegmentTemplate 和多个 Representation 在同一级
                 # 那么 SegmentTemplate 的时长参数等就是多个 Representation 的参数

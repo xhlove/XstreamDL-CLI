@@ -127,10 +127,10 @@ class Stream:
         else:
             return f'{self.base_url}/{url}'
 
-    def concat(self):
+    def concat(self, overwrite: bool = False, raw_concat: bool = False):
         ''' 合并视频 '''
         out = self.save_dir.with_suffix(self.suffix)
-        if out.exists() is True:
+        if overwrite is False and out.exists() is True:
             click.secho(f'尝试合并 {self.name} 但是已经存在合并文件')
             return True
         names = []
@@ -142,9 +142,15 @@ class Stream:
         if len(names) != len(self.segments):
             click.secho(f'尝试合并 {self.name} 但是未下载完成')
             return False
-        cmd = Concat.gen_cmd(out.resolve().as_posix(), names)
         ori_path = os.getcwd()
-        os.chdir(self.save_dir.resolve().as_posix())
-        os.system(cmd)
+        # 需要在切换目录前获取
+        out_path = out.absolute().as_posix()
+        os.chdir(self.save_dir.absolute().as_posix())
+        cmds, _outs = Concat.gen_cmds_outs(out_path, names, raw_concat)
+        for cmd in cmds:
+            os.system(cmd)
+        if out.exists():
+            for _out in _outs:
+                os.remove(_out)
         os.chdir(ori_path)
         return True

@@ -149,8 +149,11 @@ class Downloader:
                     max_failed -= 1
                     continue
                 else:
-                    if self.args.disable_auto_concat is False:
-                        stream.concat()
+                    if stream.stream_type == 'text':
+                        # mpd中text类型 一般是字幕直链 跳过合并
+                        pass
+                    elif self.args.disable_auto_concat is False:
+                        stream.concat(self.args.overwrite, self.args.raw_concat)
                     break
         return all_results
 
