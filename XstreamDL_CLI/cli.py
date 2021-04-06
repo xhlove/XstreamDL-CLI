@@ -55,7 +55,7 @@ def main():
     parser.add_argument(
         '--limit-per-host',
         default=4,
-        help='Increase the value if your connection to the stream host is poor'
+        help='Increase the value if your connection to the stream host is poor, suggest >100 for DASH stream'
     )
     parser.add_argument('--user-agent', default='', help='set user-agent headers for request')
     parser.add_argument('--referer', default='', help='set custom referer for request')

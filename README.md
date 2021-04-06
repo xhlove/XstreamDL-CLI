@@ -59,7 +59,7 @@ optional arguments:
                         will make DL speed slower
   --limit-per-host LIMIT_PER_HOST
                         Increase the value if your connection to the stream
-                        host is poor
+                        host is poor, suggest >100 for DASH stream
   --user-agent USER_AGENT
                         set user-agent headers for request
   --referer REFERER     set custom referer for request
