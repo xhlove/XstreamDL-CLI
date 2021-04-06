@@ -8,7 +8,6 @@ from XstreamDL_CLI.extractors.hls.ext.xprivinf import XPrivinf
 class HLSSegment(Segment):
     def __init__(self):
         super(HLSSegment, self).__init__()
-        self.byterange = [] # type: list
         # 加密信息
         self.xkey = None # type: XKey
         self.__xprivinf = None # type: XPrivinf

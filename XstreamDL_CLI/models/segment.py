@@ -22,6 +22,7 @@ class Segment:
         self.url = ''
         self.filesize = 0
         self.duration = 0.0
+        self.byterange = [] # type: list
         # <---临时存放二进制内容--->
         self.content = [] # type: List[bytes]
         # <---分段临时下载文件夹--->
