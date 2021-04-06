@@ -15,11 +15,17 @@ class DASHSegment(Segment):
     def set_duration(self, duration: float):
         self.duration = duration
 
+    def set_subtitle_url(self, subtitle_url: str):
+        self.name = subtitle_url.split('?')[0].split('/')[-1]
+        self.index = -1
+        self.url = subtitle_url
+        self.segment_type = 'init'
+
     def set_init_url(self, init_url: str):
         parts = init_url.split('?')[0].split('/')[-1].split('.')
         if len(parts) > 1:
-            self.suffix = f'.{parts[-1]}'
-        self.name = f'init{self.suffix}'
+            self.suffix = f'{parts[-1]}'
+        self.name = f'init.{self.suffix}'
         self.index = -1
         self.url = init_url
         self.segment_type = 'init'

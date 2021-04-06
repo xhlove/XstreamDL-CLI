@@ -4,6 +4,7 @@ from typing import List, Dict
 from .mpd import MPD
 from .handler import xml_handler
 from .childs.adaptationset import AdaptationSet
+from .childs.role import Role
 from .childs.baseurl import BaseURL
 from .childs.contentprotection import ContentProtection
 from .childs.period import Period
@@ -96,12 +97,23 @@ class DASHParser(BaseParser):
             stream.set_lang(adaptationset.lang)
             stream.set_bandwidth(representation.bandwidth)
             stream.set_codecs(representation.codecs)
+            if representation.mimeType is None:
+                stream.set_stream_type(adaptationset.mimeType)
+            else:
+                stream.set_stream_type(representation.mimeType)
             if representation.width is None or representation.height is None:
                 stream.set_resolution(adaptationset.width, adaptationset.height)
             else:
                 stream.set_resolution(representation.width, representation.height)
-            stream.set_stream_type(representation.mimeType)
-            # 分情况生成链接
+            # 针对字幕直链类型
+            Roles = adaptationset.find('Role') # type: List[Role]
+            BaseURLs = representation.find('BaseURL') # type: List[BaseURL]
+            if len(Roles) == 1 and Roles[0].value == 'subtitle' and len(BaseURLs) == 1:
+                # Role.value 是 subtitle 且存在 BaseURL 的 认定为字幕直链
+                stream.set_subtitle_url(BaseURLs[0].innertext)
+                streams.append(stream)
+                continue
+            # 针对视频音频流处理 分情况生成链接
             if len(segmenttemplates) == 0:
                 self.walk_segmenttemplate(representation, stream)
             else:

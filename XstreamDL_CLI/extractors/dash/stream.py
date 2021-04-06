@@ -11,13 +11,16 @@ class DASHStream(Stream):
         self.segments = [] # type: List[DASHSegment]
         self.suffix = '.mp4'
         self.has_init_segment = False
-        self.skey = None # type: str
+        self.skey = '' # type: str
         self.append_segment()
 
     def get_name(self):
         base_name = f'{self.name}_{self.stream_type}'
-        base_name += f'_{self.codecs}'
+        if self.codecs is not None:
+            base_name += f'_{self.codecs}'
         if self.stream_type == 'subtitle' and self.lang != '':
+            base_name += f'_{self.lang}'
+        elif self.stream_type == 'text' and self.lang != '':
             base_name += f'_{self.lang}'
         elif self.stream_type == 'video' and self.resolution != '':
             base_name += f'_{self.resolution}'
@@ -50,6 +53,11 @@ class DASHStream(Stream):
                 break
         self.segments_extend(stream.segments)
 
+    def set_subtitle_url(self, url: str):
+        self.has_init_segment = True
+        self.segments[-1].set_subtitle_url(self.fix_url(url))
+        # self.append_segment()
+
     def set_init_url(self, url: str):
         self.has_init_segment = True
         self.segments[-1].set_init_url(self.fix_url(url))
@@ -70,7 +78,12 @@ class DASHStream(Stream):
             segment.set_duration(duration)
 
     def set_skey(self, aid: str, rid: str):
-        self.skey = f'{aid}_{rid}'
+        _patch = ''
+        if aid is not None:
+            self.skey += f'{aid}'
+            _patch = '_'
+        if rid is not None:
+            self.skey += f'{_patch}{rid}'.replace('/', '_')
 
     def set_lang(self, lang: str):
         if lang is None:
