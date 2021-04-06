@@ -65,7 +65,7 @@ optional arguments:
   --referer REFERER     set custom referer for request
   --headers HEADERS     set custom headers for request, separators is |, e.g.
                         "header1:value1|header2:value2"
-  --overwrite           overwrite output files
+  --overwrite           Overwrite output files
   --raw-concat          Concat content as raw
   --disable-auto-concat
                         Disable auto concat

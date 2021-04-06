@@ -64,7 +64,7 @@ def main():
         default='',
         help='set custom headers for request, separators is |, e.g. "header1:value1|header2:value2"'
     )
-    parser.add_argument('--overwrite', action='store_true', help='overwrite output files')
+    parser.add_argument('--overwrite', action='store_true', help='Overwrite output files')
     parser.add_argument('--raw-concat', action='store_true', help='Concat content as raw')
     parser.add_argument('--disable-auto-concat', action='store_true', help='Disable auto concat')
     parser.add_argument('--b64key', default=None, help='base64 format aes key')
