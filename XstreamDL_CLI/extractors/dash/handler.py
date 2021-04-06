@@ -20,6 +20,7 @@ def xml_handler(content: str):
                 raise Exception('the first tag is not MPD!')
             mpd = MPD(tag)
             mpd.addattrs(attrs)
+            mpd.generate()
             stack.append(mpd)
         else:
             if mpd_handlers.get(tag) is None:
