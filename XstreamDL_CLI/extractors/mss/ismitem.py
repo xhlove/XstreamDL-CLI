@@ -1,10 +1,9 @@
 import re
 
 
-class MPDItem:
-    def __init__(self, name: str = "MPDItem"):
+class ISMItem(object):
+    def __init__(self, name: str = "ISMItem"):
         self.name = name
-        self.innertext = ''
         self.childs = []
 
     def addattr(self, name: str, value):

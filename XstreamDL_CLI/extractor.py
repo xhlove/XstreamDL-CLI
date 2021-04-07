@@ -9,6 +9,8 @@ from XstreamDL_CLI.extractors.hls.parser import HLSParser
 from XstreamDL_CLI.extractors.hls.stream import HLSStream
 from XstreamDL_CLI.extractors.dash.parser import DASHParser
 from XstreamDL_CLI.extractors.dash.stream import DASHStream
+from XstreamDL_CLI.extractors.mss.parser import MSSParser
+from XstreamDL_CLI.extractors.mss.stream import MSSStream
 
 
 class Extractor:
@@ -72,6 +74,8 @@ class Extractor:
             return self.parse_as_hls(uri_type, uri, content, parent_stream)
         elif '<MPD' in content and '</MPD>' in content:
             return self.parse_as_dash(uri_type, uri, content, parent_stream)
+        elif '<SmoothStreamingMedia' in content and '</SmoothStreamingMedia>' in content:
+            return self.parse_as_mss(uri_type, uri, content, parent_stream)
         else:
             return []
 
@@ -97,4 +101,8 @@ class Extractor:
 
     def parse_as_dash(self, uri_type: str, uri: str, content: str, parent_stream: DASHStream = None) -> List[DASHStream]:
         streams = DASHParser(self.args, uri_type).parse(uri, content)
+        return streams
+
+    def parse_as_mss(self, uri_type: str, uri: str, content: str, parent_stream: MSSStream = None) -> List[MSSStream]:
+        streams = MSSParser(self.args, uri_type).parse(uri, content)
         return streams
