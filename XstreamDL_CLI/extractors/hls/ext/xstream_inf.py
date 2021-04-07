@@ -26,7 +26,7 @@ class XStreamInf(X):
         self.size = None # type: int
         self.fps = None # type: float
         self.quality = None # type: int
-        self.streamtype = 'VIDEO' # type: str
+        self.streamtype = '' # type: str
         # VIDEO-RANGE是苹果的标准 往下的是非标准属性
         self.known_attrs = {
             'PROGRAM-ID': int,

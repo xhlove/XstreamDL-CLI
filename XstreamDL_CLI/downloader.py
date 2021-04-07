@@ -153,7 +153,7 @@ class Downloader:
                         # mpd中text类型 一般是字幕直链 跳过合并
                         pass
                     elif self.args.disable_auto_concat is False:
-                        stream.concat(self.args.overwrite, self.args.raw_concat)
+                        stream.concat(self.args)
                     break
         return all_results
 

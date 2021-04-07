@@ -1,10 +1,25 @@
+import os
 import platform
 from typing import List
+from pathlib import Path
+from XstreamDL_CLI.cmdargs import CmdArgs
 
 ONCE_MAX_FILES = 500
 
 
 class Concat:
+
+    @staticmethod
+    def call_mp4decrypt(exe_path: str, out_path: Path, args: CmdArgs):
+        assert out_path.exists() is True, f'File not exists ! -> {out_path}'
+        assert out_path.stat().st_size > 0, f'File concat failed ! -> {out_path}'
+        out = out_path.absolute().as_posix()
+        out_decrypted = (out_path.parent / f'{out_path.name}_decrypted{out_path.suffix}').absolute().as_posix()
+        _cmd = f'{exe_path} --show-progress --key {args.key} "{out}" "{out_decrypted}"'
+        os.system(_cmd)
+        if args.enable_auto_delete:
+            if Path(out_decrypted).exists() and Path(out_decrypted).stat().st_size > 0:
+                os.remove(out)
 
     @staticmethod
     def gen_new_names(names: list, out: str):
@@ -23,9 +38,10 @@ class Concat:
         return new_names, _tmp_outs
 
     @staticmethod
-    def gen_cmds_outs(out: str, names: list, raw_concat: bool) -> List[str]:
+    def gen_cmds_outs(out_path: Path, names: list, args: CmdArgs) -> List[str]:
+        out = out_path.absolute().as_posix()
         cmds = [] # type: List[str]
-        if raw_concat is False:
+        if args.raw_concat is False:
             return [f'ffmpeg -i concat:"{"|".join(names)}" -c copy -y "{out}"'], []
         if len(names) > ONCE_MAX_FILES:
             new_names, _tmp_outs = Concat.gen_new_names(names, out)

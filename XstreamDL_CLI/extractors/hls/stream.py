@@ -53,7 +53,10 @@ class HLSStream(Stream):
         self.stream_type = stream_type
 
     def get_name(self):
-        base_name = f'{self.name}_{self.stream_type}'
+        if self.stream_type != '':
+            base_name = f'{self.name}_{self.stream_type}'
+        else:
+            base_name = self.name
         if self.resolution != '':
             base_name += f'_{self.resolution}'
         if self.bandwidth is not None:

@@ -1,12 +1,14 @@
 import os
 import json
 import click
+import shutil
 from typing import List
 from pathlib import Path
 from datetime import datetime
 from .key import StreamKey
 from ..util.concat import Concat
 from .segment import Segment
+from XstreamDL_CLI.cmdargs import CmdArgs
 
 
 class Stream:
@@ -46,7 +48,7 @@ class Stream:
         self.codecs = None # type: str
         self.streamkeys = [] # type: List[StreamKey]
         # 初始化默认设定流类型
-        self.stream_type = 'VIDEO' # type: str
+        self.stream_type = '' # type: str
         self.suffix = '.mp4'
 
     def segments_extend(self, segments: List[Segment]):
@@ -127,11 +129,11 @@ class Stream:
         else:
             return f'{self.base_url}/{url}'
 
-    def concat(self, overwrite: bool = False, raw_concat: bool = False):
+    def concat(self, args: CmdArgs):
         ''' 合并视频 '''
-        out = self.save_dir.with_suffix(self.suffix)
-        if overwrite is False and out.exists() is True:
-            click.secho(f'尝试合并 {self.name} 但是已经存在合并文件')
+        out = Path(self.save_dir.with_suffix(self.suffix).absolute().as_posix())
+        if args.overwrite is False and out.exists() is True:
+            click.secho(f'尝试合并 {self.get_name()} 但是已经存在合并文件')
             return True
         names = []
         for segment in self.segments:
@@ -140,17 +142,24 @@ class Stream:
                 continue
             names.append(segment.name)
         if len(names) != len(self.segments):
-            click.secho(f'尝试合并 {self.name} 但是未下载完成')
+            click.secho(f'尝试合并 {self.get_name()} 但是未下载完成')
             return False
         ori_path = os.getcwd()
         # 需要在切换目录前获取
-        out_path = out.absolute().as_posix()
         os.chdir(self.save_dir.absolute().as_posix())
-        cmds, _outs = Concat.gen_cmds_outs(out_path, names, raw_concat)
+        cmds, _outs = Concat.gen_cmds_outs(out, names, args)
         for cmd in cmds:
             os.system(cmd)
-        if out.exists():
-            for _out in _outs:
-                os.remove(_out)
+        # 执行完合并命令后即刻返回原目录
         os.chdir(ori_path)
+        # 合并成功则根据设定删除临时文件
+        if out.exists():
+            click.secho(f'成功合并 {out.as_posix()}')
+            if args.enable_auto_delete:
+                shutil.rmtree(self.save_dir.as_posix())
+                click.secho(f'已删除 {self.save_dir.absolute().as_posix()}')
+        # 针对DASH流 如果有key 那么就解密 注意 HLS是边下边解密
+        # 加密文件合并输出和临时文件夹同一级 所以前面的删除动作并不影响进一步解密
+        if args.key is not None:
+            Concat.call_mp4decrypt(out, args)
         return True

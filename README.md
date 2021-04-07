@@ -52,6 +52,9 @@ optional arguments:
                         Set base url for Stream
   -save-dir SAVE_DIR, --save-dir SAVE_DIR
                         Set save dir for Stream
+  --ffmpeg FFMPEG       Set executable ffmpeg path
+  --mp4decrypt MP4DECRYPT
+                        Set executable mp4decrypt path
   --select              Show stream to select and download, default is to
                         download all
   --disable-force-close
@@ -68,8 +71,12 @@ optional arguments:
   --overwrite           Overwrite output files
   --raw-concat          Concat content as raw
   --disable-auto-concat
-                        Disable auto concat
-  --b64key B64KEY       base64 format aes key
+                        Disable auto-concat
+  --enable-auto-delete  Enable auto-delete files after concat success
+  --key KEY             <id>:<k>, <id> is either a track ID in decimal or a
+                        128-bit KID in hex, <k> is a 128-bit key in hex
+  --b64key B64KEY       base64 format aes key, only for HLS standard
+                        AES-128-CBC encryption
   --hexiv HEXIV         hex format aes iv
   --proxy PROXY         use http proxy, e.g. http://127.0.0.1:1080
   --split               Dash option, split one stream to multi sections
@@ -90,7 +97,7 @@ optional arguments:
 ## pyinstaller打包
 
 ```bash
-pyinstaller -i logo.ico -n XstreamDL-CLI_v1.1.0 -F XstreamDL_CLI\__main__.py
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.2.0 -F XstreamDL_CLI\__main__.py
 ```
 
 ## 示意
