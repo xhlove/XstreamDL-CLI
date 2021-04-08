@@ -167,12 +167,12 @@ class DASHParser(BaseParser):
             init_url = init_url.replace('$Bandwidth%', str(representation.bandwidth))
         stream.set_init_url(init_url)
         ss = segmenttimeline.find('S') # type: List[S]
-        media_url = st.get_media_url()
         time_offset = st.presentationTimeOffset
         start_number = st.startNumber
         for s in ss:
             interval = s.d / st.timescale
             for number in range(s.r):
+                media_url = st.get_media_url()
                 if '$Number$' in media_url:
                     media_url = media_url.replace('$Number$', str(start_number))
                     start_number += 1
