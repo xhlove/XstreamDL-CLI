@@ -1,3 +1,4 @@
+from typing import Tuple
 from pathlib import Path
 from XstreamDL_CLI.cmdargs import CmdArgs
 
@@ -8,7 +9,7 @@ class BaseParser:
         self.uri_type = uri_type
         self.suffix = '.SUFFIX'
 
-    def parse_uri(self, uri: str) -> tuple:
+    def parse_uri(self, uri: str) -> Tuple[str, str, str]:
         '''
         进入此处的uri不可能是文件夹
         '''

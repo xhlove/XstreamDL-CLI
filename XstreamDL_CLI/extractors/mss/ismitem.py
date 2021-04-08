@@ -39,5 +39,7 @@ class ISMItem(object):
     def generate(self):
         pass
 
-    def to_int(self):
-        pass
+    def to_int(self, attr_name: str):
+        value = self.__getattribute__(attr_name) # type: str
+        if isinstance(value, str) and value.isdigit():
+            self.__setattr__(attr_name, int(value))

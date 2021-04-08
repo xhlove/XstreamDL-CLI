@@ -131,7 +131,7 @@ class Stream:
 
     def concat(self, args: CmdArgs):
         ''' 合并视频 '''
-        out = Path(self.save_dir.with_suffix(self.suffix).absolute().as_posix())
+        out = Path(self.save_dir.absolute().as_posix() + self.suffix)
         if args.overwrite is False and out.exists() is True:
             click.secho(f'尝试合并 {self.get_name()} 但是已经存在合并文件')
             return True
@@ -156,7 +156,7 @@ class Stream:
         if out.exists():
             click.secho(f'成功合并 {out.as_posix()}')
             if args.enable_auto_delete:
-                shutil.rmtree(self.save_dir.as_posix())
+                shutil.rmtree(self.save_dir.absolute().as_posix())
                 click.secho(f'已删除 {self.save_dir.absolute().as_posix()}')
         # 针对DASH流 如果有key 那么就解密 注意 HLS是边下边解密
         # 加密文件合并输出和临时文件夹同一级 所以前面的删除动作并不影响进一步解密

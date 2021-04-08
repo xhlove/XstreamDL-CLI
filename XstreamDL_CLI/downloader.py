@@ -149,10 +149,10 @@ class Downloader:
                     max_failed -= 1
                     continue
                 else:
-                    if stream.stream_type == 'text':
-                        # mpd中text类型 一般是字幕直链 跳过合并
-                        pass
-                    elif self.args.disable_auto_concat is False:
+                    # if stream.stream_type == 'text':
+                    #     # mpd中text类型 一般是字幕直链 跳过合并
+                    #     pass
+                    if self.args.disable_auto_concat is False:
                         stream.concat(self.args)
                     break
         return all_results
@@ -275,7 +275,7 @@ class Downloader:
         except CancelledError:
             return segment, 'EXIT', False
         except Exception as e:
-            self.logger.error('!', exc_info=e)
+            self.logger.error(f'! -> {segment.url}', exc_info=e)
             return segment, status, False
         if self.terminate:
             return segment, 'EXIT', False
