@@ -13,6 +13,11 @@ class BaseParser:
         '''
         进入此处的uri不可能是文件夹
         '''
+        rm_manifest = False
+        if '.ism' in self.args.base_url and 'manifest' in self.args.base_url:
+            rm_manifest = True
+        if '.ism' in uri and 'manifest' in uri:
+            rm_manifest = True
         name = self.args.name
         if self.uri_type == 'path':
             name = Path(uri).stem
@@ -29,6 +34,9 @@ class BaseParser:
             if name == '':
                 name = Path(uri).stem
         if base_url == '' and self.args.base_url != '':
-            base_url = self.args.base_url
+            if rm_manifest and self.args.base_url.rstrip('/').endswith('/manifest'):
+                base_url = '/'.join(self.args.base_url.rstrip('/').split('/')[:-1])
+            else:
+                base_url = self.args.base_url
             home_url = '/'.join(base_url.split('/', maxsplit=3)[:-1])
         return name, home_url, base_url

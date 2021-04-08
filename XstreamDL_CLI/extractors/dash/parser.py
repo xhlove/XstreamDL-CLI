@@ -173,6 +173,8 @@ class DASHParser(BaseParser):
             interval = s.d / st.timescale
             for number in range(s.r):
                 media_url = st.get_media_url()
+                if '$Bandwidth$' in media_url:
+                    media_url = media_url.replace('$Bandwidth$', str(representation.bandwidth))
                 if '$Number$' in media_url:
                     media_url = media_url.replace('$Number$', str(start_number))
                     start_number += 1
