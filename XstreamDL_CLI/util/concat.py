@@ -42,12 +42,12 @@ class Concat:
         out = out_path.absolute().as_posix()
         cmds = [] # type: List[str]
         if args.raw_concat is False:
-            return [f'ffmpeg -i concat:"{"|".join(names)}" -c copy -y "{out}"'], []
+            return [f'ffmpeg -i concat:"{"|".join(names)}" -c copy -y "{out}" > nul'], []
         if len(names) > ONCE_MAX_FILES:
             new_names, _tmp_outs = Concat.gen_new_names(names, out)
             if platform.system() == 'Windows':
                 for _names, _out in new_names:
-                    cmds.append(f'copy /b {"+".join(_names)} "{_out}"')
+                    cmds.append(f'copy /b {"+".join(_names)} "{_out}" > nul')
                 return cmds, _tmp_outs
             else:
                 for _names, _out in new_names:
