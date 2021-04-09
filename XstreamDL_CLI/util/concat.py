@@ -14,11 +14,15 @@ class Concat:
         assert out_path.exists() is True, f'File not exists ! -> {out_path}'
         assert out_path.stat().st_size > 0, f'File concat failed ! -> {out_path}'
         out = out_path.absolute().as_posix()
-        out_decrypted = (out_path.parent / f'{out_path.stem}_decrypted{out_path.suffix}').absolute().as_posix()
-        _cmd = f'{args.mp4decrypt} --show-progress --key {args.key} "{out}" "{out_decrypted}"'
+        out_decrypted = (out_path.parent / f'{out_path.stem}_decrypted{out_path.suffix}').absolute()
+        if out_decrypted.exists():
+            print('解密文件已存在 跳过')
+            return
+        _cmd = f'{args.mp4decrypt} --show-progress --key {args.key} "{out}" "{out_decrypted.as_posix()}"'
+        print('开始解密')
         os.system(_cmd)
         if args.enable_auto_delete:
-            if Path(out_decrypted).exists() and Path(out_decrypted).stat().st_size > 0:
+            if out_decrypted.exists() and out_decrypted.stat().st_size > 0:
                 os.remove(out)
 
     @staticmethod
