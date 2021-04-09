@@ -163,8 +163,8 @@ class DASHParser(BaseParser):
         init_url = st.get_url()
         if '$RepresentationID$' in init_url:
             init_url = init_url.replace('$RepresentationID$', representation.id)
-        if '$Bandwidth%' in init_url:
-            init_url = init_url.replace('$Bandwidth%', str(representation.bandwidth))
+        if '$Bandwidth$' in init_url:
+            init_url = init_url.replace('$Bandwidth$', str(representation.bandwidth))
         stream.set_init_url(init_url)
         ss = segmenttimeline.find('S') # type: List[S]
         time_offset = st.presentationTimeOffset
