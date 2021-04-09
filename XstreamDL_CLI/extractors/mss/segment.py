@@ -25,7 +25,7 @@ class MSSSegment(Segment):
         parts = init_url.split('?')[0].split('/')[-1].split('.')
         if len(parts) > 1:
             self.suffix = f'{parts[-1]}'
-        self.name = f'init.{self.suffix}'
+        self.name = f'init{self.suffix}'
         self.index = -1
         self.url = init_url
         self.segment_type = 'init'
