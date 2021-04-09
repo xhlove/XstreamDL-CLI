@@ -112,11 +112,9 @@ class DASHParser(BaseParser):
             BaseURLs = representation.find('BaseURL') # type: List[BaseURL]
             if len(BaseURLs) == 1:
                 stream.fix_base_url(BaseURLs[0].innertext)
-            if len(Roles) == 1 and Roles[0].value == 'subtitle' and len(BaseURLs) == 1:
-                # Role.value 是 subtitle 且存在 BaseURL 的 认定为字幕直链
-                # stream.set_subtitle_url(BaseURLs[0].innertext)
-                streams.append(stream)
-                continue
+                if len(Roles) == 1 and Roles[0].value == 'subtitle':
+                    streams.append(stream)
+                    continue
             # 针对视频音频流处理 分情况生成链接
             if len(segmenttemplates) == 0:
                 self.walk_segmenttemplate(representation, period, stream)
