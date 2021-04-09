@@ -72,6 +72,10 @@ class DASHStream(Stream):
         self.segments[-1].set_media_url(self.fix_url(url))
         self.append_segment()
 
+    def base2url(self):
+        self.segments[-1].set_media_url(self.base_url)
+        self.append_segment()
+
     def set_segment_duration(self, duration: float):
         self.segments[-1].set_duration(duration)
 
@@ -132,7 +136,11 @@ class DASHStream(Stream):
         stream_type, stream_suffix = stream_type.split('/')
         if stream_suffix == 'ttml+xml':
             stream_type = 'subtitle'
-        elif stream_type == 'application':
+            self.suffix = '.ttml'
+        elif stream_suffix == 'vtt':
+            self.suffix = '.vtt'
+            stream_type = 'subtitle'
+        if stream_type == 'application':
             if self.codecs.lower() in ['wvtt', 'ttml']:
                 stream_type = 'subtitle'
             else:

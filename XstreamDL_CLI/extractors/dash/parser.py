@@ -111,8 +111,13 @@ class DASHParser(BaseParser):
             Roles = adaptationset.find('Role') # type: List[Role]
             BaseURLs = representation.find('BaseURL') # type: List[BaseURL]
             if len(BaseURLs) == 1:
-                stream.fix_base_url(BaseURLs[0].innertext)
                 if len(Roles) == 1 and Roles[0].value == 'subtitle':
+                    stream.set_subtitle_url(BaseURLs[0].innertext)
+                    streams.append(stream)
+                    continue
+                stream.fix_base_url(BaseURLs[0].innertext)
+                if len(segmenttemplates) == 0 and len(segmenttemplates[0].find('SegmentTimeline')) == 0:
+                    stream.base2url()
                     streams.append(stream)
                     continue
             # 针对视频音频流处理 分情况生成链接
