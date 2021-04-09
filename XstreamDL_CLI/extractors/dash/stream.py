@@ -19,6 +19,8 @@ class DASHStream(Stream):
             base_name = f'{self.name}_{self.stream_type}'
         else:
             base_name = self.name
+        if 'ixigua.com' in self.home_url:
+            base_name += f'_{self.index}'
         if self.codecs is not None:
             base_name += f'_{self.codecs}'
         if self.stream_type == 'subtitle' and self.lang != '':
