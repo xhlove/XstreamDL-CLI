@@ -117,7 +117,7 @@ class DASHParser(BaseParser):
                     continue
                 stream.fix_base_url(BaseURLs[0].innertext)
                 if len(segmenttemplates) == 0 and len(representation.find('SegmentTimeline')) == 0:
-                    stream.base2url()
+                    stream.base2url(period.duration)
                     streams.append(stream)
                     continue
             # 针对视频音频流处理 分情况生成链接
