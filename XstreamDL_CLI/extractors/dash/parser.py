@@ -1,3 +1,4 @@
+import re
 import click
 from typing import List, Dict
 
@@ -108,6 +109,8 @@ class DASHParser(BaseParser):
             # 针对字幕直链类型
             Roles = adaptationset.find('Role') # type: List[Role]
             BaseURLs = representation.find('BaseURL') # type: List[BaseURL]
+            if len(BaseURLs) == 1:
+                stream.fix_base_url(BaseURLs[0].innertext)
             if len(Roles) == 1 and Roles[0].value == 'subtitle' and len(BaseURLs) == 1:
                 # Role.value 是 subtitle 且存在 BaseURL 的 认定为字幕直链
                 stream.set_subtitle_url(BaseURLs[0].innertext)
@@ -115,7 +118,7 @@ class DASHParser(BaseParser):
                 continue
             # 针对视频音频流处理 分情况生成链接
             if len(segmenttemplates) == 0:
-                self.walk_segmenttemplate(representation, stream)
+                self.walk_segmenttemplate(representation, period, stream)
             elif len(segmenttemplates) == 1 and len(segmenttemplates[0].find('SegmentTimeline')) == 1:
                 self.walk_segmenttimeline(segmenttemplates[0], representation, stream)
             else:
@@ -136,8 +139,9 @@ class DASHParser(BaseParser):
             # 而且往往key不好拿到 所以这里仅仅做一个存储
             stream.append_key(DASHKey(contentprotection))
 
-    def walk_segmenttemplate(self, representation: Representation, stream: DASHStream):
+    def walk_segmenttemplate(self, representation: Representation, period: Period, stream: DASHStream):
         segmenttemplates = representation.find('SegmentTemplate') # type: List[SegmentTemplate]
+        # segmenttimelines = representation.find('SegmentTimeline') # type: List[SegmentTimeline]
         if len(segmenttemplates) != 1:
             # 正常情况下 这里应该只有一个SegmentTemplate
             # 没有就无法计算分段 则跳过
@@ -146,6 +150,9 @@ class DASHParser(BaseParser):
                 click.secho('please report this DASH content.')
             else:
                 click.secho('stream has no SegmentTemplate between Representation tag.')
+            return
+        if len(segmenttemplates[0].find('SegmentTimeline')) == 0:
+            self.generate_v1(period, representation.id, segmenttemplates[0], stream)
             return
         self.walk_segmenttimeline(segmenttemplates[0], representation, stream)
 
@@ -178,6 +185,11 @@ class DASHParser(BaseParser):
                 if '$Number$' in media_url:
                     media_url = media_url.replace('$Number$', str(start_number))
                     start_number += 1
+                if re.match('.*?\$Number%(\d+)d\$', media_url):
+                    length = re.match('.*?\$Number%(\d+)d\$', media_url).groups()[0]
+                    old = f'$Number%{length}d$'
+                    media_url = media_url.replace(old, f'{start_number:>int(length)}')
+                    start_number += 1
                 if '$RepresentationID$' in media_url:
                     media_url = media_url.replace('$RepresentationID$', representation.id)
                 if '$Time$' in media_url:
@@ -197,6 +209,10 @@ class DASHParser(BaseParser):
             media_url = st.get_media_url()
             if '$Number$' in media_url:
                 media_url = media_url.replace('$Number$', str(number))
+            if re.match('.*?\$Number%(\d+)d\$', media_url):
+                length = re.match('.*?\$Number%(\d+)d\$', media_url).groups()[0]
+                old = f'$Number%{length}d$'
+                media_url = media_url.replace(old, f'{number:0>{int(length)}}')
             if '$RepresentationID$' in media_url:
                 media_url = media_url.replace('$RepresentationID$', rid)
             stream.set_media_url(media_url)
