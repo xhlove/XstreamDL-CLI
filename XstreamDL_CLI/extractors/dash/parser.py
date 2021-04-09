@@ -31,6 +31,7 @@ class DASHParser(BaseParser):
             click.secho(f'parse {uri} failed')
             return []
         name, home_url, base_url = uris
+        self.dump_content(name, content, '.mpd')
         # 解析转换内容为期望的对象
         mpd = xml_handler(content)
         # 检查有没有baseurl
@@ -113,7 +114,7 @@ class DASHParser(BaseParser):
                 stream.fix_base_url(BaseURLs[0].innertext)
             if len(Roles) == 1 and Roles[0].value == 'subtitle' and len(BaseURLs) == 1:
                 # Role.value 是 subtitle 且存在 BaseURL 的 认定为字幕直链
-                stream.set_subtitle_url(BaseURLs[0].innertext)
+                # stream.set_subtitle_url(BaseURLs[0].innertext)
                 streams.append(stream)
                 continue
             # 针对视频音频流处理 分情况生成链接

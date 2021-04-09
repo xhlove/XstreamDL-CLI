@@ -17,6 +17,7 @@ class HLSParser(BaseParser):
             click.secho(f'parse {uri} failed')
             return []
         name, home_url, base_url = uris
+        self.dump_content(name, content, '.m3u8')
         streams = []
         sindex = 0
         stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)

@@ -9,6 +9,9 @@ class BaseParser:
         self.uri_type = uri_type
         self.suffix = '.SUFFIX'
 
+    def dump_content(self, name: str, content: str, suffix: str):
+        (Path('Downloads') / f'{name}{suffix}').write_text(content, encoding='utf-8')
+
     def parse_uri(self, uri: str) -> Tuple[str, str, str]:
         '''
         进入此处的uri不可能是文件夹
