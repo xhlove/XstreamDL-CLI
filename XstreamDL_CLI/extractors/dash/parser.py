@@ -172,6 +172,9 @@ class DASHParser(BaseParser):
             init_url = init_url.replace('$RepresentationID$', representation.id)
         if '$Bandwidth$' in init_url:
             init_url = init_url.replace('$Bandwidth$', str(representation.bandwidth))
+        if re.match('.*?as=audio_(.*?)\)', init_url):
+            _lang = re.match('.*?as=audio_(.*?)\)', init_url).groups()[0]
+            stream.set_lang(_lang)
         stream.set_init_url(init_url)
         ss = segmenttimeline.find('S') # type: List[S]
         time_offset = st.presentationTimeOffset
