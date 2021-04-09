@@ -14,7 +14,7 @@ class Concat:
         assert out_path.exists() is True, f'File not exists ! -> {out_path}'
         assert out_path.stat().st_size > 0, f'File concat failed ! -> {out_path}'
         out = out_path.absolute().as_posix()
-        out_decrypted = (out_path.parent / f'{out_path.name}_decrypted{out_path.suffix}').absolute().as_posix()
+        out_decrypted = (out_path.parent / f'{out_path.stem}_decrypted{out_path.suffix}').absolute().as_posix()
         _cmd = f'{args.mp4decrypt} --show-progress --key {args.key} "{out}" "{out_decrypted}"'
         os.system(_cmd)
         if args.enable_auto_delete:
