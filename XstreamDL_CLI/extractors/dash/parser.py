@@ -116,7 +116,7 @@ class DASHParser(BaseParser):
                     streams.append(stream)
                     continue
                 stream.fix_base_url(BaseURLs[0].innertext)
-                if len(segmenttemplates) == 0 and len(segmenttemplates[0].find('SegmentTimeline')) == 0:
+                if len(segmenttemplates) == 0 and len(representation.find('SegmentTimeline')) == 0:
                     stream.base2url()
                     streams.append(stream)
                     continue
