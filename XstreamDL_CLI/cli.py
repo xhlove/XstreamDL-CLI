@@ -46,8 +46,10 @@ def command_handler(args: CmdArgs):
         args.mp4decrypt = Path(args.mp4decrypt).absolute().as_posix()
     elif Path(f'{args.mp4decrypt}.exe').exists():
         args.mp4decrypt = Path(f'{args.mp4decrypt}.exe').absolute().as_posix()
+    elif shutil.which('mp4decrypt') is not None:
+        args.mp4decrypt = Path(shutil.which('mp4decrypt')).absolute().as_posix()
     elif shutil.which('ffmpeg') is not None:
-        args.mp4decrypt = Path(args.mp4decrypt).absolute().as_posix()
+        args.mp4decrypt = Path(shutil.which('ffmpeg')).absolute().as_posix()
     else:
         if args.key is not None:
             click.secho(f'Warning: cannot find executable mp4decrypt')
