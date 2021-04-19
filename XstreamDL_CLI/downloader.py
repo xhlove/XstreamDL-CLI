@@ -251,12 +251,7 @@ class Downloader:
                 if resp.status == 405:
                     status = 'STATUS_CODE_ERROR'
                     flag = False
-                elif resp.headers.get('Content-length') is None:
-                    status = 'NO_CONTENT_LENGTH'
-                    flag = False
                 else:
-                    stream.filesize += int(resp.headers["Content-length"])
-                    self.progress.update(stream_id, total=stream.filesize)
                     self.progress.start_task(stream_id)
                     while self.terminate is False:
                         data = await resp.content.read(512)
@@ -264,6 +259,8 @@ class Downloader:
                             break
                         segment.content.append(data)
                         self.progress.update(stream_id, advance=len(data))
+                        stream.filesize += len(data)
+                        self.progress.update(stream_id, total=stream.filesize)
         except TimeoutError:
             return segment, 'TimeoutError', None
         except client_exceptions.ClientConnectorError:
