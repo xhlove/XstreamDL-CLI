@@ -149,13 +149,12 @@ class Stream:
             if segment_path.exists() is False:
                 continue
             names.append(segment.name)
-        raw_concat = not all(segment.is_encrypt() for segment in self.segments)
-        if raw_concat:
-            click.secho('对于加密格式，采用RAW方式合并')
-            args.raw_concat = True
         if len(names) != len(self.segments):
             click.secho(f'尝试合并 {self.get_name()} 但是未下载完成')
             return False
+        if hasattr(self, "xkey") and self.xkey.method.upper() == "SAMPLE-AES":
+            click.secho(f'发现SAMPLE-AES 将使用二进制合并')
+            args.raw_concat = True
         ori_path = os.getcwd()
         # 需要在切换目录前获取
         os.chdir(self.save_dir.absolute().as_posix())

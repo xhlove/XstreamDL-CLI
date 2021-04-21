@@ -38,7 +38,7 @@ def command_handler(args: CmdArgs):
     elif Path(f'{args.ffmpeg}.exe').exists():
         args.ffmpeg = Path(f'{args.ffmpeg}.exe').absolute().as_posix()
     elif shutil.which('ffmpeg') is not None:
-        args.ffmpeg = Path(args.ffmpeg).absolute().as_posix()
+        args.ffmpeg = Path(shutil.which('ffmpeg')).absolute().as_posix()
     else:
         click.secho(f'Warning: cannot find executable ffmpeg')
     # mp4decrypt 优先使用文件夹内的
@@ -48,11 +48,8 @@ def command_handler(args: CmdArgs):
         args.mp4decrypt = Path(f'{args.mp4decrypt}.exe').absolute().as_posix()
     elif shutil.which('mp4decrypt') is not None:
         args.mp4decrypt = Path(shutil.which('mp4decrypt')).absolute().as_posix()
-    elif shutil.which('ffmpeg') is not None:
-        args.mp4decrypt = Path(shutil.which('ffmpeg')).absolute().as_posix()
     else:
-        if args.key is not None:
-            click.secho(f'Warning: cannot find executable mp4decrypt')
+        click.secho(f'Warning: cannot find executable mp4decrypt')
 
 
 def main():

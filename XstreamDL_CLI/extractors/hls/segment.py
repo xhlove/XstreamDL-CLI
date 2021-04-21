@@ -22,7 +22,7 @@ class HLSSegment(Segment):
             return False
 
     def is_supported_encryption(self):
-        if self.xkey is not None and self.xkey.method.upper() in ['AES-128', 'SAMPLE-AES']:
+        if self.xkey is not None and self.xkey.method.upper() in ['AES-128']:
             return True
         return False
 
