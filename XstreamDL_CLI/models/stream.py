@@ -152,7 +152,7 @@ class Stream:
         if len(names) != len(self.segments):
             click.secho(f'尝试合并 {self.get_name()} 但是未下载完成')
             return False
-        if hasattr(self, "xkey") and self.xkey.method.upper() == "SAMPLE-AES":
+        if hasattr(self, "xkey") and self.xkey is not None and self.xkey.method.upper() == "SAMPLE-AES":
             click.secho(f'发现SAMPLE-AES 将使用二进制合并')
             args.raw_concat = True
         ori_path = os.getcwd()
