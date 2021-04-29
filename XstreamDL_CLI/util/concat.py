@@ -46,7 +46,9 @@ class Concat:
         out = out_path.absolute().as_posix()
         cmds = [] # type: List[str]
         if args.raw_concat is False:
-            return [f'ffmpeg -i concat:"{"|".join(names)}" -c copy -y "{out}" > nul'], []
+            with open('concat.list', 'wt') as f:
+                f.writelines([f"file '{name}'\r\n" for name in names])
+            return [f'ffmpeg -f concat -i "concat.list" -c copy -y "{out}" > nul'], []
         if len(names) > ONCE_MAX_FILES:
             new_names, _tmp_outs = Concat.gen_new_names(names, out)
             if platform.system() == 'Windows':
