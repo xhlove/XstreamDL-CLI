@@ -57,7 +57,7 @@ class Concat:
                 return cmds, _tmp_outs
             else:
                 for _names, _out in new_names:
-                    cmds.append(f'cat {" ".join(_names)} "{_out}"')
+                    cmds.append(f'cat {" ".join(_names)} > "{_out}"')
                 return cmds, _tmp_outs
         if platform.system() == 'Windows':
             return [f'copy /b {"+".join(names)} "{out}"'], []
