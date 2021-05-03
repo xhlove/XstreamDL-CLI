@@ -35,7 +35,7 @@ python -m XstreamDL_CLI.cli [OPTION]... URL/FILE/FOLDER...
 **HELP INFO**
 
 ```bash
-version 1.2.0, A downloader that download the HLS/DASH stream.
+version 1.2.1, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
 A downloader that download the HLS/DASH stream
@@ -73,6 +73,8 @@ optional arguments:
   --disable-auto-concat
                         Disable auto-concat
   --enable-auto-delete  Enable auto-delete files after concat success
+  --disable-auto-decrypt
+                        Disable auto-decrypt segments before dump to disk
   --key KEY             <id>:<k>, <id> is either a track ID in decimal or a
                         128-bit KID in hex, <k> is a 128-bit key in hex
   --b64key B64KEY       base64 format aes key, only for HLS standard
@@ -97,7 +99,7 @@ optional arguments:
 ## pyinstaller打包
 
 ```bash
-pyinstaller -i logo.ico -n XstreamDL-CLI_v1.2.0 -F XstreamDL_CLI\__main__.py
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.2.1 -F XstreamDL_CLI\__main__.py
 ```
 
 ## 示意
