@@ -291,6 +291,8 @@ class Downloader:
         '''
         解密部分
         '''
+        if self.args.disable_auto_decrypt is True:
+            return segment.dump()
         if segment.is_encrypt() and segment.is_supported_encryption():
             cipher = CommonAES(segment.xkey.key, binascii.a2b_hex(segment.xkey.iv))
             return cipher.decrypt(segment)

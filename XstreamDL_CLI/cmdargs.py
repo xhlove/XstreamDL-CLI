@@ -19,6 +19,7 @@ class CmdArgs:
         self.raw_concat = None # type: bool
         self.disable_auto_concat = None # type: bool
         self.enable_auto_delete = None # type: bool
+        self.disable_auto_decrypt = None # type: bool
         self.key = None # type: str
         self.b64key = None # type: str
         self.hexiv = None # type: str

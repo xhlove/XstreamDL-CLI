@@ -94,6 +94,7 @@ def main():
     parser.add_argument('--raw-concat', action='store_true', help='Concat content as raw')
     parser.add_argument('--disable-auto-concat', action='store_true', help='Disable auto-concat')
     parser.add_argument('--enable-auto-delete', action='store_true', help='Enable auto-delete files after concat success')
+    parser.add_argument('--disable-auto-decrypt', action='store_true', help='Disable auto-decrypt segments before dump to disk')
     parser.add_argument(
         '--key',
         default=None,
