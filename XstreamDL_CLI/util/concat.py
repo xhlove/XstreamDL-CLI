@@ -26,7 +26,7 @@ class Concat:
                 os.remove(out)
 
     @staticmethod
-    def gen_new_names(names: list, out: str):
+    def gen_new_names(names: list, out: str, tmp_suffix: str = '.tmp'):
         work_num = len(names) // ONCE_MAX_FILES + 1
         counts = len(names) // work_num
         new_names = []
@@ -36,8 +36,8 @@ class Concat:
                 _names = names[multi_index * counts:(multi_index + 1) * counts]
             else:
                 _names = names[multi_index * counts:]
-            _tmp_outs.append(f'out{multi_index}.tmp')
-            new_names.append([_names, f'out{multi_index}.tmp'])
+            _tmp_outs.append(f'out{multi_index}{tmp_suffix}')
+            new_names.append([_names, f'out{multi_index}{tmp_suffix}'])
         new_names.append([_tmp_outs, out])
         return new_names, _tmp_outs
 
@@ -46,6 +46,11 @@ class Concat:
         out = out_path.absolute().as_posix()
         cmds = [] # type: List[str]
         if args.raw_concat is False:
+            if len(names) > ONCE_MAX_FILES:
+                new_names, _tmp_outs = Concat.gen_new_names(names, out, tmp_suffix=".ts")
+                for _names, _out in new_names:
+                    cmds.append(f'ffmpeg -i concat:"{"|".join(_names)}" -c copy -y "{_out}" > nul')
+                return cmds, _tmp_outs
             return [f'ffmpeg -i concat:"{"|".join(names)}" -c copy -y "{out}" > nul'], []
         if len(names) > ONCE_MAX_FILES:
             new_names, _tmp_outs = Concat.gen_new_names(names, out)
