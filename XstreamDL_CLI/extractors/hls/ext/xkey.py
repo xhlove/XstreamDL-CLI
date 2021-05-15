@@ -1,6 +1,7 @@
 
 import asyncio
 from aiohttp import ClientSession, ClientResponse
+from aiohttp.connector import TCPConnector
 
 from .x import X
 from XstreamDL_CLI.cmdargs import CmdArgs
@@ -81,7 +82,7 @@ class XKey(X):
 
     async def fetch(self, url: str, args: CmdArgs) -> bytes:
         proxy, headers = args.proxy, args.headers
-        async with ClientSession() as client: # type: ClientSession
+        async with ClientSession(connector=TCPConnector(ssl=False)) as client: # type: ClientSession
             async with client.get(url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
                 return await resp.content.read()
 

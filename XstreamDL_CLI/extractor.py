@@ -1,3 +1,4 @@
+from aiohttp.connector import TCPConnector
 import click
 import asyncio
 from typing import List
@@ -60,7 +61,7 @@ class Extractor:
 
     async def fetch(self, url: str) -> str:
         proxy, headers = self.args.proxy, self.args.headers
-        async with ClientSession() as client: # type: ClientSession
+        async with ClientSession(connector=TCPConnector(ssl=False)) as client: # type: ClientSession
             async with client.get(url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
                 return await resp.text(encoding='utf-8')
 

@@ -58,6 +58,7 @@ class Downloader:
         '''
         return TCPConnector(
             ttl_dns_cache=300,
+            ssl=False,
             limit_per_host=self.args.limit_per_host,
             limit=500,
             force_close=not self.args.disable_force_close,
@@ -84,7 +85,7 @@ class Downloader:
     def get_selected_index(self, length: int) -> list:
         selected = []
         try:
-            text = input('请输入要下载流的序号：').strip()
+            text = input('请输入要下载流的序号：\n').strip()
         except EOFError:
             click.secho('未选择流，退出')
             return []
