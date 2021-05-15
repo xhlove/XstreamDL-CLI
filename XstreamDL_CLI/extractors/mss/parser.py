@@ -23,7 +23,7 @@ class MSSParser(BaseParser):
         uris = self.parse_uri(uri)
         assert uris is not None, f'parse {uri} failed'
         name, home_url, base_url = uris
-        self.dump_content(name, content, '.ism')
+        self.dump_content(name, content, self.suffix)
         # 解析转换内容为期望的对象
         ism = xml_handler(content)
         return self.walk_streamindex(ism, uris)

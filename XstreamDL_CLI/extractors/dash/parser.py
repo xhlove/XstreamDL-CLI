@@ -31,7 +31,7 @@ class DASHParser(BaseParser):
             click.secho(f'parse {uri} failed')
             return []
         name, home_url, base_url = uris
-        self.dump_content(name, content, '.mpd')
+        self.dump_content(name, content, self.suffix)
         # 解析转换内容为期望的对象
         mpd = xml_handler(content)
         # 检查有没有baseurl

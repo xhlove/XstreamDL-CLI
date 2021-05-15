@@ -42,7 +42,7 @@ class Downloader:
             "•",
             TransferSpeedColumn(),
             "•",
-            TimeRemainingColumn(),
+            TimeRemainingColumn()
         )
         self.terminate = False
         signal.signal(signal.SIGINT, self.stop)

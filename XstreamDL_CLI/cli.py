@@ -17,6 +17,8 @@ def command_handler(args: CmdArgs):
     '''
     if Path(args.save_dir).exists() is False:
         Path(args.save_dir).mkdir()
+    if Path('logs').exists() is False:
+        Path('logs').mkdir()
     args.headers = Headers().get(args)
     args.limit_per_host = int(args.limit_per_host)
     if args.key is not None:

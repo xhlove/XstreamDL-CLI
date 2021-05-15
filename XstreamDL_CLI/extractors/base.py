@@ -10,7 +10,7 @@ class BaseParser:
         self.suffix = '.SUFFIX'
 
     def dump_content(self, name: str, content: str, suffix: str):
-        (Path('Downloads') / f'{name}{suffix}').write_text(content, encoding='utf-8')
+        (Path('logs') / f'{name}{suffix}').write_text(content, encoding='utf-8')
 
     def parse_uri(self, uri: str) -> Tuple[str, str, str]:
         '''
