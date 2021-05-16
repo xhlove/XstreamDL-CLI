@@ -118,7 +118,7 @@ class DASHStream(Stream):
             codecs = 'H265'
         if re.match('vp(09|9)*', codecs):
             codecs = 'VP9'
-        if codecs in ['wvtt', 'ttml']:
+        if codecs in ['wvtt', 'ttml', 'stpp']:
             codecs = codecs.upper()
         if AUDIO_CODECS.get(codecs) is not None:
             if 'AAC' in AUDIO_CODECS[codecs]:
@@ -143,7 +143,7 @@ class DASHStream(Stream):
             self.suffix = '.vtt'
             stream_type = 'subtitle'
         if stream_type == 'application':
-            if self.codecs.lower() in ['wvtt', 'ttml']:
+            if self.codecs.lower() in ['wvtt', 'ttml', 'stpp']:
                 stream_type = 'subtitle'
             else:
                 return

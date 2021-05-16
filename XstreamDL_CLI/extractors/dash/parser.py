@@ -98,7 +98,10 @@ class DASHParser(BaseParser):
             stream.set_skey(adaptationset.id, representation.id)
             stream.set_lang(adaptationset.lang)
             stream.set_bandwidth(representation.bandwidth)
-            stream.set_codecs(representation.codecs)
+            if representation.codecs is None:
+                stream.set_codecs(adaptationset.codecs)
+            else:
+                stream.set_codecs(representation.codecs)
             if representation.mimeType is None:
                 stream.set_stream_type(adaptationset.mimeType)
             else:

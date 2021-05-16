@@ -24,7 +24,7 @@ class MSSSegment(Segment):
     def set_init_url(self, init_url: str):
         parts = init_url.split('?')[0].split('/')[-1].split('.')
         if len(parts) > 1:
-            self.suffix = f'{parts[-1]}'
+            self.suffix = f'.{parts[-1]}'
         self.name = f'init{self.suffix}'
         self.index = -1
         self.url = init_url
