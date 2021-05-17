@@ -31,4 +31,4 @@ class SegmentTemplate(MPDItem):
         return self.initialization.replace('..', '')
 
     def get_media_url(self) -> str:
-        return self.media.replace('..', '')
+        return self.media.replace('../', '')
