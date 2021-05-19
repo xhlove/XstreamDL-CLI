@@ -175,14 +175,18 @@ class DASHParser(BaseParser):
 
     def walk_s(self, segmenttimeline: SegmentTimeline, st: SegmentTemplate, representation: Representation, stream: DASHStream):
         init_url = st.get_url()
-        if '$RepresentationID$' in init_url:
-            init_url = init_url.replace('$RepresentationID$', representation.id)
-        if '$Bandwidth$' in init_url:
-            init_url = init_url.replace('$Bandwidth$', str(representation.bandwidth))
-        if re.match('.*?as=audio_(.*?)\)', init_url):
-            _lang = re.match('.*?as=audio_(.*?)\)', init_url).groups()[0]
-            stream.set_lang(_lang)
-        stream.set_init_url(init_url)
+        if init_url is not None:
+            if '$RepresentationID$' in init_url:
+                init_url = init_url.replace('$RepresentationID$', representation.id)
+            if '$Bandwidth$' in init_url:
+                init_url = init_url.replace('$Bandwidth$', str(representation.bandwidth))
+            if re.match('.*?as=audio_(.*?)\)', init_url):
+                _lang = re.match('.*?as=audio_(.*?)\)', init_url).groups()[0]
+                stream.set_lang(_lang)
+            stream.set_init_url(init_url)
+        else:
+            # 这种情况可能是因为流是字幕
+            pass
         ss = segmenttimeline.find('S') # type: List[S]
         time_offset = st.presentationTimeOffset
         start_number = st.startNumber

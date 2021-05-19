@@ -28,6 +28,8 @@ class SegmentTemplate(MPDItem):
         self.startNumber = int(self.startNumber)
 
     def get_url(self) -> str:
+        if self.initialization is None:
+            return self.initialization
         return self.initialization.replace('..', '')
 
     def get_media_url(self) -> str:

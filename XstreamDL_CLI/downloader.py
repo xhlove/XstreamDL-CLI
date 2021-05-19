@@ -277,6 +277,8 @@ class Downloader:
             return segment, 'ClientPayloadError', None
         except client_exceptions.ClientOSError:
             return segment, 'ClientOSError', None
+        except client_exceptions.InvalidURL:
+            return segment, 'EXIT', False
         except CancelledError:
             return segment, 'EXIT', False
         except Exception as e:

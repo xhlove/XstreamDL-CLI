@@ -1,5 +1,6 @@
 .vscode/
 tests/
+logs/
 *.ts
 *.mp4
 *.m3u8
