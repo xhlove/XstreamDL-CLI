@@ -1,13 +1,10 @@
 import click
 import signal
-import asyncio
 import binascii
 import logging
+import requests
 from typing import List, Set, Dict
-from asyncio import get_event_loop
-from asyncio import AbstractEventLoop, Future, Task
-from aiohttp import ClientSession, ClientResponse, TCPConnector, client_exceptions
-from concurrent.futures._base import TimeoutError, CancelledError
+from concurrent.futures import Future, CancelledError, ThreadPoolExecutor, as_completed
 from rich.progress import (
     BarColumn,
     DownloadColumn,
@@ -78,9 +75,7 @@ class Downloader:
     def download_stream(self):
         extractor = Extractor(self.args)
         streams = extractor.fetch_metadata(self.args.URI[0])
-        loop = get_event_loop()
-        loop.run_until_complete(self.download_all_segments(loop, streams))
-        loop.close()
+        self.download_all_segments(streams)
 
     def get_selected_index(self, length: int) -> list:
         selected = []
@@ -111,7 +106,7 @@ class Downloader:
             return selected
         return selected
 
-    async def download_all_segments(self, loop: AbstractEventLoop, streams: List[Stream]):
+    def download_all_segments(self, streams: List[Stream]):
         if streams is None:
             return
         if len(streams) == 0:
@@ -132,7 +127,7 @@ class Downloader:
             stream.dump_segments()
             max_failed = 5
             while max_failed > 0:
-                results = await self.do_with_progress(loop, stream)
+                results = self.do_with_progress(stream)
                 all_results.append(results)
                 count_none, count_true, count_false = 0, 0, 0
                 for _, flag in results.items():
@@ -174,7 +169,7 @@ class Downloader:
         return completed, _left_segments
 
     def init_progress(self, stream: Stream, completed: int):
-        stream_id = self.progress.add_task("download", name=stream.get_name(), start=False) # TaskID
+        stream_id = self.progress.add_task("download", name=stream.get_name(), start=False)  # TaskID
         if completed > 0:
             if stream.filesize > 0:
                 total = stream.filesize
@@ -191,15 +186,17 @@ class Downloader:
             self.progress.update(stream_id, total=total)
         return stream_id
 
-    async def do_with_progress(self, loop: AbstractEventLoop, stream: Stream):
+    def do_with_progress(self, stream: Stream):
         '''
         下载过程输出进度 并合理处理异常
         '''
-        results = {} # type: Dict[bool]
-        tasks = set() # type: Set[Task]
+        executor = ThreadPoolExecutor()
+        results = {}  # type: Dict[bool]
+        tasks = set()  # type: Set[Task]
 
         def _done_callback(_future: Future) -> None:
             nonlocal results
+            error = False
             if _future.exception() is None:
                 segment, status, flag = _future.result()
                 if flag is None:
@@ -207,7 +204,7 @@ class Downloader:
                     # print('下载过程中出现已知异常 需重新下载\n')
                 elif flag is False:
                     # 某几类已知异常 如状态码不对 返回头没有文件大小 视为无法下载 主动退出
-                    cancel_all_task()
+                    error = True
                     if status in ['STATUS_CODE_ERROR', 'NO_CONTENT_LENGTH']:
                         print(f'无法下载的m3u8 {status} 退出其他下载任务\n')
                     elif status == 'EXIT':
@@ -217,15 +214,11 @@ class Downloader:
                 results[segment] = flag
             else:
                 # 出现未知异常 强制退出全部task
+                error = True
                 print('出现未知异常 强制退出全部task\n')
-                cancel_all_task()
                 results['未知segment'] = False
+            return error
 
-        def cancel_all_task() -> None:
-            for task in tasks:
-                task.remove_done_callback(_done_callback)
-            for task in filter(lambda task: not task.done(), tasks):
-                task.cancel()
         # limit_per_host 根据不同网站和网络状况调整 如果与目标地址连接性较好 那么设置小一点比较好
         completed, _left = self.get_left_segments(stream)
         if len(_left) == 0:
@@ -233,51 +226,46 @@ class Downloader:
         # 没有需要下载的则尝试合并 返回False则说明需要继续下载完整
         with self.progress:
             stream_id = self.init_progress(stream, completed)
-            client = ClientSession(connector=self.get_conn()) # type: ClientSession
+            # client = ClientSession(connector=self.get_conn()) # type: ClientSession
+            client = requests.Session()
             for segment in _left:
-                task = loop.create_task(self.download(client, stream_id, stream, segment))
-                task.add_done_callback(_done_callback)
+                task = executor.submit(self.download, client, stream_id, stream, segment)
                 tasks.add(task)
-            # 阻塞并等待运行完成
-            finished, unfinished = await asyncio.wait(tasks)
+            for task in as_completed(tasks):
+                error = _done_callback(task)
+                if error:
+                    break
             # 关闭ClientSession
-            await client.close()
+            client.close()
         return results
 
-    async def download(self, client: ClientSession, stream_id: TaskID, stream: Stream, segment: Segment):
+    def download(self, client: requests.Session, stream_id: TaskID, stream: Stream, segment: Segment):
         proxy, headers = self.args.proxy, self.args.headers
         status, flag = 'EXIT', True
         try:
-            async with client.get(segment.url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
-                _flag = True
-                if resp.status == 405:
-                    status = 'STATUS_CODE_ERROR'
-                    flag = False
-                if resp.headers.get('Content-length') is not None:
-                    stream.filesize += int(resp.headers["Content-length"])
+            resp = client.get(segment.url, proxies=proxy, headers=headers)
+            _flag = True
+            if resp.status_code == 405:
+                status = 'STATUS_CODE_ERROR'
+                flag = False
+            if resp.headers.get('Content-length') is not None:
+                stream.filesize += int(resp.headers["Content-length"])
+                self.progress.update(stream_id, total=stream.filesize)
+            else:
+                _flag = False
+            if flag:
+                self.progress.start_task(stream_id)
+                data = resp.content
+                segment.content.append(data)
+                self.progress.update(stream_id, advance=len(data))
+                if _flag is False:
+                    stream.filesize += len(data)
                     self.progress.update(stream_id, total=stream.filesize)
-                else:
-                    _flag = False
-                if flag:
-                    self.progress.start_task(stream_id)
-                    while self.terminate is False:
-                        data = await resp.content.read(512)
-                        if not data:
-                            break
-                        segment.content.append(data)
-                        self.progress.update(stream_id, advance=len(data))
-                        if _flag is False:
-                            stream.filesize += len(data)
-                            self.progress.update(stream_id, total=stream.filesize)
         except TimeoutError:
             return segment, 'TimeoutError', None
-        except client_exceptions.ClientConnectorError:
-            return segment, 'ClientConnectorError', None
-        except client_exceptions.ClientPayloadError:
-            return segment, 'ClientPayloadError', None
-        except client_exceptions.ClientOSError:
-            return segment, 'ClientOSError', None
-        except client_exceptions.InvalidURL:
+        except requests.exceptions.ConnectionError:
+            return segment, 'ConnectionError', None
+        except requests.exceptions.InvalidURL:
             return segment, 'EXIT', False
         except CancelledError:
             return segment, 'EXIT', False
@@ -288,9 +276,9 @@ class Downloader:
             return segment, 'EXIT', False
         if flag is False:
             return segment, status, False
-        return segment, 'SUCCESS', await self.decrypt(segment)
+        return segment, 'SUCCESS', self.decrypt(segment)
 
-    async def decrypt(self, segment: Segment) -> bool:
+    def decrypt(self, segment: Segment) -> bool:
         '''
         解密部分
         '''
