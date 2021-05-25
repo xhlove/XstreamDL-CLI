@@ -14,6 +14,7 @@ class MSSParser(BaseParser):
     def __init__(self, args: CmdArgs, uri_type: str):
         super(MSSParser, self).__init__(args, uri_type)
         self.suffix = '.ism'
+        self.timescale = None
 
     def init_stream(self, sindex: int, uris: list) -> MSSStream:
         name, home_url, base_url = uris
@@ -30,6 +31,8 @@ class MSSParser(BaseParser):
 
     def walk_streamindex(self, ism: ISM, uris: list) -> List[MSSStream]:
         streamindexs = ism.find('StreamIndex') # type: List[StreamIndex]
+        self.timescale = ism.TimeScale
+
         assert len(streamindexs) > 0, 'there is no StreamIndex'
         # 遍历处理streamindexs
         streams = [] # type: List[MSSStream]
@@ -70,7 +73,7 @@ class MSSParser(BaseParser):
                 media_url = media_url.replace('{bitrate}', str(qualitylevel.Bitrate))
             if '{start time}' in media_url:
                 media_url = media_url.replace('{start time}', str(last_end_time))
-            duration = c.d / streamindex.TimeScale
+            duration = c.d / (streamindex.TimeScale or self.timescale)
             stream.set_segment_duration(duration)
             stream.set_media_url(media_url)
             last_end_time += c.d
