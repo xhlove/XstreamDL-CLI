@@ -34,24 +34,24 @@ class MSSParser(BaseParser):
         # 遍历处理streamindexs
         streams = [] # type: List[MSSStream]
         for streamindex in streamindexs:
-            streams.extend(self.walk_qualitylevel(streamindex, len(streams), uris))
+            streams.extend(self.walk_qualitylevel(streamindex, ism, len(streams), uris))
         # 处理空分段
         for stream in streams:
             if stream.segments[-1].url == '':
                 _ = stream.segments.pop(-1)
         return streams
 
-    def walk_qualitylevel(self, streamindex: StreamIndex, sindex: int, uris: list) -> List[MSSStream]:
+    def walk_qualitylevel(self, streamindex: StreamIndex, ism: ISM, sindex: int, uris: list) -> List[MSSStream]:
         streams = [] # type: List[MSSStream]
         qualitylevels = streamindex.find('QualityLevel') # type: List[QualityLevel]
         if len(qualitylevels) == 0:
             return streams
         for qualitylevel in qualitylevels:
             stream = self.init_stream(sindex + len(streams), uris)
-            streams.extend(self.walk_c(qualitylevel, streamindex, stream))
+            streams.extend(self.walk_c(qualitylevel, streamindex, ism, stream))
         return streams
 
-    def walk_c(self, qualitylevel: QualityLevel, streamindex: StreamIndex, stream: MSSStream) -> List[MSSStream]:
+    def walk_c(self, qualitylevel: QualityLevel, streamindex: StreamIndex, ism: ISM, stream: MSSStream) -> List[MSSStream]:
         cs = streamindex.find('c') # type: List[Cc]
         if len(cs) == 0:
             return []
@@ -70,7 +70,10 @@ class MSSParser(BaseParser):
                 media_url = media_url.replace('{bitrate}', str(qualitylevel.Bitrate))
             if '{start time}' in media_url:
                 media_url = media_url.replace('{start time}', str(last_end_time))
-            duration = c.d / streamindex.TimeScale
+            if streamindex.TimeScale is not None:
+                duration = c.d / streamindex.TimeScale
+            else:
+                duration = c.d / ism.TimeScale
             stream.set_segment_duration(duration)
             stream.set_media_url(media_url)
             last_end_time += c.d
