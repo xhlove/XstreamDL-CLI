@@ -148,7 +148,8 @@ class HLSStream(Stream):
 
     def get_path(self):
         ''' 某些m3u8会有重复的 例如D+ 这里辅助去重 '''
-        return self.origin_url.split('?', maxsplit=1)[0].split('/')[-1]
+        # return self.origin_url.split('?', maxsplit=1)[0].split('/')[-1]
+        return self.origin_url.split('?', maxsplit=1)[0].split('/', maxsplit=3)[-1:]
 
     def set_url(self, home_url: str, base_url: str, line: str):
         if line.startswith('http://') or line.startswith('https://') or line.startswith('ftp://'):
