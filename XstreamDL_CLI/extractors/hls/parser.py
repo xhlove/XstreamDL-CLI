@@ -90,6 +90,8 @@ class HLSParser(BaseParser):
                 segment.set_privinf(line)
             elif line.startswith('#EXT-X-BYTERANGE'):
                 segment.set_byterange(line)
+            elif line.startswith('#EXT-X-BITRATE'):
+                pass
             elif line.startswith('#EXT-X-ENDLIST'):
                 pass
             elif line.startswith('#EXT-X-MEDIA'):
@@ -129,7 +131,7 @@ class HLSParser(BaseParser):
                     segment.set_xkey(last_segment_has_xkey, last_segment_xkey)
                     segment.set_url(home_url, base_url, line)
                     stream.append_segment()
-                elif offset > 0 and lines[offset - 1].startswith('#EXTINF'):
+                elif offset > 0 and lines[offset - 1].startswith('#EXTINF') or lines[offset - 1].startswith('#EXT-X-BITRATE'):
                     segment.set_xkey(last_segment_has_xkey, last_segment_xkey)
                     segment.set_url(home_url, base_url, line)
                     stream.append_segment()
