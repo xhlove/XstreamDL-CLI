@@ -30,7 +30,7 @@ class Extractor:
         '''
         if uri.startswith('http://') or uri.startswith('https://') or uri.startswith('ftp://'):
             loop = asyncio.get_event_loop()
-            return self.raw2streams('url', uri, loop.run_until_complete(self.fetch(uri)), parent_stream)
+            return self.raw2streams('url', *loop.run_until_complete(self.fetch(uri)), parent_stream)
         if '\\' in uri:
             _file_name = uri.split('\\')[-1]
         elif '/' in uri:
@@ -63,7 +63,7 @@ class Extractor:
         proxy, headers = self.args.proxy, self.args.headers
         async with ClientSession(connector=TCPConnector(ssl=False)) as client: # type: ClientSession
             async with client.get(url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
-                return await resp.text(encoding='utf-8')
+                return str(resp.url), await resp.text(encoding='utf-8')
 
     def raw2streams(self, uri_type: str, uri: str, content: str, parent_stream: Stream) -> List[Stream]:
         '''
