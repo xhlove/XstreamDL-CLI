@@ -63,18 +63,19 @@ class MSSParser(BaseParser):
         stream.set_resolution(qualitylevel.MaxWidth, qualitylevel.MaxHeight)
         last_end_time = None # type: int
         for c in cs:
-            media_url = streamindex.get_media_url()
-            if last_end_time is None and c.t is not None:
-                last_end_time = c.t
-            if '{bitrate}' in media_url:
-                media_url = media_url.replace('{bitrate}', str(qualitylevel.Bitrate))
-            if '{start time}' in media_url:
-                media_url = media_url.replace('{start time}', str(last_end_time))
-            if streamindex.TimeScale is not None:
-                duration = c.d / streamindex.TimeScale
-            else:
-                duration = c.d / ism.TimeScale
-            stream.set_segment_duration(duration)
-            stream.set_media_url(media_url)
-            last_end_time += c.d
+            for _ in range(c.r):
+                media_url = streamindex.get_media_url()
+                if last_end_time is None and c.t is not None:
+                    last_end_time = c.t
+                if '{bitrate}' in media_url:
+                    media_url = media_url.replace('{bitrate}', str(qualitylevel.Bitrate))
+                if '{start time}' in media_url:
+                    media_url = media_url.replace('{start time}', str(last_end_time))
+                if streamindex.TimeScale is not None:
+                    duration = c.d / streamindex.TimeScale
+                else:
+                    duration = c.d / ism.TimeScale
+                stream.set_segment_duration(duration)
+                stream.set_media_url(media_url)
+                last_end_time += c.d
         return [stream]
