@@ -30,6 +30,10 @@ class Segment:
         # <---分段类型--->
         self.segment_type = 'normal'
 
+    def is_ism(self) -> bool:
+        ''' 请重写 '''
+        return False
+
     def is_encrypt(self) -> bool:
         ''' 请重写 '''
         pass

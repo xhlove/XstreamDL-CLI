@@ -56,8 +56,14 @@ class MSSParser(BaseParser):
         if len(cs) == 0:
             return []
         # 设置基本信息
+        stream.set_timescale(streamindex.TimeScale or ism.TimeScale)
         stream.set_stream_type(streamindex.Type)
         stream.set_codecs(qualitylevel.FourCC)
+        stream.set_bits_per_sample(qualitylevel.BitsPerSample)
+        stream.set_sampling_rate(qualitylevel.SamplingRate)
+        stream.set_channels(qualitylevel.Channels)
+        stream.set_codec_private_data(qualitylevel.CodecPrivateData)
+        stream.set_nal_unit_length_field(qualitylevel.NALUnitLengthField)
         stream.set_bandwidth(qualitylevel.Bitrate)
         stream.set_lang(streamindex.Language)
         stream.set_resolution(qualitylevel.MaxWidth, qualitylevel.MaxHeight)
@@ -65,16 +71,21 @@ class MSSParser(BaseParser):
         for c in cs:
             for _ in range(c.r):
                 media_url = streamindex.get_media_url()
-                if last_end_time is None and c.t is not None:
-                    last_end_time = c.t
+                if last_end_time is None:
+                    if c.t is None:
+                        last_end_time = 0
+                    else:
+                        last_end_time = c.t
                 if '{bitrate}' in media_url:
                     media_url = media_url.replace('{bitrate}', str(qualitylevel.Bitrate))
                 if '{start time}' in media_url:
                     media_url = media_url.replace('{start time}', str(last_end_time))
                 if streamindex.TimeScale is not None:
                     duration = c.d / streamindex.TimeScale
-                else:
+                elif ism.TimeScale is not None:
                     duration = c.d / ism.TimeScale
+                else:
+                    duration = c.d / 10000000
                 stream.set_segment_duration(duration)
                 stream.set_media_url(media_url)
                 last_end_time += c.d

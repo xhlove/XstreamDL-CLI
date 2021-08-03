@@ -217,7 +217,7 @@ class Downloader:
                 results[segment] = flag
             else:
                 # 出现未知异常 强制退出全部task
-                print('出现未知异常 强制退出全部task\n')
+                print(f'出现未知异常 强制退出全部task => {_future.exception()}\n')
                 cancel_all_task()
                 results['未知segment'] = False
 
@@ -288,12 +288,14 @@ class Downloader:
             return segment, 'EXIT', False
         if flag is False:
             return segment, status, False
-        return segment, 'SUCCESS', await self.decrypt(segment)
+        return segment, 'SUCCESS', await self.decrypt(segment, stream)
 
-    async def decrypt(self, segment: Segment) -> bool:
+    async def decrypt(self, segment: Segment, stream: Stream) -> bool:
         '''
         解密部分
         '''
+        if segment.is_ism():
+            segment.fix_header(stream)
         if self.args.disable_auto_decrypt is True:
             return segment.dump()
         if segment.is_encrypt() and segment.is_supported_encryption():

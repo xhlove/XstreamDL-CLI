@@ -2,6 +2,9 @@ from ..ismitem import ISMItem
 
 
 class QualityLevel(ISMItem):
+    '''
+    https://docs.microsoft.com/en-us/iis/extensions/smooth-streaming-client/qualitylevel-attributes-iis-smooth-streaming
+    '''
     def __init__(self, name: str):
         super(QualityLevel, self).__init__(name)
         # <----- 通用 ----->
@@ -9,6 +12,7 @@ class QualityLevel(ISMItem):
         self.Bitrate = None # type: int
         self.CodecPrivateData = None # type: str
         self.FourCC = None # type: str
+        self.NALUnitLengthField = None # type: int
         # <----- 音频 ----->
         self.SamplingRate = None # type: int
         self.Channels = None # type: int

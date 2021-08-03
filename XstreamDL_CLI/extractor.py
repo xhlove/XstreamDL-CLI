@@ -6,6 +6,7 @@ from pathlib import Path
 from aiohttp import ClientSession, ClientResponse
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.models.stream import Stream
+from XstreamDL_CLI.util.raw_text import load_raw2text
 from XstreamDL_CLI.extractors.hls.parser import HLSParser
 from XstreamDL_CLI.extractors.hls.stream import HLSStream
 from XstreamDL_CLI.extractors.dash.parser import DASHParser
@@ -48,12 +49,12 @@ class Extractor:
         if Path(uri).exists() is False:
             return
         if Path(uri).is_file():
-            return self.raw2streams('path', uri, Path(uri).read_text(encoding='utf-8'), parent_stream)
+            return self.raw2streams('path', uri, load_raw2text(Path(uri).read_bytes()), parent_stream)
         if Path(uri).is_dir() is False:
             return
         streams = []
         for path in Path(uri).iterdir():
-            _streams = self.raw2streams('path', path.name, path.read_text(encoding='utf-8'), parent_stream)
+            _streams = self.raw2streams('path', path.name, load_raw2text(path.read_bytes()), parent_stream)
             if _streams is None:
                 continue
             streams.extend(_streams)
@@ -63,7 +64,7 @@ class Extractor:
         proxy, headers = self.args.proxy, self.args.headers
         async with ClientSession(connector=TCPConnector(ssl=False)) as client: # type: ClientSession
             async with client.get(url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
-                return str(resp.url), await resp.text(encoding='utf-8')
+                return str(resp.url), load_raw2text(await resp.read())
 
     def raw2streams(self, uri_type: str, uri: str, content: str, parent_stream: Stream) -> List[Stream]:
         '''
