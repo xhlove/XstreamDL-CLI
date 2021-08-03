@@ -89,4 +89,10 @@ class MSSParser(BaseParser):
                 stream.set_segment_duration(duration)
                 stream.set_media_url(media_url)
                 last_end_time += c.d
+        protections = ism.find('Protection')
+        if len(protections) > 0 and len(protections[0].find('ProtectionHeader')) > 0:
+            protection_flag = True
+        else:
+            protection_flag = False
+        stream.set_protection_flag(protection_flag)
         return [stream]

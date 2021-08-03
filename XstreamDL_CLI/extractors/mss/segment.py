@@ -52,9 +52,13 @@ class MSSSegment(Segment):
     def __init__(self):
         super(MSSSegment, self).__init__()
         self.suffix = '.mp4'
+        self.has_protection = True
+
+    def set_protection_flag(self, flag: bool):
+        self.has_protection = flag
 
     def is_encrypt(self):
-        return True
+        return self.has_protection
 
     def is_supported_encryption(self):
         return False

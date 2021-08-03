@@ -102,6 +102,10 @@ class MSSStream(Stream):
         for segment in self.segments:
             segment.set_duration(duration)
 
+    def set_protection_flag(self, flag: bool):
+        for segment in self.segments:
+            segment.set_protection_flag(flag)
+
     def set_lang(self, lang: str):
         if lang is None:
             return
