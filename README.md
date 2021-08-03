@@ -32,6 +32,14 @@ python -m XstreamDL_CLI.cli [OPTION]... URL/FILE/FOLDER...
 
 **合并需要先将ffmpeg置于环境变量**
 
+**ISM EXAMPLE**
+
+```bash
+python -m XstreamDL_CLI.cli --select --overwrite --disable-force-close --limit-per-host 100 http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism/Manifest
+```
+
+![](images/oCam_2021_08_03_18_19_56_590.gif)
+
 **HELP INFO**
 
 ```bash
