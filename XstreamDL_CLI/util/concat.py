@@ -18,7 +18,7 @@ class Concat:
         if out_decrypted.exists():
             print('解密文件已存在 跳过')
             return
-        _cmd = f'{args.mp4decrypt} --show-progress --key {args.key} "{out}" "{out_decrypted.as_posix()}"'
+        _cmd = f'"{args.mp4decrypt}" --show-progress --key {args.key} "{out}" "{out_decrypted.as_posix()}"'
         print('开始解密')
         os.system(_cmd)
         if args.enable_auto_delete:
@@ -49,9 +49,9 @@ class Concat:
             if len(names) > ONCE_MAX_FILES:
                 new_names, _tmp_outs = Concat.gen_new_names(names, out, tmp_suffix=".ts")
                 for _names, _out in new_names:
-                    cmds.append(f'{args.ffmpeg} -i concat:"{"|".join(_names)}" -c copy -y "{_out}" > nul')
+                    cmds.append(f'"{args.ffmpeg}" -i concat:"{"|".join(_names)}" -c copy -y "{_out}" > nul')
                 return cmds, _tmp_outs
-            return [f'{args.ffmpeg} -i concat:"{"|".join(names)}" -c copy -y "{out}" > nul'], []
+            return [f'"{args.ffmpeg}" -i concat:"{"|".join(names)}" -c copy -y "{out}" > nul'], []
         if len(names) > ONCE_MAX_FILES:
             new_names, _tmp_outs = Concat.gen_new_names(names, out)
             if platform.system() == 'Windows':
