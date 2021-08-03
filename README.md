@@ -20,7 +20,7 @@ python -m XstreamDL_CLI.cli [OPTION]... URL/FILE/FOLDER...
     ```
 2. 通过exe直接下载
     ```bash
-    XstreamDL-CLI_v1.2.6.exe --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8
+    XstreamDL-CLI_v1.2.7.exe --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8
     ```
 3. 如果使用`Windows Terminal`，可以将下面的命令保存为`bat`文件
     ```bash
@@ -34,8 +34,16 @@ python -m XstreamDL_CLI.cli [OPTION]... URL/FILE/FOLDER...
 
 **ISM EXAMPLE**
 
+clear ism content
+
 ```bash
-python -m XstreamDL_CLI.cli --select --overwrite --disable-force-close --limit-per-host 100 http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism/Manifest
+python -m XstreamDL_CLI.cli --select --overwrite --disable-force-close --limit-per-host 200 http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism/Manifest
+```
+
+drm ism content
+
+```bash
+python -m XstreamDL_CLI.cli --disable-auto-concat --select --overwrite --disable-force-close --limit-per-host 200 https://akamaicdn.hbogo.eu/5acb29be-eba0-46b1-8646-0e8354ff9cda_hbo/COMP/140258727_adr_comp_0cc2c364-5dba-4f1c-96f9-5640f98f5bbb_3400000_v2.ism/manifest 
 ```
 
 ![](images/oCam_2021_08_03_18_19_56_590.gif)
@@ -43,7 +51,7 @@ python -m XstreamDL_CLI.cli --select --overwrite --disable-force-close --limit-p
 **HELP INFO**
 
 ```bash
-version 1.2.6, A downloader that download the HLS/DASH stream.
+version 1.2.7, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
 A downloader that download the HLS/DASH stream
@@ -107,7 +115,7 @@ optional arguments:
 ## pyinstaller打包
 
 ```bash
-pyinstaller -i logo.ico -n XstreamDL-CLI_v1.2.6 -F XstreamDL_CLI\__main__.py
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.2.7 -F XstreamDL_CLI\__main__.py
 ```
 
 ## 示意
