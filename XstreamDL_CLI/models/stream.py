@@ -36,7 +36,7 @@ class Stream:
         self.index = index
         self.name = name
         self.home_url = home_url
-        self.base_url = base_url
+        self.base_url = base_url[:-1] if base_url.endswith('/') else base_url
         self.save_dir = Path(save_dir) / name
         self.segments = [] # type: List[Segment]
         self.duration = 0.0

@@ -36,7 +36,7 @@ class DASHParser(BaseParser):
         mpd = xml_handler(content)
         # 检查有没有baseurl
         base_urls = mpd.find('BaseURL') # type: List[BaseURL]
-        if len(base_urls) > 0:
+        if len(base_urls) == 1:
             base_url = base_urls[0].innertext
             uris = [name, home_url, base_url]
         return self.walk_period(mpd, uris)
@@ -54,6 +54,10 @@ class DASHParser(BaseParser):
         # 遍历处理periods
         streams = []
         for period in periods:
+            base_urls = period.find('BaseURL') # type: List[BaseURL]
+            if len(base_urls) == 1:
+                base_url = base_urls[0].innertext
+                uris[-1] = base_url
             _streams = self.walk_adaptationset(period, len(streams), uris)
             streams.extend(_streams)
         # 处理掉末尾的空分段
