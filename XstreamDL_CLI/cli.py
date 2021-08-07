@@ -106,6 +106,7 @@ def main():
     parser.add_argument('--hexiv', default=None, help='hex format aes iv')
     parser.add_argument('--proxy', default=None, help='use http proxy, e.g. http://127.0.0.1:1080')
     parser.add_argument('--split', action='store_true', help='Dash option, split one stream to multi sections')
+    parser.add_argument('--disable-auto-exit', action='store_true', help='disable auto exit after download end, GUI will use this option')
     parser.add_argument('--repl', action='store_true', help='REPL mode')
     parser.add_argument('URI', nargs='*', help='URL/FILE/FOLDER string')
     args = parser.parse_args()
@@ -128,6 +129,8 @@ def main():
         sys.exit('No URL/FILE/FOLDER input')
     downloader = Downloader(args)
     downloader.daemon()
+    if args.disable_auto_exit:
+        _ = input('press any key to exit.')
 
 
 if __name__ == '__main__':
