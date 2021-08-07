@@ -22,6 +22,9 @@ from XstreamDL_CLI.models.stream import Stream
 from XstreamDL_CLI.extractor import Extractor
 from XstreamDL_CLI.models.segment import Segment
 from XstreamDL_CLI.util.decryptors.aes import CommonAES
+from XstreamDL_CLI.util.texts import Texts
+
+t_msg = Texts()
 
 
 class Downloader:
@@ -85,9 +88,9 @@ class Downloader:
     def get_selected_index(self, length: int) -> list:
         selected = []
         try:
-            text = input('请输入要下载流的序号：\n').strip()
+            text = input(t_msg.input_stream_number).strip()
         except EOFError:
-            click.secho('未选择流，退出')
+            click.secho(t_msg.select_without_any_stream)
             return []
         if text == '':
             return [index for index in range(length + 1)]
@@ -128,7 +131,7 @@ class Downloader:
                 break
             if index not in selected:
                 continue
-            click.secho(f'{stream.get_name()} download start.')
+            click.secho(f'{stream.get_name()} {t_msg.download_start}.')
             stream.dump_segments()
             max_failed = 5
             while max_failed > 0:
@@ -154,10 +157,7 @@ class Downloader:
                     #     # mpd中text类型 一般是字幕直链 跳过合并
                     #     pass
                     if self.args.disable_auto_concat is False:
-                        if stream.segments[0].is_ism() and stream.segments[0].is_encrypt():
-                            click.secho('please generate init and decrypt manually, tool can not do that now')
-                        else:
-                            stream.concat(self.args)
+                        stream.concat(self.args)
                     break
         return all_results
 
@@ -212,15 +212,15 @@ class Downloader:
                     # 某几类已知异常 如状态码不对 返回头没有文件大小 视为无法下载 主动退出
                     cancel_all_task()
                     if status in ['STATUS_CODE_ERROR', 'NO_CONTENT_LENGTH']:
-                        print(f'无法下载的m3u8 {status} 退出其他下载任务\n')
+                        click.secho(f'{status} {t_msg.segment_cannot_download}')
                     elif status == 'EXIT':
                         pass
                     else:
-                        print(f'出现未知status -> {status} 退出其他下载任务\n')
+                        click.secho(f'{status} {t_msg.segment_cannot_download_unknown_status}')
                 results[segment] = flag
             else:
                 # 出现未知异常 强制退出全部task
-                print(f'出现未知异常 强制退出全部task => {_future.exception()}\n')
+                click.secho(f'{t_msg.segment_cannot_download_unknown_exc} => {_future.exception()}\n')
                 cancel_all_task()
                 results['未知segment'] = False
 

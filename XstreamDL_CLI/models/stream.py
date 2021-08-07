@@ -9,6 +9,9 @@ from .key import StreamKey
 from ..util.concat import Concat
 from .segment import Segment
 from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.util.texts import Texts
+
+t_msg = Texts()
 
 
 class Stream:
@@ -72,12 +75,12 @@ class Stream:
         self.calc()
         if self.filesize > 0:
             click.secho(
-                f'{index:>3} 共计{len(self.segments):>4}个分段 '
+                f'{index:>3} {t_msg.total_segments_info_1}{len(self.segments):>4}{t_msg.total_segments_info_2} '
                 f'{self.duration:>7.2f}s {self.filesize:.2f}MiB {self.get_name()}'
             )
         else:
             click.secho(
-                f'{index:>3} 共计{len(self.segments):>4}个分段 '
+                f'{index:>3} {t_msg.total_segments_info_1}{len(self.segments):>4}{t_msg.total_segments_info_2} '
                 f'{self.duration:>7.2f}s {self.get_name()}'
             )
 
@@ -144,7 +147,7 @@ class Stream:
         ''' 合并视频 '''
         out = Path(self.save_dir.absolute().as_posix() + self.suffix)
         if args.overwrite is False and out.exists() is True:
-            click.secho(f'尝试合并 {self.get_name()} 但是已经存在合并文件')
+            click.secho(f'{t_msg.try_to_concat} {self.get_name()} {t_msg.cancel_concat_reason_1}')
             return True
         names = []
         for segment in self.segments:
@@ -153,10 +156,10 @@ class Stream:
                 continue
             names.append(segment.name)
         if len(names) != len(self.segments):
-            click.secho(f'尝试合并 {self.get_name()} 但是未下载完成')
+            click.secho(f'{t_msg.try_to_concat} {self.get_name()} {t_msg.cancel_concat_reason_2}')
             return False
         if hasattr(self, "xkey") and self.xkey is not None and self.xkey.method.upper() == "SAMPLE-AES":
-            click.secho(f'发现SAMPLE-AES 将使用二进制合并')
+            click.secho(t_msg.force_use_raw_concat_for_sample_aes)
             args.raw_concat = True
         ori_path = os.getcwd()
         # 需要在切换目录前获取
@@ -168,10 +171,10 @@ class Stream:
         os.chdir(ori_path)
         # 合并成功则根据设定删除临时文件
         if out.exists():
-            click.secho(f'成功合并 {out.as_posix()}')
+            click.secho(f'{out.as_posix()} was merged successfully')
             if args.enable_auto_delete:
                 shutil.rmtree(self.save_dir.absolute().as_posix())
-                click.secho(f'已删除 {self.save_dir.absolute().as_posix()}')
+                click.secho(f'{self.save_dir.absolute().as_posix()} was deleted')
         # 针对DASH流 如果有key 那么就解密 注意 HLS是边下边解密
         # 加密文件合并输出和临时文件夹同一级 所以前面的删除动作并不影响进一步解密
         if args.key is not None:

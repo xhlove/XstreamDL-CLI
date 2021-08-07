@@ -1,9 +1,12 @@
 import os
+import click
 import platform
 from typing import List
 from pathlib import Path
 from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.util.texts import Texts
 
+t_msg = Texts()
 ONCE_MAX_FILES = 500
 
 
@@ -16,10 +19,10 @@ class Concat:
         out = out_path.absolute().as_posix()
         out_decrypted = (out_path.parent / f'{out_path.stem}_decrypted{out_path.suffix}').absolute()
         if out_decrypted.exists():
-            print('解密文件已存在 跳过')
+            click.secho(t_msg.decrypted_file_exists_skip)
             return
         _cmd = f'""{args.mp4decrypt}" --show-progress --key {args.key} "{out}" "{out_decrypted.as_posix()}""'
-        print('开始解密')
+        click.secho(t_msg.start_decrypt)
         os.system(_cmd)
         if args.enable_auto_delete:
             if out_decrypted.exists() and out_decrypted.stat().st_size > 0:

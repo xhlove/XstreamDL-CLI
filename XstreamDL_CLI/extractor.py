@@ -13,6 +13,9 @@ from XstreamDL_CLI.extractors.dash.parser import DASHParser
 from XstreamDL_CLI.extractors.dash.stream import DASHStream
 from XstreamDL_CLI.extractors.mss.parser import MSSParser
 from XstreamDL_CLI.extractors.mss.stream import MSSStream
+from XstreamDL_CLI.util.texts import Texts
+
+t_msg = Texts()
 
 
 class Extractor:
@@ -79,7 +82,7 @@ class Extractor:
         elif '<SmoothStreamingMedia' in content and '</SmoothStreamingMedia>' in content:
             return self.parse_as_mss(uri_type, uri, content, parent_stream)
         else:
-            click.secho('无法获取视频流信息')
+            click.secho(t_msg.cannot_get_stream_metadata)
             return []
 
     def parse_as_hls(self, uri_type: str, uri: str, content: str, parent_stream: HLSStream = None) -> List[HLSStream]:
