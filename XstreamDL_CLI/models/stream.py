@@ -176,4 +176,6 @@ class Stream:
         # 加密文件合并输出和临时文件夹同一级 所以前面的删除动作并不影响进一步解密
         if args.key is not None:
             Concat.call_mp4decrypt(out, args)
+        if args.enable_auto_delete and self.save_dir.exists():
+            shutil.rmtree(self.save_dir.absolute().as_posix())
         return True
