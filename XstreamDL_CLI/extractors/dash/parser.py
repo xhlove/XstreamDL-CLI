@@ -57,7 +57,10 @@ class DASHParser(BaseParser):
             base_urls = period.find('BaseURL') # type: List[BaseURL]
             if len(base_urls) == 1:
                 base_url = base_urls[0].innertext
-                uris[-1] = base_url
+                if base_url.startswith('http'):
+                    uris[-1] = base_url
+                else:
+                    uris[-1] = uris[-1] + '/' + base_url.strip('/')
             _streams = self.walk_adaptationset(period, len(streams), uris)
             streams.extend(_streams)
         # 处理掉末尾的空分段
