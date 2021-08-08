@@ -42,4 +42,4 @@ class BaseParser:
             else:
                 base_url = self.args.base_url
             home_url = '/'.join(base_url.split('/', maxsplit=3)[:-1])
-        return name, home_url, base_url
+        return [name, home_url, base_url]
