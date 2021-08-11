@@ -75,12 +75,12 @@ class Stream:
         self.calc()
         if self.filesize > 0:
             click.secho(
-                f'{index:>3} {t_msg.total_segments_info_1}{len(self.segments):>4}{t_msg.total_segments_info_2} '
+                f'{index:>3} {t_msg.total_segments_info_1} {len(self.segments):>4} {t_msg.total_segments_info_2} '
                 f'{self.duration:>7.2f}s {self.filesize:.2f}MiB {self.get_name()}'
             )
         else:
             click.secho(
-                f'{index:>3} {t_msg.total_segments_info_1}{len(self.segments):>4}{t_msg.total_segments_info_2} '
+                f'{index:>3} {t_msg.total_segments_info_1} {len(self.segments):>4} {t_msg.total_segments_info_2} '
                 f'{self.duration:>7.2f}s {self.get_name()}'
             )
 

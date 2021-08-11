@@ -83,6 +83,10 @@ class HLSParser(BaseParser):
             elif line.startswith('#EXT-X-MAP'):
                 segment.set_map_url(home_url, base_url, line)
                 stream.set_map_flag()
+            elif line.startswith('#EXT-X-TIMESTAMP-MAP'):
+                pass
+            elif line.startswith('#USP-X-TIMESTAMP-MAP'):
+                pass
                 stream.append_segment()
             elif line.startswith('#EXTINF'):
                 segment.set_duration(line)
@@ -118,6 +122,8 @@ class HLSParser(BaseParser):
                     stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
             elif line.startswith('#'):
                 if line.startswith('## Generated with https://github.com/google/shaka-packager'):
+                    pass
+                elif line.startswith('## Created with Unified Streaming Platform'):
                     pass
                 else:
                     click.secho(f'unknown TAG, skip\n\t{line}')
