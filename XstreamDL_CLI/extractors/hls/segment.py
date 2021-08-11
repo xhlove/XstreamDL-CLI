@@ -28,7 +28,7 @@ class HLSSegment(Segment):
 
     def set_duration(self, line: str):
         try:
-            self.duration = float(line.split(':', maxsplit=1)[-1].strip(','))
+            self.duration = float(line.split(':', maxsplit=1)[-1].split(',')[0])
         except Exception:
             pass
 
