@@ -107,6 +107,7 @@ def main():
     parser.add_argument('--proxy', default=None, help='use http proxy, e.g. http://127.0.0.1:1080')
     parser.add_argument('--split', action='store_true', help='Dash option, split one stream to multi sections')
     parser.add_argument('--disable-auto-exit', action='store_true', help='disable auto exit after download end, GUI will use this option')
+    parser.add_argument('--parse-only', action='store_true', help='parse only, not to download')
     parser.add_argument('--repl', action='store_true', help='REPL mode')
     parser.add_argument('URI', nargs='*', help='URL/FILE/FOLDER string')
     args = parser.parse_args()

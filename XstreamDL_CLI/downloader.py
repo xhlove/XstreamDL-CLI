@@ -134,7 +134,7 @@ class Downloader:
             click.secho(f'{stream.get_name()} {t_msg.download_start}.')
             stream.dump_segments()
             max_failed = 5
-            while max_failed > 0:
+            while self.args.parse_only is False and max_failed > 0:
                 results = await self.do_with_progress(loop, stream)
                 all_results.append(results)
                 count_none, count_true, count_false = 0, 0, 0

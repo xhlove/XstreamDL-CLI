@@ -26,5 +26,6 @@ class CmdArgs:
         self.proxy = None # type: Union[str, None]
         self.split = None # type: bool
         self.disable_auto_exit = None # type: bool
+        self.parse_only = None # type: bool
         self.repl = None # type: bool
         self.URI = None # type: list
