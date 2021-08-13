@@ -41,13 +41,13 @@ GUI INFO
 clear ism content
 
 ```bash
-python -m XstreamDL_CLI.cli --select --overwrite --disable-force-close --limit-per-host 200 http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism/Manifest
+python -m XstreamDL_CLI.cli --select --overwrite http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism/Manifest
 ```
 
 drm ism content
 
 ```bash
-python -m XstreamDL_CLI.cli --disable-auto-concat --select --overwrite --disable-force-close --limit-per-host 200 https://akamaicdn.hbogo.eu/5acb29be-eba0-46b1-8646-0e8354ff9cda_hbo/COMP/140258727_adr_comp_0cc2c364-5dba-4f1c-96f9-5640f98f5bbb_3400000_v2.ism/manifest 
+python -m XstreamDL_CLI.cli --disable-auto-concat --select --overwrite https://akamaicdn.hbogo.eu/5acb29be-eba0-46b1-8646-0e8354ff9cda_hbo/COMP/140258727_adr_comp_0cc2c364-5dba-4f1c-96f9-5640f98f5bbb_3400000_v2.ism/manifest 
 ```
 
 ![](images/oCam_2021_08_03_18_19_56_590.gif)
