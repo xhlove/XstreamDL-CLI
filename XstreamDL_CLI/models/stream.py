@@ -88,6 +88,10 @@ class Stream:
         ''' 读取一部分数据 获取流的信息 '''
         pass
 
+    def show_segments(self):
+        for segment in self.segments:
+            click.secho(segment.url)
+
     def dump_segments(self):
         ''' 保存分段信息 '''
         self.save_dir = self.save_dir.parent / self.get_name()
