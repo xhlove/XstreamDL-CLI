@@ -131,13 +131,13 @@ class Downloader:
                 break
             if index not in selected:
                 continue
-            click.secho(f'{stream.get_name()} {t_msg.download_start}.')
             stream.dump_segments()
             max_failed = 5
             if self.args.parse_only:
                 if len(stream.segments) <= 5:
                     stream.show_segments()
                 continue
+            click.secho(f'{stream.get_name()} {t_msg.download_start}.')
             while max_failed > 0:
                 results = await self.do_with_progress(loop, stream)
                 all_results.append(results)
