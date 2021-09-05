@@ -182,7 +182,7 @@ class DASHParser(BaseParser):
 
     def walk_s(self, segmenttimeline: SegmentTimeline, st: SegmentTemplate, representation: Representation, stream: DASHStream):
         init_url = st.get_url()
-        if init_url is not None:
+        if init_url is not None and st.startNumber == 1:
             if '$RepresentationID$' in init_url:
                 init_url = init_url.replace('$RepresentationID$', representation.id)
             if '$Bandwidth$' in init_url:

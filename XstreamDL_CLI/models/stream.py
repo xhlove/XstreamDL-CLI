@@ -115,6 +115,7 @@ class Stream:
                     'url': segment.url,
                     'size': segment.filesize,
                     'byterange': segment.byterange,
+                    'name': segment.name,
                 }
             )
         data = json.dumps(info, ensure_ascii=False, indent=4)
