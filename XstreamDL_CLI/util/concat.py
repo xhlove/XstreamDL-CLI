@@ -52,9 +52,15 @@ class Concat:
             if len(names) > ONCE_MAX_FILES:
                 new_names, _tmp_outs = Concat.gen_new_names(names, out, tmp_suffix=".ts")
                 for _names, _out in new_names:
-                    cmds.append(f'""{args.ffmpeg}" -i concat:"{"|".join(_names)}" -c copy -y "{_out}" > nul"')
+                    if platform.system() == 'Windows':
+                        cmds.append(f'""{args.ffmpeg}" -i concat:"{"|".join(_names)}" -c copy -y "{_out}" > nul"')
+                    else:
+                        cmds.append(f'"{args.ffmpeg}" -i concat:"{"|".join(_names)}" -c copy -y "{_out}" > nul')
                 return cmds, _tmp_outs
-            return [f'""{args.ffmpeg}" -i concat:"{"|".join(names)}" -c copy -y "{out}" > nul"'], []
+            if platform.system() == 'Windows':
+                return [f'""{args.ffmpeg}" -i concat:"{"|".join(names)}" -c copy -y "{out}" > nul"'], []
+            else:
+                return [f'"{args.ffmpeg}" -i concat:"{"|".join(names)}" -c copy -y "{out}" > nul'], []
         if len(names) > ONCE_MAX_FILES:
             new_names, _tmp_outs = Concat.gen_new_names(names, out)
             if platform.system() == 'Windows':
