@@ -15,6 +15,7 @@ from .childs.segmenttimeline import SegmentTimeline
 def xml_handler(content: str):
     def handle_start_element(tag, attrs):
         nonlocal mpd
+        nonlocal mpd_handlers
         if mpd is None:
             if tag != 'MPD':
                 raise Exception('the first tag is not MPD!')
@@ -34,6 +35,7 @@ def xml_handler(content: str):
 
     def handle_end_element(tag):
         nonlocal mpd
+        nonlocal mpd_handlers
         if mpd_handlers.get(tag) is None:
             return
         if len(stack) > 1:

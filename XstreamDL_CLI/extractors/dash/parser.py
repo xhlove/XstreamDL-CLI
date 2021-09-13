@@ -135,6 +135,17 @@ class DASHParser(BaseParser):
                 self.walk_segmenttemplate(representation, period, stream)
             elif len(segmenttemplates) == 1 and len(segmenttemplates[0].find('SegmentTimeline')) == 1:
                 self.walk_segmenttimeline(segmenttemplates[0], representation, stream)
+            elif len(segmenttemplates) == 1 and segmenttemplates[0].initialization is None:
+                # tv-player.ap1.admint.biz live
+                _segmenttemplates = representation.find('SegmentTemplate')
+                assert len(_segmenttemplates) == 1, '请报告出现此异常提示的mpd/report plz'
+                segmenttemplate = segmenttemplates[0]
+                _segmenttemplate = _segmenttemplates[0]
+                if segmenttemplate.timescale is not None:
+                    _segmenttemplate.timescale = segmenttemplate.timescale
+                if segmenttemplate.duration is not None:
+                    _segmenttemplate.duration = segmenttemplate.timescale
+                self.generate_v1(period, representation.id, _segmenttemplate, stream)
             else:
                 # SegmentTemplate 和多个 Representation 在同一级
                 # 那么 SegmentTemplate 的时长参数等就是多个 Representation 的参数
