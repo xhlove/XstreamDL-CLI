@@ -51,12 +51,14 @@ class DASHStream(Stream):
         if total_duration > 0:
             self.bandwidth = (stream.duration * stream.bandwidth + self.duration * self.bandwidth) / (self.duration + stream.duration)
         self.duration += stream.duration
+        has_init = False
         for segment in stream.segments:
             # 被合并的流的init分段 避免索引计算错误
             if segment.segment_type == 'init':
+                has_init = True
                 stream.segments.remove(segment)
                 break
-        self.segments_extend(stream.segments)
+        self.segments_extend(stream.segments, has_init=has_init)
 
     def set_subtitle_url(self, url: str):
         self.has_init_segment = True
