@@ -70,18 +70,31 @@ class Stream:
     def get_name(self):
         return self.name
 
-    def show_info(self, index: int):
+    def get_init_msg(self, show_init: bool = False):
+        if show_init is False:
+            return ''
+        for _ in self.segments:
+            if _.segment_type == 'init':
+                return ' initialization -> ' + _.url.split('?')[0].split('/')[-1]
+        return ''
+
+    def fix_name(self, index: int, add_index_to_name: bool = False):
+        if add_index_to_name:
+            self.name = f'{index}_{self.name}'
+
+    def show_info(self, index: int, show_init: bool = False, add_index_to_name: bool = False):
         ''' 显示信息 '''
         self.calc()
+        self.fix_name(index, add_index_to_name)
         if self.filesize > 0:
             click.secho(
                 f'{index:>3} {t_msg.total_segments_info_1} {len(self.segments):>4} {t_msg.total_segments_info_2} '
-                f'{self.duration:>7.2f}s {self.filesize:.2f}MiB {self.get_name()}'
+                f'{self.duration:>7.2f}s {self.filesize:.2f}MiB {self.get_name()}{self.get_init_msg(show_init)}'
             )
         else:
             click.secho(
                 f'{index:>3} {t_msg.total_segments_info_1} {len(self.segments):>4} {t_msg.total_segments_info_2} '
-                f'{self.duration:>7.2f}s {self.get_name()}'
+                f'{self.duration:>7.2f}s {self.get_name()}{self.get_init_msg(show_init)}'
             )
 
     def read_stream_header(self):
@@ -165,6 +178,8 @@ class Stream:
             return False
         if hasattr(self, "xkey") and self.xkey is not None and self.xkey.method.upper() == "SAMPLE-AES":
             click.secho(t_msg.force_use_raw_concat_for_sample_aes)
+            args.raw_concat = True
+        if len(self.streamkeys) > 0:
             args.raw_concat = True
         ori_path = os.getcwd()
         # 需要在切换目录前获取

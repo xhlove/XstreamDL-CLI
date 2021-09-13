@@ -100,6 +100,7 @@ class DASHParser(BaseParser):
         for representation in representations:
             stream = DASHStream(sindex, name, home_url, base_url, self.args.save_dir)
             sindex += 1
+            self.walk_contentprotection(adaptationset, stream)
             self.walk_contentprotection(representation, stream)
             # 给流设置属性
             stream.set_skey(adaptationset.id, representation.id)

@@ -120,7 +120,7 @@ class Downloader:
         if len(streams) == 0:
             return
         for index, stream in enumerate(streams):
-            stream.show_info(index)
+            stream.show_info(index, show_init=self.args.show_init, add_index_to_name=self.args.add_index_to_name)
         if self.args.select is True:
             selected = self.get_selected_index(len(streams))
         else:

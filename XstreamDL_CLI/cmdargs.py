@@ -27,5 +27,7 @@ class CmdArgs:
         self.split = None # type: bool
         self.disable_auto_exit = None # type: bool
         self.parse_only = None # type: bool
+        self.show_init = None # type: bool
+        self.add_index_to_name = None # type: bool
         self.repl = None # type: bool
         self.URI = None # type: list
