@@ -24,7 +24,7 @@ def command_handler(args: CmdArgs):
     if args.key is not None:
         infos = args.key.split(':')
         assert len(infos) == 2, 'DASH Stream decryption key format error !'
-        assert len(infos[0]) == 32, 'DASH Stream decryption key @KID must be 32 length hex string !'
+        # assert len(infos[0]) == 32, 'DASH Stream decryption key @KID must be 32 length hex string !'
         assert len(infos[1]) == 32, 'DASH Stream decryption key @k must be 32 length hex string !'
     if args.b64key is not None:
         try:
