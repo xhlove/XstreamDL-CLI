@@ -83,11 +83,11 @@ class HLSParser(BaseParser):
             elif line.startswith('#EXT-X-MAP'):
                 segment.set_map_url(home_url, base_url, line)
                 stream.set_map_flag()
+                stream.append_segment()
             elif line.startswith('#EXT-X-TIMESTAMP-MAP'):
                 pass
             elif line.startswith('#USP-X-TIMESTAMP-MAP'):
                 pass
-                stream.append_segment()
             elif line.startswith('#EXTINF'):
                 segment.set_duration(line)
             elif line.startswith('#EXT-X-PRIVINF'):
