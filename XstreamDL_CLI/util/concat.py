@@ -18,7 +18,7 @@ class Concat:
         assert out_path.stat().st_size > 0, f'File concat failed ! -> {out_path}'
         out = out_path.absolute().as_posix()
         out_decrypted = (out_path.parent / f'{out_path.stem}_decrypted{out_path.suffix}').absolute()
-        if out_decrypted.exists():
+        if args.overwrite is False and out_decrypted.exists():
             click.secho(t_msg.decrypted_file_exists_skip)
             return
         _cmd = f'""{args.mp4decrypt}" --show-progress --key {args.key} "{out}" "{out_decrypted.as_posix()}""'
