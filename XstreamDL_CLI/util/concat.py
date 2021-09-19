@@ -4,9 +4,8 @@ import platform
 from typing import List
 from pathlib import Path
 from XstreamDL_CLI.cmdargs import CmdArgs
-from XstreamDL_CLI.util.texts import Texts
+from XstreamDL_CLI.util.texts import t_msg
 
-t_msg = Texts()
 ONCE_MAX_FILES = 500
 
 

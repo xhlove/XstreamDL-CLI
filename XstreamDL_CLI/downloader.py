@@ -1,9 +1,10 @@
+import time
 import click
 import signal
 import asyncio
 import binascii
 import logging
-from typing import List, Set, Dict
+from typing import Set, Dict
 from asyncio import get_event_loop
 from asyncio import AbstractEventLoop, Future, Task
 from aiohttp import ClientSession, ClientResponse, TCPConnector, client_exceptions
@@ -22,9 +23,68 @@ from XstreamDL_CLI.models.stream import Stream
 from XstreamDL_CLI.extractor import Extractor
 from XstreamDL_CLI.models.segment import Segment
 from XstreamDL_CLI.util.decryptors.aes import CommonAES
-from XstreamDL_CLI.util.texts import Texts
+from XstreamDL_CLI.util.texts import t_msg
 
-t_msg = Texts()
+
+def get_selected_index(length: int) -> list:
+    selected = []
+    try:
+        text = input(t_msg.input_stream_number).strip()
+    except EOFError:
+        click.secho(t_msg.select_without_any_stream)
+        return []
+    if text == '':
+        return [index for index in range(length + 1)]
+    elif text.isdigit():
+        return [int(text)]
+    elif '-' in text and len(text.split('-')) == 2:
+        start, end = text.split('-')
+        if start.strip().isdigit() and end.strip().isdigit():
+            return [index for index in range(int(start.strip()), int(end.strip()) + 1)]
+    elif text.replace(' ', '').isdigit():
+        for index in text.split(' '):
+            if index.strip().isdigit():
+                if int(index.strip()) <= length:
+                    selected.append(int(index))
+        return selected
+    elif text.replace(',', '').replace(' ', '').isdigit():
+        for index in text.split(','):
+            if index.strip().isdigit():
+                if int(index.strip()) <= length:
+                    selected.append(int(index))
+        return selected
+    return selected
+
+
+def get_left_segments(stream: Stream):
+    completed = 0
+    _left_segments = []
+    for segment in stream.segments:
+        segment_path = segment.get_path()
+        if segment_path.exists() is True:
+            # 文件落盘 说明下载一定成功了
+            if segment_path.stat().st_size == 0:
+                segment_path.unlink()
+            else:
+                completed += segment_path.stat().st_size
+                continue
+        _left_segments.append(segment)
+    return completed, _left_segments
+
+
+def get_connector(args: CmdArgs):
+    '''
+    connector在一个ClientSession使用后可能就会关闭
+    若需要再次使用则需要重新生成
+    '''
+    return TCPConnector(
+        ttl_dns_cache=300,
+        ssl=False,
+        limit_per_host=args.limit_per_host,
+        limit=500,
+        force_close=not args.disable_force_close,
+        enable_cleanup_closed=not args.disable_force_close
+    )
 
 
 class Downloader:
@@ -54,20 +114,6 @@ class Downloader:
     def stop(self, signum: int, frame):
         self.terminate = True
 
-    def get_conn(self):
-        '''
-        connector在一个ClientSession使用后可能就会关闭
-        若需要再次使用则需要重新生成
-        '''
-        return TCPConnector(
-            ttl_dns_cache=300,
-            ssl=False,
-            limit_per_host=self.args.limit_per_host,
-            limit=500,
-            force_close=not self.args.disable_force_close,
-            enable_cleanup_closed=not self.args.disable_force_close
-        )
-
     def daemon(self):
         '''
         一直循环调度下载和更新进度
@@ -81,40 +127,7 @@ class Downloader:
     def download_stream(self):
         extractor = Extractor(self.args)
         streams = extractor.fetch_metadata(self.args.URI[0])
-        loop = get_event_loop()
-        loop.run_until_complete(self.download_all_segments(loop, streams))
-        loop.close()
-
-    def get_selected_index(self, length: int) -> list:
-        selected = []
-        try:
-            text = input(t_msg.input_stream_number).strip()
-        except EOFError:
-            click.secho(t_msg.select_without_any_stream)
-            return []
-        if text == '':
-            return [index for index in range(length + 1)]
-        elif text.isdigit():
-            return [int(text)]
-        elif '-' in text and len(text.split('-')) == 2:
-            start, end = text.split('-')
-            if start.strip().isdigit() and end.strip().isdigit():
-                return [index for index in range(int(start.strip()), int(end.strip()) + 1)]
-        elif text.replace(' ', '').isdigit():
-            for index in text.split(' '):
-                if index.strip().isdigit():
-                    if int(index.strip()) <= length:
-                        selected.append(int(index))
-            return selected
-        elif text.replace(',', '').replace(' ', '').isdigit():
-            for index in text.split(','):
-                if index.strip().isdigit():
-                    if int(index.strip()) <= length:
-                        selected.append(int(index))
-            return selected
-        return selected
-
-    async def download_all_segments(self, loop: AbstractEventLoop, streams: List[Stream]):
+        ts = time.time()
         if streams is None:
             return
         if len(streams) == 0:
@@ -122,7 +135,7 @@ class Downloader:
         for index, stream in enumerate(streams):
             stream.show_info(index, show_init=self.args.show_init, add_index_to_name=self.args.add_index_to_name)
         if self.args.select is True:
-            selected = self.get_selected_index(len(streams))
+            selected = get_selected_index(len(streams))
         else:
             selected = [index for index in range(len(streams) + 1)]
         all_results = []
@@ -139,7 +152,9 @@ class Downloader:
                 continue
             click.secho(f'{stream.get_name()} {t_msg.download_start}.')
             while max_failed > 0:
-                results = await self.do_with_progress(loop, stream)
+                loop = get_event_loop()
+                results = loop.run_until_complete(self.do_with_progress(loop, stream))
+                loop.close()
                 all_results.append(results)
                 count_none, count_true, count_false = 0, 0, 0
                 for _, flag in results.items():
@@ -163,22 +178,8 @@ class Downloader:
                     if self.args.disable_auto_concat is False:
                         stream.concat(self.args)
                     break
+        print(f'下载耗时 {time.time() - ts:.2f}s')
         return all_results
-
-    def get_left_segments(self, stream: Stream):
-        completed = 0
-        _left_segments = []
-        for segment in stream.segments:
-            segment_path = segment.get_path()
-            if segment_path.exists() is True:
-                # 文件落盘 说明下载一定成功了
-                if segment_path.stat().st_size == 0:
-                    segment_path.unlink()
-                else:
-                    completed += segment_path.stat().st_size
-                    continue
-            _left_segments.append(segment)
-        return completed, _left_segments
 
     def init_progress(self, stream: Stream, completed: int):
         stream_id = self.progress.add_task("download", name=stream.get_name(), start=False) # TaskID
@@ -234,13 +235,13 @@ class Downloader:
             for task in filter(lambda task: not task.done(), tasks):
                 task.cancel()
         # limit_per_host 根据不同网站和网络状况调整 如果与目标地址连接性较好 那么设置小一点比较好
-        completed, _left = self.get_left_segments(stream)
+        completed, _left = get_left_segments(stream)
         if len(_left) == 0:
             return results
         # 没有需要下载的则尝试合并 返回False则说明需要继续下载完整
         with self.progress:
             stream_id = self.init_progress(stream, completed)
-            client = ClientSession(connector=self.get_conn()) # type: ClientSession
+            client = ClientSession(connector=get_connector(self.args)) # type: ClientSession
             for segment in _left:
                 task = loop.create_task(self.download(client, stream_id, stream, segment))
                 task.add_done_callback(_done_callback)

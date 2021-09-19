@@ -9,9 +9,7 @@ from .key import StreamKey
 from ..util.concat import Concat
 from .segment import Segment
 from XstreamDL_CLI.cmdargs import CmdArgs
-from XstreamDL_CLI.util.texts import Texts
-
-t_msg = Texts()
+from XstreamDL_CLI.util.texts import t_msg
 
 
 class Stream:

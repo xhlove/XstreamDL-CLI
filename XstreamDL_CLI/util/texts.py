@@ -41,6 +41,9 @@ class Texts:
         self.force_use_raw_concat_for_sample_aes = 'force use --raw-concat for SAMPLE-AES'
 
 
-if __name__ == '__main__':
-    t_msg = Texts()
-    print(t_msg.try_to_concat)
+t_msg = Texts()
+
+
+# if __name__ == '__main__':
+#     t_msg = Texts()
+#     print(t_msg.try_to_concat)

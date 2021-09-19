@@ -13,9 +13,7 @@ from XstreamDL_CLI.extractors.dash.parser import DASHParser
 from XstreamDL_CLI.extractors.dash.stream import DASHStream
 from XstreamDL_CLI.extractors.mss.parser import MSSParser
 from XstreamDL_CLI.extractors.mss.stream import MSSStream
-from XstreamDL_CLI.util.texts import Texts
-
-t_msg = Texts()
+from XstreamDL_CLI.util.texts import t_msg
 
 
 class Extractor:
