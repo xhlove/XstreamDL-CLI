@@ -241,6 +241,10 @@ class Downloader:
         try:
             async with client.get(segment.url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
                 _flag = True
+                if resp.status in [403, 404]:
+                    status = 'STATUS_SKIP'
+                    flag = False
+                    segment.skip_concat = True
                 if resp.status == 405:
                     status = 'STATUS_CODE_ERROR'
                     flag = False
@@ -279,6 +283,8 @@ class Downloader:
             return segment, status, False
         if self.terminate:
             return segment, 'EXIT', False
+        if segment.skip_concat:
+            return segment, status, True
         if flag is False:
             return segment, status, False
         return segment, 'SUCCESS', await self.decrypt(segment, stream)

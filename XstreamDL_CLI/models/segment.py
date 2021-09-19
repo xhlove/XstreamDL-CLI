@@ -29,6 +29,7 @@ class Segment:
         self.folder = None # type: Path
         # <---分段类型--->
         self.segment_type = 'normal'
+        self.skip_concat = False
 
     def is_ism(self) -> bool:
         ''' 请重写 '''

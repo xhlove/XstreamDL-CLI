@@ -165,13 +165,17 @@ class Stream:
         if args.overwrite is False and out.exists() is True:
             click.secho(f'{t_msg.try_to_concat} {self.get_name()} {t_msg.cancel_concat_reason_1}')
             return True
+        skip_count = 0
         names = []
         for segment in self.segments:
+            if segment.skip_concat:
+                skip_count += 1
+                continue
             segment_path = self.save_dir / segment.name
             if segment_path.exists() is False:
                 continue
             names.append(segment.name)
-        if len(names) != len(self.segments):
+        if len(names) != len(self.segments) - skip_count:
             click.secho(f'{t_msg.try_to_concat} {self.get_name()} {t_msg.cancel_concat_reason_2}')
             return False
         if hasattr(self, "xkey") and self.xkey is not None and self.xkey.method.upper() == "SAMPLE-AES":
