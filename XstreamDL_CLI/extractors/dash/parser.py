@@ -1,4 +1,5 @@
 import re
+import math
 import click
 from typing import List, Dict
 
@@ -237,7 +238,7 @@ class DASHParser(BaseParser):
             init_url = init_url.replace('$RepresentationID$', rid)
         stream.set_init_url(init_url)
         interval = float(int(st.duration) / int(st.timescale))
-        repeat = int(round(period.duration / interval))
+        repeat = math.ceil(period.duration / interval)
         for number in range(int(st.startNumber), repeat + int(st.startNumber)):
             media_url = st.get_media_url()
             if '$Number$' in media_url:

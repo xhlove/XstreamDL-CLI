@@ -4,8 +4,8 @@ import signal
 import asyncio
 import binascii
 import logging
-from typing import Set, Dict
-from asyncio import get_event_loop
+from typing import List, Set, Dict
+from asyncio import new_event_loop
 from asyncio import AbstractEventLoop, Future, Task
 from aiohttp import ClientSession, ClientResponse, TCPConnector, client_exceptions
 from concurrent.futures._base import TimeoutError, CancelledError
@@ -20,7 +20,6 @@ from rich.progress import (
 )
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.models.stream import Stream
-from XstreamDL_CLI.extractor import Extractor
 from XstreamDL_CLI.models.segment import Segment
 from XstreamDL_CLI.util.decryptors.aes import CommonAES
 from XstreamDL_CLI.util.texts import t_msg
@@ -78,7 +77,7 @@ def get_connector(args: CmdArgs):
     若需要再次使用则需要重新生成
     '''
     return TCPConnector(
-        ttl_dns_cache=300,
+        ttl_dns_cache=500,
         ssl=False,
         limit_per_host=args.limit_per_host,
         limit=500,
@@ -92,9 +91,6 @@ class Downloader:
     def __init__(self, args: CmdArgs):
         self.logger = logging.getLogger('downloader')
         self.args = args
-        self.exit = False
-        # <---来自命令行的设置--->
-        self.max_concurrent_downloads = 1
         # <---进度条--->
         self.progress = Progress(
             TextColumn("[bold blue]{task.fields[name]}", justify="right"),
@@ -114,19 +110,7 @@ class Downloader:
     def stop(self, signum: int, frame):
         self.terminate = True
 
-    def daemon(self):
-        '''
-        一直循环调度下载和更新进度
-        '''
-        if self.args.repl is False:
-            self.download_stream()
-            return
-        while self.exit:
-            break
-
-    def download_stream(self):
-        extractor = Extractor(self.args)
-        streams = extractor.fetch_metadata(self.args.URI[0])
+    def download_streams(self, streams: List[Stream]):
         ts = time.time()
         if streams is None:
             return
@@ -152,7 +136,7 @@ class Downloader:
                 continue
             click.secho(f'{stream.get_name()} {t_msg.download_start}.')
             while max_failed > 0:
-                loop = get_event_loop()
+                loop = new_event_loop()
                 results = loop.run_until_complete(self.do_with_progress(loop, stream))
                 loop.close()
                 all_results.append(results)
@@ -171,13 +155,12 @@ class Downloader:
                 if count_none > 0:
                     max_failed -= 1
                     continue
-                else:
-                    # if stream.stream_type == 'text':
-                    #     # mpd中text类型 一般是字幕直链 跳过合并
-                    #     pass
-                    if self.args.disable_auto_concat is False:
-                        stream.concat(self.args)
-                    break
+                # if stream.stream_type == 'text':
+                #     # mpd中text类型 一般是字幕直链 跳过合并
+                #     pass
+                if self.args.disable_auto_concat is False:
+                    stream.concat(self.args)
+                break
         print(f'下载耗时 {time.time() - ts:.2f}s')
         return all_results
 

@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.version import __version__
-from XstreamDL_CLI.downloader import Downloader
+from XstreamDL_CLI.daemon import Daemon
 from XstreamDL_CLI.headers.default import Headers
 
 
@@ -130,8 +130,8 @@ def main():
             args.URI.append(uri.strip())
     if len(args.URI) == 0:
         sys.exit('No URL/FILE/FOLDER input')
-    downloader = Downloader(args)
-    downloader.daemon()
+    daemon = Daemon(args)
+    daemon.daemon()
     if args.disable_auto_exit:
         _ = input('press any key to exit.')
 
