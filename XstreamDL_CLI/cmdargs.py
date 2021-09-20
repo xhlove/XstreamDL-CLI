@@ -4,6 +4,7 @@ from typing import Union
 class CmdArgs:
 
     def __init__(self):
+        self.live = None # type: bool
         self.name = None # type: str
         self.base_url = None # type: str
         self.save_dir = None # type: str

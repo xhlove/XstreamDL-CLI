@@ -8,6 +8,7 @@ from .handler import xml_handler
 from .childs.adaptationset import AdaptationSet
 from .childs.role import Role
 from .childs.baseurl import BaseURL
+# from .childs.location import Location
 from .childs.contentprotection import ContentProtection
 from .childs.period import Period
 from .childs.representation import Representation
@@ -24,6 +25,7 @@ from XstreamDL_CLI.cmdargs import CmdArgs
 class DASHParser(BaseParser):
     def __init__(self, args: CmdArgs, uri_type: str):
         super(DASHParser, self).__init__(args, uri_type)
+        self.is_live = False
         self.suffix = '.mpd'
 
     def parse(self, uri: str, content: str) -> List[DASHStream]:
@@ -35,8 +37,12 @@ class DASHParser(BaseParser):
         self.dump_content(name, content, self.suffix)
         # 解析转换内容为期望的对象
         mpd = xml_handler(content)
+        # 检查是不是直播流
+        if mpd.profiles == 'urn:mpeg:dash:profile:isoff-live:2011':
+            self.is_live = True
         # 检查有没有baseurl
         base_urls = mpd.find('BaseURL') # type: List[BaseURL]
+        # locations = mpd.find('Location') # type: List[Location]
         if len(base_urls) == 1:
             base_url = base_urls[0].innertext
             uris = [name, home_url, base_url]
@@ -208,6 +214,10 @@ class DASHParser(BaseParser):
             # 这种情况可能是因为流是字幕
             pass
         ss = segmenttimeline.find('S') # type: List[S]
+        if len(ss) > 0 and self.is_live and ss[0].t > 0:
+            base_time = ss[0].t
+        else:
+            base_time = 0
         time_offset = st.presentationTimeOffset
         start_number = st.startNumber
         for s in ss:
@@ -227,7 +237,7 @@ class DASHParser(BaseParser):
                 if '$RepresentationID$' in media_url:
                     media_url = media_url.replace('$RepresentationID$', representation.id)
                 if '$Time$' in media_url:
-                    media_url = media_url.replace('$Time$', str(time_offset))
+                    media_url = media_url.replace('$Time$', str(time_offset + base_time))
                     time_offset += s.d
                 stream.set_segment_duration(interval)
                 stream.set_media_url(media_url)

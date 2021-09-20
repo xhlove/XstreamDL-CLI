@@ -1,4 +1,3 @@
-import time
 import click
 import signal
 import asyncio
@@ -111,7 +110,6 @@ class Downloader:
         self.terminate = True
 
     def download_streams(self, streams: List[Stream]):
-        ts = time.time()
         if streams is None:
             return
         if len(streams) == 0:
@@ -161,7 +159,6 @@ class Downloader:
                 if self.args.disable_auto_concat is False:
                     stream.concat(self.args)
                 break
-        print(f'下载耗时 {time.time() - ts:.2f}s')
         return all_results
 
     def init_progress(self, stream: Stream, completed: int):

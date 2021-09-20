@@ -66,6 +66,7 @@ def main():
     )
     parser.add_argument('-v', '--version', action='store_true', help='Print version and exit')
     parser.add_argument('-h', '--help', action='store_true', help='Print help message and exit')
+    parser.add_argument('-live', '--live', action='store_true', help='Live mode')
     parser.add_argument('-name', '--name', default='', help='Specific stream base name')
     parser.add_argument('-base', '--base-url', default='', help='Set base url for Stream')
     parser.add_argument('-save-dir', '--save-dir', default='Downloads', help='Set save dir for Stream')
