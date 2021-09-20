@@ -87,7 +87,7 @@ class DASHParser(BaseParser):
         return streams
 
     def walk_adaptationset(self, period: Period, sindex: int, uris: list):
-        adaptationsets = period.find('AdaptationSet')  # type: List[AdaptationSet]
+        adaptationsets = period.find('AdaptationSet') # type: List[AdaptationSet]
         streams = []
         for adaptationset in adaptationsets:
             if adaptationset.mimeType == 'image/jpeg':
