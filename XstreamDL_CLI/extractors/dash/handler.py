@@ -1,5 +1,6 @@
 from xml.parsers.expat import ParserCreate
 from .mpd import MPD
+from .childs.location import Location
 from .childs.adaptationset import AdaptationSet
 from .childs.baseurl import BaseURL
 from .childs.cencpssh import CencPssh
@@ -49,6 +50,7 @@ def xml_handler(content: str):
     mpd = None # type: MPD
     mpd_handlers = {
         'MPD': MPD,
+        'Location': Location,
         'BaseURL': BaseURL,
         'Period': Period,
         'AdaptationSet': AdaptationSet,

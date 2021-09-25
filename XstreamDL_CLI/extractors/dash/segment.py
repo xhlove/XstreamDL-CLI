@@ -33,5 +33,7 @@ class DASHSegment(Segment):
     def set_media_url(self, media_url: str):
         parts = media_url.split('?')[0].split('/')[-1].split('.')
         if len(parts) > 1:
+            # 修正后缀
+            self.suffix = f'.{parts[-1]}'
             self.name = f'{self.index:0>4}.{parts[-1]}'
         self.url = media_url

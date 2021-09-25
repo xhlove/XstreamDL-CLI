@@ -90,6 +90,9 @@ class DASHStream(Stream):
                 continue
             segment.set_duration(duration)
 
+    def get_skey(self):
+        return self.skey
+
     def set_skey(self, aid: str, rid: str):
         _patch = ''
         if aid is not None:

@@ -26,6 +26,7 @@ class DASHParser(BaseParser):
     def __init__(self, args: CmdArgs, uri_type: str):
         super(DASHParser, self).__init__(args, uri_type)
         self.is_live = False
+        self.root = None # type: MPD
         self.suffix = '.mpd'
 
     def parse(self, uri: str, content: str) -> List[DASHStream]:
@@ -37,6 +38,7 @@ class DASHParser(BaseParser):
         self.dump_content(name, content, self.suffix)
         # 解析转换内容为期望的对象
         mpd = xml_handler(content)
+        self.root = mpd
         # 检查是不是直播流
         if mpd.profiles == 'urn:mpeg:dash:profile:isoff-live:2011':
             self.is_live = True

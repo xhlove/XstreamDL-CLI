@@ -25,6 +25,7 @@ class Extractor:
     '''
     def __init__(self, args: CmdArgs):
         self.args = args
+        self.parser = None
 
     def fetch_metadata(self, uri: str, parent_stream: Stream = None):
         '''
@@ -104,7 +105,8 @@ class Extractor:
         return streams
 
     def parse_as_dash(self, uri_type: str, uri: str, content: str, parent_stream: DASHStream = None) -> List[DASHStream]:
-        streams = DASHParser(self.args, uri_type).parse(uri, content)
+        self.parser = DASHParser(self.args, uri_type)
+        streams = self.parser.parse(uri, content)
         return streams
 
     def parse_as_mss(self, uri_type: str, uri: str, content: str, parent_stream: MSSStream = None) -> List[MSSStream]:

@@ -1,10 +1,15 @@
+import time
 from typing import List
+from pathlib import Path
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.extractor import Extractor
 from XstreamDL_CLI.downloader import Downloader
 from XstreamDL_CLI.models.stream import Stream
 from XstreamDL_CLI.extractors.hls.stream import HLSStream
 from XstreamDL_CLI.extractors.dash.stream import DASHStream
+# from XstreamDL_CLI.extractors.hls.parser import HLSParser
+from XstreamDL_CLI.extractors.dash.parser import DASHParser
+from XstreamDL_CLI.extractors.dash.childs.location import Location
 
 
 class Daemon:
@@ -27,11 +32,11 @@ class Daemon:
             if self.args.live is False:
                 return Downloader(self.args).download_streams(streams)
             else:
-                return self.live_record(streams)
+                return self.live_record(extractor, streams)
         while self.exit:
             break
 
-    def live_record(self, streams: List[Stream]):
+    def live_record(self, extractor: Extractor, streams: List[Stream]):
         '''
         - 第一轮解析 判断类型
         - 选择流 交给下一个函数具体下载-刷新-下载...
@@ -39,12 +44,12 @@ class Daemon:
         -   提供录制时长设定
         '''
         if isinstance(streams[0], DASHStream):
-            self.live_record_dash(streams)
+            self.live_record_dash(extractor, streams)
         if isinstance(streams[0], HLSStream):
-            self.live_record_hls(streams)
-        assert False, f'unsupported live stream type {type(streams[0])}'
+            self.live_record_hls(extractor, streams)
+        # assert False, f'unsupported live stream type {type(streams[0])}'
 
-    def live_record_dash(self, streams: List[DASHStream]):
+    def live_record_dash(self, extractor: Extractor, streams: List[DASHStream]):
         '''
         dash直播流
         重复拉取新的mpd后
@@ -61,10 +66,56 @@ class Daemon:
         Q 万一下载卡住导致mpd刷新不及时怎么办
         A 还没有想好 不过这种情况概率蛮小的吧... 真的发生了说明你的当前网络不适合录制
         '''
-        assert False, 'not support dash live stream, wait plz'
+        # assert False, 'not support dash live stream, wait plz'
+        # 再次解析 优先使用 Location 作为要刷新的目标链接
+        # 因为有的直播流 Location 会比用户填写的链接多一些具体标识 比如时间 或者token
+        parser = extractor.parser # type: DASHParser
+        locations = parser.root.find('Location') # type: List[Location]
+        if len(locations) == 1:
+            next_mpd_url: str = locations[0].innertext.strip()
+        else:
+            next_mpd_url = self.args.URI[0]
+        if '://' not in next_mpd_url:
+            if Path(next_mpd_url).is_file() or Path(next_mpd_url).is_dir():
+                assert False, 'not support dash live stream for file/folder type, because cannot refresh'
+        # 初始化下载器
+        downloader = Downloader(self.args)
+        # 获取用户选择的流的skey
+        skeys = downloader.do_select(streams)
+        # 设置到解析器 在下一轮解析时给具体的解析器用
+        refresh_interval = 3
+        last_time = time.time()
+        while True:
+            # 刷新间隔时间检查
+            if time.time() - last_time < refresh_interval:
+                time.sleep(1)
+                continue
+            last_time = time.time()
+            # 复用 extractor 再次解析
+            # 这里不应该是文件或者文件夹 当然第一轮可以是链接和文件
+            next_streams = extractor.fetch_metadata(next_mpd_url)
+            # 合并下载分段信息
+            self.streams_extend(streams, next_streams, skeys)
+            # 下载分段
+            downloader.download_streams(streams, selected=skeys)
+            # 继续循环
+            if downloader.terminate:
+                break
+        downloader.try_concat_streams(streams, skeys)
 
-    def live_record_hls(self, streams: List[HLSStream]):
+    def live_record_hls(self, extractor: Extractor, streams: List[HLSStream]):
         '''
         hls直播流
         '''
         assert False, 'not support hls live stream, wait plz'
+
+    def streams_extend(self, streams: List[DASHStream], next_streams: List[DASHStream], skeys: List[str]):
+        _streams = dict((stream.get_skey(), stream) for stream in streams)
+        _next_streams = dict((stream.get_skey(), stream) for stream in next_streams)
+        for skey in skeys:
+            _stream = _streams.get(skey) # type: DASHStream
+            _next_stream = _next_streams.get(skey) # type: DASHStream
+            if _stream is None or _next_stream is None:
+                continue
+            # 对于新增的分段 认为默认有init分段
+            _stream.live_segments_extend(_next_stream.segments, has_init=True)

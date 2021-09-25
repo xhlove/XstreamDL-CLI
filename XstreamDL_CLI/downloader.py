@@ -109,7 +109,9 @@ class Downloader:
     def stop(self, signum: int, frame):
         self.terminate = True
 
-    def download_streams(self, streams: List[Stream]):
+    def do_select(self, streams: List[Stream], selected: list = []):
+        if len(selected) > 0:
+            return selected
         if streams is None:
             return
         if len(streams) == 0:
@@ -120,12 +122,27 @@ class Downloader:
             selected = get_selected_index(len(streams))
         else:
             selected = [index for index in range(len(streams) + 1)]
+        if self.args.live is False:
+            return selected
+        skeys = []
+        for select in selected:
+            skeys.append(streams[select].get_skey())
+        return skeys
+
+    def download_streams(self, streams: List[Stream], selected: list = []):
+        selected = self.do_select(streams, selected)
+        if selected is None:
+            return
         all_results = []
         for index, stream in enumerate(streams):
             if self.terminate is True:
                 break
-            if index not in selected:
-                continue
+            if self.args.live is False:
+                if index not in selected:
+                    continue
+            else:
+                if stream.get_skey() not in selected:
+                    continue
             stream.dump_segments()
             max_failed = 5
             if self.args.parse_only:
@@ -156,10 +173,22 @@ class Downloader:
                 # if stream.stream_type == 'text':
                 #     # mpd中text类型 一般是字幕直链 跳过合并
                 #     pass
-                if self.args.disable_auto_concat is False:
-                    stream.concat(self.args)
+                # if self.args.live is False and self.args.disable_auto_concat is False:
+                #     stream.concat(self.args)
+                self.try_concat(stream)
                 break
         return all_results
+
+    def try_concat(self, stream: Stream):
+        if self.args.live is False and self.args.disable_auto_concat is False:
+            stream.concat(self.args)
+
+    def try_concat_streams(self, streams: List[Stream], selected: List[str]):
+        for stream in streams:
+            if stream.get_skey() not in selected:
+                continue
+            if self.args.live is True and self.args.disable_auto_concat is False:
+                stream.concat(self.args)
 
     def init_progress(self, stream: Stream, completed: int):
         stream_id = self.progress.add_task("download", name=stream.get_name(), start=False) # TaskID

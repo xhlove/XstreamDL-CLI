@@ -2,6 +2,7 @@ import os
 import json
 import click
 import shutil
+from urllib.parse import urlparse
 from typing import List
 from pathlib import Path
 from datetime import datetime
@@ -10,6 +11,7 @@ from ..util.concat import Concat
 from .segment import Segment
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.util.texts import t_msg
+# from XstreamDL_CLI.log import logger
 
 
 class Stream:
@@ -53,11 +55,39 @@ class Stream:
         self.suffix = '.mp4'
 
     def segments_extend(self, segments: List[Segment], has_init: bool):
-        ''' 某些情况下对流进行合并 需要更新一下新增分段的文件名 '''
+        '''
+        某些情况下对流进行合并
+        需要更新一下新增分段的文件名
+        '''
         offset = len(self.segments)
+        _segments = []
         for segment in segments:
+            # 跳过init分段
+            if segment.index == -1:
+                continue
             segment.add_offset_for_name(offset, has_init)
-        self.segments.extend(segments)
+            _segments.append(segment)
+        self.segments.extend(_segments)
+
+    def live_segments_extend(self, segments: List[Segment], has_init: bool):
+        '''
+        对live流进行合并
+        - 更新新增分段的文件名
+        - 根据链接中的path部分检查是不是重复了
+        '''
+        url_paths = [urlparse(segment.url).path for segment in self.segments]
+        offset = len(self.segments)
+        _segments = []
+        for segment in segments:
+            if segment.index == -1:
+                continue
+            if urlparse(segment.url).path in url_paths:
+                continue
+            segment.set_offset_for_name(offset, has_init)
+            # logger.info(f'live add {urlparse(segment.url).path} name {segment.name}')
+            offset += 1
+            _segments.append(segment)
+        self.segments.extend(_segments)
 
     def calc(self):
         for segment in self.segments:
@@ -175,7 +205,8 @@ class Stream:
             if segment_path.exists() is False:
                 continue
             names.append(segment.name)
-        if len(names) != len(self.segments) - skip_count:
+        # 仅在非直播时这样比较
+        if args.live is False and len(names) != len(self.segments) - skip_count:
             click.secho(f'{t_msg.try_to_concat} {self.get_name()} {t_msg.cancel_concat_reason_2}')
             return False
         if hasattr(self, "xkey") and self.xkey is not None and self.xkey.method.upper() == "SAMPLE-AES":
