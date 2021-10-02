@@ -90,13 +90,16 @@ class Stream:
         self.segments.extend(_segments)
 
     def calc(self):
-        for segment in self.segments:
-            self.duration += segment.duration
-            self.filesize += segment.filesize
+        self.duration = sum([segment.duration for segment in self.segments])
+        self.filesize = sum([segment.filesize for segment in self.segments])
         self.filesize = self.filesize / 1024 / 1024
 
     def get_name(self):
         return self.name
+
+    def check_record_time(self, live_duration: float):
+        # 修正calc计算后 直接比较当前流的 duration 即可
+        return self.duration >= live_duration
 
     def get_init_msg(self, show_init: bool = False):
         if show_init is False:
@@ -134,6 +137,7 @@ class Stream:
             click.secho(segment.url)
 
     def dump_segments(self):
+        self.calc()
         ''' 保存分段信息 '''
         self.save_dir = self.save_dir.parent / self.get_name()
         if self.save_dir.exists() is False:

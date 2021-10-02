@@ -82,7 +82,8 @@ class Daemon:
         downloader = Downloader(self.args)
         # 获取用户选择的流的skey
         skeys = downloader.do_select(streams)
-        # 设置到解析器 在下一轮解析时给具体的解析器用
+        if len(skeys) == 0:
+            return
         refresh_interval = 3
         last_time = time.time()
         while True:
@@ -98,9 +99,10 @@ class Daemon:
             self.streams_extend(streams, next_streams, skeys)
             # 下载分段
             downloader.download_streams(streams, selected=skeys)
-            # 继续循环
+            # 检查是不是主动退出了
             if downloader.terminate:
                 break
+            # 继续循环
         downloader.try_concat_streams(streams, skeys)
 
     def live_record_hls(self, extractor: Extractor, streams: List[HLSStream]):

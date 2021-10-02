@@ -15,6 +15,17 @@ def command_handler(args: CmdArgs):
     '''
     对命令参数进行校验和修正
     '''
+    if args.live_duration == '':
+        args.live_duration = 0.0
+    else:
+        hms = args.live_duration.split(':')
+        assert len(hms) == 3, '--live-duration format is HH:MM:SS, example: 00:00:30'
+        assert len(hms[1]) <= 2, '--live-duration minute length must less than or equal to 2'
+        assert len(hms[2]) <= 2, '--live-duration second length must less than or equal to 2'
+        if hms[0].isdigit() and hms[1].isdigit() and hms[2].isdigit():
+            assert float(hms[1]) <= 60.0, '--live-duration minute must less than or equal to 60'
+            assert float(hms[2]) <= 60.0, '--live-duration second must less than or equal to 60'
+            args.live_duration = float(hms[0]) * 60 * 60 + float(hms[1]) * 60 + float(hms[2])
     if Path(args.save_dir).exists() is False:
         Path(args.save_dir).mkdir()
     if Path('logs').exists() is False:
@@ -67,6 +78,7 @@ def main():
     parser.add_argument('-v', '--version', action='store_true', help='Print version and exit')
     parser.add_argument('-h', '--help', action='store_true', help='Print help message and exit')
     parser.add_argument('-live', '--live', action='store_true', help='Live mode')
+    parser.add_argument('-live-duration', '--live-duration', default='', help='Live record time, format HH:MM:SS, example 00:00:30 will record about 30s')
     parser.add_argument('-name', '--name', default='', help='Specific stream base name')
     parser.add_argument('-base', '--base-url', default='', help='Set base url for Stream')
     parser.add_argument('-save-dir', '--save-dir', default='Downloads', help='Set save dir for Stream')

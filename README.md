@@ -66,6 +66,10 @@ positional arguments:
 optional arguments:
   -v, --version         Print version and exit
   -h, --help            Print help message and exit
+  -live, --live         Live mode
+  -live-duration LIVE_DURATION, --live-duration LIVE_DURATION
+                        Live record time, format HH:MM:SS, example 00:00:30
+                        will record about 30s
   -name NAME, --name NAME
                         Specific stream base name
   -base BASE_URL, --base-url BASE_URL

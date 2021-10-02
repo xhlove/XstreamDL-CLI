@@ -109,6 +109,9 @@ class Downloader:
     def stop(self, signum: int, frame):
         self.terminate = True
 
+    def stop_record(self):
+        self.terminate = True
+
     def do_select(self, streams: List[Stream], selected: list = []):
         if len(selected) > 0:
             return selected
@@ -133,6 +136,7 @@ class Downloader:
         selected = self.do_select(streams, selected)
         if selected is None:
             return
+        should_stop_record = False
         all_results = []
         for index, stream in enumerate(streams):
             if self.terminate is True:
@@ -177,6 +181,12 @@ class Downloader:
                 #     stream.concat(self.args)
                 self.try_concat(stream)
                 break
+            # 只需要检查一个流的时间达到最大值就停止录制
+            if self.args.live and should_stop_record is False and stream.check_record_time(self.args.live_duration):
+                should_stop_record = True
+        # 主动停止录制
+        if should_stop_record:
+            self.stop_record()
         return all_results
 
     def try_concat(self, stream: Stream):
