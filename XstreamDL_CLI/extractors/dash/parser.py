@@ -42,6 +42,8 @@ class DASHParser(BaseParser):
         # 检查是不是直播流
         if mpd.profiles == 'urn:mpeg:dash:profile:isoff-live:2011':
             self.is_live = True
+        if self.args.live and self.is_live is False:
+            self.is_live = True
         # 检查有没有baseurl
         base_urls = mpd.find('BaseURL') # type: List[BaseURL]
         # locations = mpd.find('Location') # type: List[Location]
@@ -94,7 +96,15 @@ class DASHParser(BaseParser):
         for adaptationset in adaptationsets:
             if adaptationset.mimeType == 'image/jpeg':
                 continue
-            _streams = self.walk_representation(adaptationset, period, sindex + len(streams), uris)
+            representations = adaptationset.find('Representation') # type: List[Representation]
+            if len(representations) > 0:
+                _streams = self.walk_representation(adaptationset, period, sindex + len(streams), uris)
+            else:
+                assert False, 'not implemented yet'
+                segmenttemplates = adaptationset.find('SegmentTemplate') # type: List[SegmentTemplate]
+                assert len(segmenttemplates) == 1, 'plz report this mpd content to me'
+                segmenttimelines = segmenttemplates[0].find('SegmentTimeline') # type: List[SegmentTimeline]
+                _streams = self.walk_s_v2(segmenttimelines[0], adaptationset, period, sindex + len(streams), uris)
             streams.extend(_streams)
         return streams
 
@@ -200,6 +210,13 @@ class DASHParser(BaseParser):
                 click.secho('stream has no SegmentTimeline between SegmentTemplate tag.')
             return
         self.walk_s(segmenttimelines[0], segmenttemplate, representation, stream)
+
+    def walk_s_v2(self, segmenttimeline: SegmentTimeline, adaptationset: AdaptationSet, period: Period, sindex: int, uris: list):
+        name, home_url, base_url = uris
+        stream = DASHStream(sindex, name, home_url, base_url, self.args.save_dir)
+        stream.set_skey(adaptationset.id, None)
+        sindex += 1
+        return [stream]
 
     def walk_s(self, segmenttimeline: SegmentTimeline, st: SegmentTemplate, representation: Representation, stream: DASHStream):
         init_url = st.get_url()
