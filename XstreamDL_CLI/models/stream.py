@@ -192,6 +192,8 @@ class Stream:
             self.base_url = f'{self.home_url}{url}'
         else:
             self.base_url = f'{self.base_url}/{url}'
+        # 这里可能会引起bug
+        self.base_url = self.base_url.rstrip('/')
 
     def concat(self, args: CmdArgs):
         ''' 合并视频 '''
