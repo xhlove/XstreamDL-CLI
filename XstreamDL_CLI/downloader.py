@@ -275,7 +275,7 @@ class Downloader:
         proxy, headers = self.args.proxy, self.args.headers
         status, flag = 'EXIT', True
         try:
-            async with client.get(segment.url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
+            async with client.get(segment.url + self.args.url_patch, proxy=proxy, headers=headers) as resp: # type: ClientResponse
                 _flag = True
                 if resp.status in [403, 404]:
                     status = 'STATUS_SKIP'

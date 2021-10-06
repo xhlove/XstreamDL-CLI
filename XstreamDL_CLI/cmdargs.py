@@ -17,6 +17,7 @@ class CmdArgs:
         self.user_agent = None # type: str
         self.referer = None # type: str
         self.headers = None # type: Union[str, dict]
+        self.url_patch = None # type: str
         self.overwrite = None # type: bool
         self.raw_concat = None # type: bool
         self.disable_auto_concat = None # type: bool
