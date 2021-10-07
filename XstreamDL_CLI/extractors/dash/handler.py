@@ -45,7 +45,7 @@ def xml_handler(content: str):
 
     def handle_character_data(texts: str):
         if texts.strip() != '':
-            mpd.innertext = texts.strip()
+            mpd.innertext += texts.strip()
     stack = []
     mpd = None # type: MPD
     mpd_handlers = {

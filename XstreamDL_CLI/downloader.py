@@ -169,7 +169,7 @@ class Downloader:
         if self.args.select is True:
             selected = get_selected_index(len(streams))
         else:
-            selected = [index for index in range(len(streams) + 1)]
+            selected = [index for index in range(len(streams))]
         if self.args.live is False:
             return selected
         skeys = []

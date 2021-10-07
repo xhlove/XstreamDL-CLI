@@ -49,6 +49,9 @@ class DASHParser(BaseParser):
         if base_url == '' and len(base_urls) > 0:
             base_url = base_urls[0].innertext
             uris = [name, home_url, base_url]
+        if self.args.prefer_content_base_url and len(base_urls) > 0:
+            base_url = base_urls[0].innertext
+            uris = [name, home_url, base_url]
         return self.walk_period(mpd, uris)
 
     def walk_period(self, mpd: MPD, uris: list):

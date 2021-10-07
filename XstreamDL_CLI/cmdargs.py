@@ -8,6 +8,7 @@ class CmdArgs:
         self.live_duration = None # type: float
         self.name = None # type: str
         self.base_url = None # type: str
+        self.prefer_content_base_url = None # type: bool
         self.save_dir = None # type: str
         self.ffmpeg = None # type: str
         self.mp4decrypt = None # type: str
