@@ -34,7 +34,7 @@ class DASHParser(BaseParser):
             print(f'parse {uri} failed')
             return []
         name, home_url, base_url = uris
-        self.dump_content(name, content, self.suffix)
+        # self.dump_content(name, content, self.suffix)
         # 解析转换内容为期望的对象
         mpd = xml_handler(content)
         self.root = mpd
