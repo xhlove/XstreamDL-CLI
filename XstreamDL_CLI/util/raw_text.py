@@ -1,6 +1,3 @@
-import click
-
-
 def load_raw2text(data: bytes):
     raw_text = None # type: str
     try:
@@ -9,5 +6,5 @@ def load_raw2text(data: bytes):
         try:
             raw_text = data.decode('utf-16')
         except Exception as e:
-            click.secho(f'err => {e}')
+            print(f'err => {e}')
     return raw_text

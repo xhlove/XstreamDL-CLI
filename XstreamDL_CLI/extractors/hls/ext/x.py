@@ -1,5 +1,4 @@
 import re
-import click
 
 
 class X:
@@ -57,5 +56,5 @@ class X:
                 else:
                     self.known_attrs[key](value)
             else:
-                click.secho(f'unknown attr -> {key} <- of {self.TAG_NAME}')
+                print(f'unknown attr -> {key} <- of {self.TAG_NAME}')
         return self

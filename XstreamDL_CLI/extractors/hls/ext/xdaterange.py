@@ -1,4 +1,3 @@
-import click
 from datetime import datetime
 from .x import X
 
@@ -64,5 +63,5 @@ class XDateRange(X):
             elif key.startswith('X-'):
                 self.__setattr__(self.format_key(key), value)
             else:
-                click.secho(f'unknown attr of {self.TAG_NAME}')
+                print(f'unknown attr of {self.TAG_NAME}')
         return self

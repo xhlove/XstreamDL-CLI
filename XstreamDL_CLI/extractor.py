@@ -1,5 +1,4 @@
 from aiohttp.connector import TCPConnector
-import click
 import asyncio
 from typing import List
 from pathlib import Path
@@ -81,7 +80,7 @@ class Extractor:
         elif '<SmoothStreamingMedia' in content and '</SmoothStreamingMedia>' in content:
             return self.parse_as_mss(uri_type, uri, content, parent_stream)
         else:
-            click.secho(t_msg.cannot_get_stream_metadata)
+            print(t_msg.cannot_get_stream_metadata)
             return []
 
     def parse_as_hls(self, uri_type: str, uri: str, content: str, parent_stream: HLSStream = None) -> List[HLSStream]:
@@ -92,7 +91,7 @@ class Extractor:
             if stream.tag != '#EXT-X-STREAM-INF' and stream.tag != '#EXT-X-MEDIA':
                 streams.append(stream)
                 continue
-            click.secho(f'Load {stream.tag} metadata from -> {stream.origin_url}')
+            print(f'Load {stream.tag} metadata from -> {stream.origin_url}')
             new_streams = self.fetch_metadata(stream.origin_url, parent_stream=stream)
             if new_streams is None:
                 continue

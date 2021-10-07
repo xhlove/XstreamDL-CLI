@@ -1,4 +1,3 @@
-import click
 from typing import List
 from .stream import HLSStream
 from ..base import BaseParser
@@ -14,7 +13,7 @@ class HLSParser(BaseParser):
     def parse(self, uri: str, content: str, parent_stream: HLSStream) -> List[HLSStream]:
         uris = self.parse_uri(uri)
         if uris is None:
-            click.secho(f'parse {uri} failed')
+            print(f'parse {uri} failed')
             return []
         name, home_url, base_url = uris
         self.dump_content(name, content, self.suffix)
@@ -126,7 +125,7 @@ class HLSParser(BaseParser):
                 elif line.startswith('## Created with Unified Streaming Platform'):
                     pass
                 else:
-                    click.secho(f'unknown TAG, skip\n\t{line}')
+                    print(f'unknown TAG, skip\n\t{line}')
             else:
                 # 进入此处 说明这一行没有任何已知的#EXT标签 也就是具体媒体文件的链接
                 if offset > 0 and lines[offset - 1].startswith('#EXT-X-BYTERANGE'):
@@ -148,7 +147,7 @@ class HLSParser(BaseParser):
                     stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
                     do_not_append_at_end_list_tag = True
                 else:
-                    click.secho(f'unknow what to do here ->\n\t{line}')
+                    print(f'unknow what to do here ->\n\t{line}')
             offset += 1
         if do_not_append_at_end_list_tag is False:
             streams.append(stream)

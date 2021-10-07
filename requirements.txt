@@ -1,5 +1,4 @@
 rich
-click
 aiohttp
 argparse
 pycryptodome

@@ -1,5 +1,4 @@
 import re
-import click
 from XstreamDL_CLI.models.segment import Segment
 from XstreamDL_CLI.extractors.hls.ext.xkey import XKey
 from XstreamDL_CLI.extractors.hls.ext.xprivinf import XPrivinf
@@ -60,7 +59,7 @@ class HLSSegment(Segment):
     def set_map_url(self, home_url: str, base_url: str, line: str):
         map_uri = re.match('#EXT-X-MAP:URI="(.*?)"', line.strip())
         if map_uri is None:
-            click.secho('find #EXT-X-MAP tag, however has no uri')
+            print('find #EXT-X-MAP tag, however has no uri')
             return
         map_uri = map_uri.group(1)
         if map_uri.startswith('http://') or map_uri.startswith('https://') or map_uri.startswith('ftp://'):

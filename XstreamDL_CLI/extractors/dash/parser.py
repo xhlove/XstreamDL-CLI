@@ -1,6 +1,5 @@
 import re
 import math
-import click
 from typing import List, Dict
 
 from .mpd import MPD
@@ -32,7 +31,7 @@ class DASHParser(BaseParser):
     def parse(self, uri: str, content: str) -> List[DASHStream]:
         uris = self.parse_uri(uri)
         if uris is None:
-            click.secho(f'parse {uri} failed')
+            print(f'parse {uri} failed')
             return []
         name, home_url, base_url = uris
         self.dump_content(name, content, self.suffix)
@@ -192,9 +191,9 @@ class DASHParser(BaseParser):
             # 没有就无法计算分段 则跳过
             # 不止一个可能是没见过的类型 提醒上报
             if len(segmenttemplates) > 1:
-                click.secho('please report this DASH content.')
+                print('please report this DASH content.')
             else:
-                click.secho('stream has no SegmentTemplate between Representation tag.')
+                print('stream has no SegmentTemplate between Representation tag.')
             return
         if len(segmenttemplates[0].find('SegmentTimeline')) == 0:
             self.generate_v1(period, representation.id, segmenttemplates[0], stream)
@@ -205,9 +204,9 @@ class DASHParser(BaseParser):
         segmenttimelines = segmenttemplate.find('SegmentTimeline') # type: List[SegmentTimeline]
         if len(segmenttimelines) != 1:
             if len(segmenttimelines) > 1:
-                click.secho('please report this DASH content.')
+                print('please report this DASH content.')
             else:
-                click.secho('stream has no SegmentTimeline between SegmentTemplate tag.')
+                print('stream has no SegmentTimeline between SegmentTemplate tag.')
             return
         self.walk_s(segmenttimelines[0], segmenttemplate, representation, stream)
 

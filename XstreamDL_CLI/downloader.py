@@ -1,4 +1,3 @@
-import click
 import signal
 import asyncio
 import binascii
@@ -29,7 +28,7 @@ def get_selected_index(length: int) -> list:
     try:
         text = input(t_msg.input_stream_number).strip()
     except EOFError:
-        click.secho(t_msg.select_without_any_stream)
+        print(t_msg.select_without_any_stream)
         return []
     if text == '':
         return [index for index in range(length + 1)]
@@ -153,7 +152,7 @@ class Downloader:
                 if len(stream.segments) <= 5:
                     stream.show_segments()
                 continue
-            click.secho(f'{stream.get_name()} {t_msg.download_start}.')
+            print(f'{stream.get_name()} {t_msg.download_start}.')
             while max_failed > 0:
                 loop = new_event_loop()
                 results = loop.run_until_complete(self.do_with_progress(loop, stream))
@@ -236,15 +235,15 @@ class Downloader:
                     # 某几类已知异常 如状态码不对 返回头没有文件大小 视为无法下载 主动退出
                     cancel_all_task()
                     if status in ['STATUS_CODE_ERROR', 'NO_CONTENT_LENGTH']:
-                        click.secho(f'{status} {t_msg.segment_cannot_download}')
+                        print(f'{status} {t_msg.segment_cannot_download}')
                     elif status == 'EXIT':
                         pass
                     else:
-                        click.secho(f'{status} {t_msg.segment_cannot_download_unknown_status}')
+                        print(f'{status} {t_msg.segment_cannot_download_unknown_status}')
                 results[segment] = flag
             else:
                 # 出现未知异常 强制退出全部task
-                click.secho(f'{t_msg.segment_cannot_download_unknown_exc} => {_future.exception()}\n')
+                print(f'{t_msg.segment_cannot_download_unknown_exc} => {_future.exception()}\n')
                 cancel_all_task()
                 results['未知segment'] = False
 
@@ -279,6 +278,7 @@ class Downloader:
                 _flag = True
                 if resp.status in [403, 404]:
                     status = 'STATUS_SKIP'
+                    print(await resp.read())
                     flag = False
                     segment.skip_concat = True
                 if resp.status == 405:

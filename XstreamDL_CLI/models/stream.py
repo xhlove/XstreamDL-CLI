@@ -1,6 +1,5 @@
 import os
 import json
-import click
 import shutil
 from urllib.parse import urlparse
 from typing import List
@@ -118,12 +117,12 @@ class Stream:
         self.calc()
         self.fix_name(index, add_index_to_name)
         if self.filesize > 0:
-            click.secho(
+            print(
                 f'{index:>3} {t_msg.total_segments_info_1} {len(self.segments):>4} {t_msg.total_segments_info_2} '
                 f'{self.duration:>7.2f}s {self.filesize:.2f}MiB {self.get_name()}{self.get_init_msg(show_init)}'
             )
         else:
-            click.secho(
+            print(
                 f'{index:>3} {t_msg.total_segments_info_1} {len(self.segments):>4} {t_msg.total_segments_info_2} '
                 f'{self.duration:>7.2f}s {self.get_name()}{self.get_init_msg(show_init)}'
             )
@@ -134,7 +133,7 @@ class Stream:
 
     def show_segments(self):
         for segment in self.segments:
-            click.secho(segment.url)
+            print(segment.url)
 
     def dump_segments(self):
         self.calc()
@@ -199,7 +198,7 @@ class Stream:
         ''' 合并视频 '''
         out = Path(self.save_dir.absolute().as_posix() + self.suffix)
         if args.overwrite is False and out.exists() is True:
-            click.secho(f'{t_msg.try_to_concat} {self.get_name()} {t_msg.cancel_concat_reason_1}')
+            print(f'{t_msg.try_to_concat} {self.get_name()} {t_msg.cancel_concat_reason_1}')
             return True
         skip_count = 0
         names = []
@@ -213,10 +212,10 @@ class Stream:
             names.append(segment.name)
         # 仅在非直播时这样比较
         if args.live is False and len(names) != len(self.segments) - skip_count:
-            click.secho(f'{t_msg.try_to_concat} {self.get_name()} {t_msg.cancel_concat_reason_2}')
+            print(f'{t_msg.try_to_concat} {self.get_name()} {t_msg.cancel_concat_reason_2}')
             return False
         if hasattr(self, "xkey") and self.xkey is not None and self.xkey.method.upper() == "SAMPLE-AES":
-            click.secho(t_msg.force_use_raw_concat_for_sample_aes)
+            print(t_msg.force_use_raw_concat_for_sample_aes)
             args.raw_concat = True
         if len(self.streamkeys) > 0:
             args.raw_concat = True
@@ -230,10 +229,10 @@ class Stream:
         os.chdir(ori_path)
         # 合并成功则根据设定删除临时文件
         if out.exists():
-            click.secho(f'{out.as_posix()} was merged successfully')
+            print(f'{out.as_posix()} was merged successfully')
             if args.enable_auto_delete:
                 shutil.rmtree(self.save_dir.absolute().as_posix())
-                click.secho(f'{self.save_dir.absolute().as_posix()} was deleted')
+                print(f'{self.save_dir.absolute().as_posix()} was deleted')
         # 针对DASH流 如果有key 那么就解密 注意 HLS是边下边解密
         # 加密文件合并输出和临时文件夹同一级 所以前面的删除动作并不影响进一步解密
         if args.key is not None:

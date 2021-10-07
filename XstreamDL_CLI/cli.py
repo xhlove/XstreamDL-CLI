@@ -1,5 +1,4 @@
 import sys
-import click
 import base64
 import shutil
 from pathlib import Path
@@ -53,7 +52,7 @@ def command_handler(args: CmdArgs):
     elif shutil.which('ffmpeg') is not None:
         args.ffmpeg = Path(shutil.which('ffmpeg')).absolute().as_posix()
     else:
-        click.secho(f'Warning: cannot find executable ffmpeg')
+        print(f'Warning: cannot find executable ffmpeg')
     # mp4decrypt 优先使用文件夹内的
     if Path(args.mp4decrypt).exists():
         args.mp4decrypt = Path(args.mp4decrypt).absolute().as_posix()
@@ -62,12 +61,12 @@ def command_handler(args: CmdArgs):
     elif shutil.which('mp4decrypt') is not None:
         args.mp4decrypt = Path(shutil.which('mp4decrypt')).absolute().as_posix()
     else:
-        click.secho(f'Warning: cannot find executable mp4decrypt')
+        print(f'Warning: cannot find executable mp4decrypt')
 
 
 def main():
     def print_version():
-        click.secho(f'version {__version__}, A downloader that download the HLS/DASH stream.')
+        print(f'version {__version__}, A downloader that download the HLS/DASH stream.')
 
     parser = ArgumentParser(
         prog='XstreamDL-CLI',
