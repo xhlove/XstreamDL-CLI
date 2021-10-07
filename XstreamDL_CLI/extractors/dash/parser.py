@@ -70,7 +70,7 @@ class DASHParser(BaseParser):
                 if base_url.startswith('http'):
                     uris[-1] = base_url
                 else:
-                    uris[-1] = uris[-1] + '/' + base_url.strip('/')
+                    uris[-1] = uris[-1] + base_url.rstrip('/')
             _streams = self.walk_adaptationset(period, len(streams), uris)
             streams.extend(_streams)
         # 处理掉末尾的空分段
