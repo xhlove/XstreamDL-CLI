@@ -1,3 +1,6 @@
+import sys
+import math
+import time
 import signal
 import asyncio
 import binascii
@@ -7,15 +10,6 @@ from asyncio import new_event_loop
 from asyncio import AbstractEventLoop, Future, Task
 from aiohttp import ClientSession, ClientResponse, TCPConnector, client_exceptions
 from concurrent.futures._base import TimeoutError, CancelledError
-from rich.progress import (
-    BarColumn,
-    DownloadColumn,
-    TextColumn,
-    TransferSpeedColumn,
-    TimeRemainingColumn,
-    Progress,
-    TaskID,
-)
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.models.stream import Stream
 from XstreamDL_CLI.models.segment import Segment
@@ -54,6 +48,7 @@ def get_selected_index(length: int) -> list:
 
 
 def get_left_segments(stream: Stream):
+    count = 0
     completed = 0
     _left_segments = []
     for segment in stream.segments:
@@ -63,10 +58,11 @@ def get_left_segments(stream: Stream):
             if segment_path.stat().st_size == 0:
                 segment_path.unlink()
             else:
+                count += 1
                 completed += segment_path.stat().st_size
                 continue
         _left_segments.append(segment)
-    return completed, _left_segments
+    return count, completed, _left_segments
 
 
 def get_connector(args: CmdArgs):
@@ -84,23 +80,73 @@ def get_connector(args: CmdArgs):
     )
 
 
+class XProgress:
+
+    def __init__(self, title: str, total_count: int, downloaded_count: int, total_size: int, completed_size: int):
+        self.last_time = time.time()
+        self.title = title
+        self.total_count = total_count
+        self.downloaded_count = downloaded_count
+        self.total_size = total_size
+        self.downloaded_size = completed_size
+        self.last_size = completed_size
+        self.stop = False
+
+    def calc_speed(self, total_size: int, downloaded_size: int):
+        ts = time.time()
+        tm = ts - self.last_time
+        if self.stop is False and tm < 0.3:
+            return
+        speed = (downloaded_size - self.last_size) / tm / 1024 / 1024
+        self.last_time = ts
+        self.last_size = downloaded_size
+        return speed
+
+    def add_downloaded_count(self, downloaded_count: int):
+        self.downloaded_count += downloaded_count
+        self.update_progress(self.downloaded_count, self.total_size, self.downloaded_size)
+
+    def update_total_size(self, total_size: int):
+        self.total_size = total_size
+        self.update_progress(self.downloaded_count, self.total_size, self.downloaded_size)
+
+    def add_downloaded_size(self, downloaded_size: int):
+        self.downloaded_size += downloaded_size
+        self.update_progress(self.downloaded_count, self.total_size, self.downloaded_size)
+
+    def update_progress(self, downloaded_count: int, total_size: int, downloaded_size: int):
+        barlen, status = 80, ''
+        progress = downloaded_count / self.total_count
+        if progress >= 1.0:
+            progress, status = 1, '\r\n'
+        speed = self.calc_speed(total_size, downloaded_size)
+        if speed is None:
+            return
+        _total_size = total_size / 1024 / 1024
+        _downloaded_size = downloaded_size / 1024 / 1024
+        bar_str = chr(9608)
+        split_str = chr(8226)
+        block = int(math.floor(barlen * progress))
+        bar = bar_str * block + ' ' * (barlen - block)
+        text = (
+            f'\r{self.title} {bar} {_downloaded_size:.2f}/{_total_size:.2f}MB {split_str} {speed:.2f}MB/s '
+            f'{split_str} {downloaded_count}/{self.total_count} {split_str} {progress * 100:.2f}% {status}'
+        )
+        sys.stdout.write(text)
+        sys.stdout.flush()
+
+    def to_stop(self):
+        self.stop = True
+        self.update_progress(self.downloaded_count, self.total_size, self.downloaded_size)
+        sys.stdout.write('\n')
+
+
 class Downloader:
 
     def __init__(self, args: CmdArgs):
         self.logger = logging.getLogger('downloader')
         self.args = args
-        # <---进度条--->
-        self.progress = Progress(
-            TextColumn("[bold blue]{task.fields[name]}", justify="right"),
-            BarColumn(bar_width=None),
-            "[progress.percentage]{task.percentage:>3.2f}%",
-            "•",
-            DownloadColumn(binary_units=True),
-            "•",
-            TransferSpeedColumn(),
-            "•",
-            TimeRemainingColumn()
-        )
+        self.xprogress = None # type: XProgress
         self.terminate = False
         signal.signal(signal.SIGINT, self.stop)
         signal.signal(signal.SIGTERM, self.stop)
@@ -199,23 +245,21 @@ class Downloader:
             if self.args.live is True and self.args.disable_auto_concat is False:
                 stream.concat(self.args)
 
-    def init_progress(self, stream: Stream, completed: int):
-        stream_id = self.progress.add_task("download", name=stream.get_name(), start=False) # TaskID
+    def init_progress(self, stream: Stream, count: int, completed: int):
         if completed > 0:
             if stream.filesize > 0:
                 total = stream.filesize
             else:
                 total = completed
                 stream.filesize = total
-            self.progress.update(stream_id, completed=completed, total=total)
         else:
             if stream.filesize > 0:
                 total = stream.filesize
             else:
                 total = 0
                 stream.filesize = total
-            self.progress.update(stream_id, total=total)
-        return stream_id
+            completed = 0
+        self.xprogress = XProgress(stream.get_name(), len(stream.segments), count, total, completed)
 
     async def do_with_progress(self, loop: AbstractEventLoop, stream: Stream):
         '''
@@ -253,24 +297,24 @@ class Downloader:
             for task in filter(lambda task: not task.done(), tasks):
                 task.cancel()
         # limit_per_host 根据不同网站和网络状况调整 如果与目标地址连接性较好 那么设置小一点比较好
-        completed, _left = get_left_segments(stream)
+        count, completed, _left = get_left_segments(stream)
         if len(_left) == 0:
             return results
         # 没有需要下载的则尝试合并 返回False则说明需要继续下载完整
-        with self.progress:
-            stream_id = self.init_progress(stream, completed)
-            client = ClientSession(connector=get_connector(self.args)) # type: ClientSession
-            for segment in _left:
-                task = loop.create_task(self.download(client, stream_id, stream, segment))
-                task.add_done_callback(_done_callback)
-                tasks.add(task)
-            # 阻塞并等待运行完成
-            finished, unfinished = await asyncio.wait(tasks)
-            # 关闭ClientSession
-            await client.close()
+        self.init_progress(stream, count, completed)
+        client = ClientSession(connector=get_connector(self.args)) # type: ClientSession
+        for segment in _left:
+            task = loop.create_task(self.download(client, stream, segment))
+            task.add_done_callback(_done_callback)
+            tasks.add(task)
+        # 阻塞并等待运行完成
+        finished, unfinished = await asyncio.wait(tasks)
+        # 关闭ClientSession
+        await client.close()
+        self.xprogress.to_stop()
         return results
 
-    async def download(self, client: ClientSession, stream_id: TaskID, stream: Stream, segment: Segment):
+    async def download(self, client: ClientSession, stream: Stream, segment: Segment):
         proxy, headers = self.args.proxy, self.args.headers
         status, flag = 'EXIT', True
         try:
@@ -287,21 +331,21 @@ class Downloader:
                     status = 'RE-DOWNLOAD'
                     flag = None
                 if resp.headers.get('Content-length') is not None:
+                    # 对于 filesize 不为 0 后面再另外考虑
                     stream.filesize += int(resp.headers["Content-length"])
-                    self.progress.update(stream_id, total=stream.filesize)
+                    self.xprogress.update_total_size(stream.filesize)
                 else:
                     _flag = False
                 if flag:
-                    self.progress.start_task(stream_id)
                     while self.terminate is False:
                         data = await resp.content.read(512)
                         if not data:
                             break
                         segment.content.append(data)
-                        self.progress.update(stream_id, advance=len(data))
+                        self.xprogress.add_downloaded_size(len(data))
                         if _flag is False:
                             stream.filesize += len(data)
-                            self.progress.update(stream_id, total=stream.filesize)
+                            self.xprogress.update_total_size(stream.filesize)
         except TimeoutError:
             return segment, 'TimeoutError', None
         except client_exceptions.ClientConnectorError:
@@ -327,6 +371,7 @@ class Downloader:
             return segment, status, None
         if flag is False:
             return segment, status, False
+        self.xprogress.add_downloaded_count(1)
         return segment, 'SUCCESS', await self.decrypt(segment, stream)
 
     async def decrypt(self, segment: Segment, stream: Stream) -> bool:

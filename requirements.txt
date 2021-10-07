@@ -1,4 +1,3 @@
-rich
 aiohttp
 argparse
 pycryptodome

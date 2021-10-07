@@ -24,7 +24,7 @@ GUI INFO
     ```
 2. 通过exe直接下载
     ```bash
-    XstreamDL-CLI_v1.3.0.exe --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8
+    XstreamDL-CLI_v1.3.1.exe --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8
     ```
 3. 如果使用`Windows Terminal`，可以将下面的命令保存为`bat`文件
     ```bash
@@ -55,7 +55,7 @@ python -m XstreamDL_CLI.cli --disable-auto-concat --select --overwrite https://a
 **HELP INFO**
 
 ```bash
-version 1.3.0, A downloader that download the HLS/DASH stream.
+version 1.3.1, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
 A downloader that download the HLS/DASH stream
@@ -130,7 +130,7 @@ optional arguments:
 ## pyinstaller打包
 
 ```bash
-pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.0 -F XstreamDL_CLI\__main__.py
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.1 -F XstreamDL_CLI\__main__.py
 ```
 
 ## 示意
