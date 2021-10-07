@@ -278,12 +278,14 @@ class Downloader:
                 _flag = True
                 if resp.status in [403, 404]:
                     status = 'STATUS_SKIP'
-                    print(await resp.read())
                     flag = False
                     segment.skip_concat = True
                 if resp.status == 405:
                     status = 'STATUS_CODE_ERROR'
                     flag = False
+                if resp.status in [408]:
+                    status = 'RE-DOWNLOAD'
+                    flag = None
                 if resp.headers.get('Content-length') is not None:
                     stream.filesize += int(resp.headers["Content-length"])
                     self.progress.update(stream_id, total=stream.filesize)
@@ -321,6 +323,8 @@ class Downloader:
             return segment, 'EXIT', False
         if segment.skip_concat:
             return segment, status, True
+        if flag is None:
+            return segment, status, None
         if flag is False:
             return segment, status, False
         return segment, 'SUCCESS', await self.decrypt(segment, stream)
