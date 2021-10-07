@@ -10,8 +10,8 @@ class BaseParser:
         self.suffix = '.SUFFIX'
 
     def dump_content(self, name: str, content: str, suffix: str):
-        if (Path('logs') / f'{name}{suffix}').exists() is False:
-            (Path('logs') / f'{name}{suffix}').mkdir()
+        if Path('logs').exists() is False:
+            Path('logs').mkdir()
         (Path('logs') / f'{name}{suffix}').write_text(content, encoding='utf-8')
 
     def parse_uri(self, uri: str) -> Tuple[str, str, str]:
