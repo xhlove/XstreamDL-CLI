@@ -46,7 +46,7 @@ class DASHParser(BaseParser):
         # 检查有没有baseurl
         base_urls = mpd.find('BaseURL') # type: List[BaseURL]
         # locations = mpd.find('Location') # type: List[Location]
-        if len(base_urls) > 0:
+        if base_url == '' and len(base_urls) > 0:
             base_url = base_urls[0].innertext
             uris = [name, home_url, base_url]
         return self.walk_period(mpd, uris)
@@ -65,7 +65,7 @@ class DASHParser(BaseParser):
         streams = []
         for period in periods:
             base_urls = period.find('BaseURL') # type: List[BaseURL]
-            if len(base_urls) > 0:
+            if uris[-1] == '' and len(base_urls) > 0:
                 base_url = base_urls[0].innertext
                 if base_url.startswith('http'):
                     uris[-1] = base_url

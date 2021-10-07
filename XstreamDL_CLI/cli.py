@@ -80,6 +80,7 @@ def main():
     parser.add_argument('-live-duration', '--live-duration', default='', help='Live record time, format HH:MM:SS, example 00:00:30 will record about 30s')
     parser.add_argument('-name', '--name', default='', help='Specific stream base name')
     parser.add_argument('-base', '--base-url', default='', help='Set base url for Stream')
+    parser.add_argument('-service-location', '--service-location', help='Set serviceLocation for BaseURL choose')
     parser.add_argument('-save-dir', '--save-dir', default='Downloads', help='Set save dir for Stream')
     parser.add_argument('--ffmpeg', default='ffmpeg', help='Set executable ffmpeg path')
     parser.add_argument('--mp4decrypt', default='mp4decrypt', help='Set executable mp4decrypt path')
