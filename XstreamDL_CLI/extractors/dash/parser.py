@@ -46,7 +46,7 @@ class DASHParser(BaseParser):
         # 检查有没有baseurl
         base_urls = mpd.find('BaseURL') # type: List[BaseURL]
         # locations = mpd.find('Location') # type: List[Location]
-        if len(base_urls) == 1:
+        if len(base_urls) > 0:
             base_url = base_urls[0].innertext
             uris = [name, home_url, base_url]
         return self.walk_period(mpd, uris)
@@ -65,7 +65,7 @@ class DASHParser(BaseParser):
         streams = []
         for period in periods:
             base_urls = period.find('BaseURL') # type: List[BaseURL]
-            if len(base_urls) == 1:
+            if len(base_urls) > 0:
                 base_url = base_urls[0].innertext
                 if base_url.startswith('http'):
                     uris[-1] = base_url
@@ -247,10 +247,10 @@ class DASHParser(BaseParser):
                 if '$Number$' in media_url:
                     media_url = media_url.replace('$Number$', str(start_number))
                     start_number += 1
-                if re.match('.*?\$Number%(\d+)d\$', media_url):
-                    length = re.match('.*?\$Number%(\d+)d\$', media_url).groups()[0]
-                    old = f'$Number%{length}d$'
-                    media_url = media_url.replace(old, f'{start_number:>int(length)}')
+                if re.match('.*?(\$Number%(.+?)\$)', media_url):
+                    old, fmt = re.match('.*?(\$Number(%.+?)\$)', media_url).groups()
+                    new = fmt % start_number
+                    media_url = media_url.replace(old, new)
                     start_number += 1
                 if '$RepresentationID$' in media_url:
                     media_url = media_url.replace('$RepresentationID$', representation.id)
@@ -271,10 +271,10 @@ class DASHParser(BaseParser):
             media_url = st.get_media_url()
             if '$Number$' in media_url:
                 media_url = media_url.replace('$Number$', str(number))
-            if re.match('.*?\$Number%(\d+)d\$', media_url):
-                length = re.match('.*?\$Number%(\d+)d\$', media_url).groups()[0]
-                old = f'$Number%{length}d$'
-                media_url = media_url.replace(old, f'{number:0>{int(length)}}')
+            if re.match('.*?(\$Number%(.+?)\$)', media_url):
+                old, fmt = re.match('.*?(\$Number(%.+?)\$)', media_url).groups()
+                new = fmt % number
+                media_url = media_url.replace(old, new)
             if '$RepresentationID$' in media_url:
                 media_url = media_url.replace('$RepresentationID$', rid)
             stream.set_media_url(media_url)
