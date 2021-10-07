@@ -68,7 +68,7 @@ class DASHParser(BaseParser):
         streams = []
         for period in periods:
             base_urls = period.find('BaseURL') # type: List[BaseURL]
-            if uris[-1] == '' and len(base_urls) > 0:
+            if (uris[-1] == '' or self.args.prefer_content_base_url) and len(base_urls) > 0:
                 base_url = base_urls[0].innertext
                 if base_url.startswith('http'):
                     uris[-1] = base_url
