@@ -115,7 +115,7 @@ def main():
     parser.add_argument('--show-init', action='store_true', help='show initialization to help you identify same name stream')
     parser.add_argument('--add-index-to-name', action='store_true', help='some dash live have the same name for different stream, use this option to avoid')
     parser.add_argument('--log-level', default='INFO', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], help='set log level, default is INFO')
-    parser.add_argument('--re-download-status', default='', help='re-download set of response status codes , e.g. 500,502,503,504')
+    parser.add_argument('--re-download-status', default='', help='re-download set of response status codes , e.g. 408,500,502,503,504')
     parser.add_argument('URI', nargs='*', help='URL/FILE/FOLDER string')
     args = parser.parse_args()
     logger = setup_logger('XstreamDL', args.log_level)

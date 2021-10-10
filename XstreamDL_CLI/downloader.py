@@ -333,7 +333,7 @@ class Downloader:
                 if resp.status == 405:
                     status = 'STATUS_CODE_ERROR'
                     flag = False
-                if resp.status in [408]:
+                if resp.status in self.args.re_download_status:
                     status = 'RE-DOWNLOAD'
                     flag = None
                 if resp.headers.get('Content-length') is not None:

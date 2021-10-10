@@ -64,48 +64,51 @@ positional arguments:
   URI                   URL/FILE/FOLDER string
 
 optional arguments:
-  -v, --version         Print version and exit
-  -h, --help            Print help message and exit
-  -live, --live         Live mode
+  -v, --version         print version and exit
+  -h, --help            print help message and exit
+  -live, --live         live mode
   -live-duration LIVE_DURATION, --live-duration LIVE_DURATION
-                        Live record time, format HH:MM:SS, example 00:00:30
+                        live record time, format HH:MM:SS, example 00:00:30
                         will record about 30s
   -name NAME, --name NAME
-                        Specific stream base name
-  -base BASE_URL, --base-url BASE_URL
-                        Set base url for Stream
+                        specific stream base name
+  -base-url BASE_URL, --base-url BASE_URL
+                        set base url for Stream
+  -prefer-content-base-url, --prefer-content-base-url
+                        prefer use content base url for Stream
+  -service-location SERVICE_LOCATION, --service-location SERVICE_LOCATION
+                        set serviceLocation for BaseURL choose
   -save-dir SAVE_DIR, --save-dir SAVE_DIR
-                        Set save dir for Stream
-  --ffmpeg FFMPEG       Set executable ffmpeg path
-  --mp4decrypt MP4DECRYPT
-                        Set executable mp4decrypt path
-  --select              Show stream to select and download, default is to
+                        set save dir for Stream
+  --select              show stream to select and download, default is to
                         download all
   --disable-force-close
-                        Default make all connections closed securely, but it
+                        default make all connections closed securely, but it
                         will make DL speed slower
   --limit-per-host LIMIT_PER_HOST
-                        Increase the value if your connection to the stream
+                        increase the value if your connection to the stream
                         host is poor, suggest >100 for DASH stream
   --user-agent USER_AGENT
                         set user-agent headers for request
   --referer REFERER     set custom referer for request
   --headers HEADERS     set custom headers for request, separators is |, e.g.
                         "header1:value1|header2:value2"
-  --overwrite           Overwrite output files
-  --raw-concat          Concat content as raw
+  --url-patch URL_PATCH
+                        add some custom strings for all segments link
+  --overwrite           overwrite output files
+  --raw-concat          concat content as raw
   --disable-auto-concat
-                        Disable auto-concat
-  --enable-auto-delete  Enable auto-delete files after concat success
+                        disable auto-concat
+  --enable-auto-delete  enable auto-delete files after concat success
   --disable-auto-decrypt
-                        Disable auto-decrypt segments before dump to disk
+                        disable auto-decrypt segments before dump to disk
   --key KEY             <id>:<k>, <id> is either a track ID in decimal or a
                         128-bit KID in hex, <k> is a 128-bit key in hex
   --b64key B64KEY       base64 format aes key, only for HLS standard
                         AES-128-CBC encryption
   --hexiv HEXIV         hex format aes iv
   --proxy PROXY         use http proxy, e.g. http://127.0.0.1:1080
-  --split               Dash option, split one stream to multi sections
+  --split               dash option, split one stream to multi sections
   --disable-auto-exit   disable auto exit after download end, GUI will use
                         this option
   --parse-only          parse only, not to download
@@ -113,6 +116,11 @@ optional arguments:
                         stream
   --add-index-to-name   some dash live have the same name for different
                         stream, use this option to avoid
+  --log-level {DEBUG,INFO,WARNING,ERROR}
+                        set log level, default is INFO
+  --re-download-status RE_DOWNLOAD_STATUS
+                        re-download set of response status codes , e.g.
+                        500,502,503,504
 ```
 
 部分参数说明
