@@ -67,9 +67,9 @@ def command_handler(logger: Logger, args: CmdArgs):
             args.ffmpeg = bin_path / 'ffmpeg'
             args.mp4decrypt = bin_path / 'mp4decrypt'
             args.mp4box = bin_path / 'mp4box'
-        logger.info(f'ffmpeg {args.ffmpeg.resolve().as_posix()}')
-        logger.info(f'mp4decrypt {args.mp4decrypt.resolve().as_posix()}')
-        logger.info(f'mp4box {args.mp4box.resolve().as_posix()}')
+        logger.debug(f'ffmpeg {args.ffmpeg.resolve().as_posix()}')
+        logger.debug(f'mp4decrypt {args.mp4decrypt.resolve().as_posix()}')
+        logger.debug(f'mp4box {args.mp4box.resolve().as_posix()}')
 
 
 def main():
