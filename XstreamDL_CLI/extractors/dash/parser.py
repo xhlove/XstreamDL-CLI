@@ -241,7 +241,9 @@ class DASHParser(BaseParser):
             base_time = ss[0].t
         else:
             base_time = 0
-        time_offset = st.presentationTimeOffset
+        # 如果 base_time 不为 0 即第一个 s.t 不为
+        # 那么 time_offset 就不需要 即设置为 0
+        time_offset = st.presentationTimeOffset if base_time == 0 else 0
         start_number = st.startNumber
         for s in ss:
             interval = s.d / st.timescale
