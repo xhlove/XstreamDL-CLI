@@ -38,6 +38,7 @@ def setup_logger(name: str, level: str = 'INFO') -> logging.Logger:
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
+    logger.info(f'log file -> {log_file_path.resolve().as_posix()}')
     return logger
 
 

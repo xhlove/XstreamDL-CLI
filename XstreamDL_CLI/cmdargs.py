@@ -36,4 +36,5 @@ class CmdArgs:
         self.show_init = None # type: bool
         self.add_index_to_name = None # type: bool
         self.log_level = None # type: str
+        self.re_download_status = None # type: list
         self.URI = None # type: list

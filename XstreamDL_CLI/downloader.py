@@ -341,7 +341,7 @@ class Downloader:
                     stream.filesize += int(resp.headers["Content-length"])
                     self.xprogress.update_total_size(stream.filesize)
                 else:
-                    self.logger.debug(f'response header has no Content-length, {segment.url}')
+                    self.logger.debug(f'response header has no Content-length {dict(resp.headers)}')
                     _flag = False
                 if flag:
                     while self.terminate is False:
