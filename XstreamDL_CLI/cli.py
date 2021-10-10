@@ -118,8 +118,6 @@ def main():
     parser.add_argument('--re-download-status', default='', help='re-download set of response status codes , e.g. 408,500,502,503,504')
     parser.add_argument('URI', nargs='*', help='URL/FILE/FOLDER string')
     args = parser.parse_args()
-    logger = setup_logger('XstreamDL', args.log_level)
-    command_handler(logger, args)
     if args.help:
         print_version()
         parser.print_help()
@@ -127,6 +125,8 @@ def main():
     if args.version:
         print_version()
         sys.exit()
+    logger = setup_logger('XstreamDL', args.log_level)
+    command_handler(logger, args)
     if len(args.URI) == 0:
         try:
             uri = input('Paste your URL/FILE/FOLDER string at the end of commands, plz.\nCtrl C to exit or input here:')
