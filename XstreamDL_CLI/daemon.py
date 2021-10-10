@@ -1,6 +1,7 @@
 import time
 from typing import List
 from pathlib import Path
+from logging import Logger
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.extractor import Extractor
 from XstreamDL_CLI.downloader import Downloader
@@ -14,11 +15,10 @@ from XstreamDL_CLI.extractors.dash.childs.location import Location
 
 class Daemon:
 
-    def __init__(self, args: CmdArgs):
+    def __init__(self, logger: Logger, args: CmdArgs):
+        self.logger = logger
         self.args = args
         self.exit = False
-        # <---来自命令行的设置--->
-        self.max_concurrent_downloads = 1
 
     def daemon(self):
         '''
@@ -26,15 +26,12 @@ class Daemon:
         - 下载
         - 合并
         '''
-        extractor = Extractor(self.args)
+        extractor = Extractor(self.logger, self.args)
         streams = extractor.fetch_metadata(self.args.URI[0])
-        if self.args.repl is False:
-            if self.args.live is False:
-                return Downloader(self.args).download_streams(streams)
-            else:
-                return self.live_record(extractor, streams)
-        while self.exit:
-            break
+        if self.args.live is False:
+            return Downloader(self.logger, self.args).download_streams(streams)
+        else:
+            return self.live_record(extractor, streams)
 
     def live_record(self, extractor: Extractor, streams: List[Stream]):
         '''
@@ -78,6 +75,7 @@ class Daemon:
         if '://' not in next_mpd_url:
             if Path(next_mpd_url).is_file() or Path(next_mpd_url).is_dir():
                 assert False, 'not support dash live stream for file/folder type, because cannot refresh'
+        self.logger.info(f'refresh link {next_mpd_url}')
         # 初始化下载器
         downloader = Downloader(self.args)
         # 获取用户选择的流的skey

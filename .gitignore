@@ -6,7 +6,7 @@ logs/
 *.m3u8
 sample/*
 releases/*
-mp4decrypt.exe
+*.exe
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -24,7 +24,7 @@ class HLSStream(Stream):
     一些可选的属性
     - 语言
     '''
-    def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: str, parent_stream: 'HLSStream'):
+    def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: Path, parent_stream: 'HLSStream'):
         super(HLSStream, self).__init__(index, name, home_url, base_url, save_dir)
         self.segments = [] # type: List[HLSSegment]
         # <------对于HLS类型的流额外的属性------>
@@ -85,7 +85,7 @@ class HLSStream(Stream):
     def set_map_flag(self):
         self.has_map_segment = True
         self.name += f'_{self.index}'
-        self.save_dir = (Path(self.save_dir).parent / self.name).resolve()
+        self.save_dir = (self.save_dir.parent / self.name).resolve()
         for segment in self.segments:
             segment.set_folder(self.save_dir)
 

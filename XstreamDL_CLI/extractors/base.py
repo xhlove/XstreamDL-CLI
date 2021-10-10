@@ -1,23 +1,38 @@
 from typing import Tuple
 from pathlib import Path
+from logging import Logger
 from XstreamDL_CLI.cmdargs import CmdArgs
 
 
 class BaseParser:
-    def __init__(self, args: CmdArgs, uri_type: str):
+    def __init__(self, logger: Logger, args: CmdArgs, uri_type: str):
+        self.logger = logger
         self.args = args
         self.uri_type = uri_type
         self.suffix = '.SUFFIX'
 
+    def fix_name(self, name: str):
+        '''
+        remove illegal char
+        '''
+        self.logger.debug(f'fix name before: {name}')
+        exclude_str = ["\\", "/", ":", "：", "*", "?", "\"", "<", ">", "|", "\r", "\n", "\t"]
+        for s in exclude_str:
+            name = name.replace(s, " ")
+        name = "_".join(name.split())
+        self.logger.debug(f'fix name after: {name}')
+        return name
+
     def dump_content(self, name: str, content: str, suffix: str):
-        if Path('logs').exists() is False:
-            Path('logs').mkdir()
-        (Path('logs') / f'{name}{suffix}').write_text(content, encoding='utf-8')
+        dump_path = self.args.save_dir / f'{name}{suffix}'
+        self.logger.debug(f'save content to {dump_path.resolve().as_posix()}, size {len(content)}')
+        dump_path.write_text(content, encoding='utf-8')
 
     def parse_uri(self, uri: str) -> Tuple[str, str, str]:
         '''
         进入此处的uri不可能是文件夹
         '''
+        self.logger.debug(f'start parse uri for: {uri}')
         rm_manifest = False
         if '.ism' in self.args.base_url and 'manifest' in self.args.base_url:
             rm_manifest = True
@@ -44,4 +59,11 @@ class BaseParser:
             else:
                 base_url = self.args.base_url
             home_url = '/'.join(base_url.split('/', maxsplit=3)[:-1])
+        name = self.fix_name(name)
+        self.logger.debug(
+            f'parse uri result:\n'
+            f'    name {name}\n'
+            f'    home_url {home_url}\n'
+            f'    base_url {base_url}'
+        )
         return [name, home_url, base_url]

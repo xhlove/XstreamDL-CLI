@@ -1,19 +1,20 @@
 from typing import List
-from .stream import HLSStream
-from ..base import BaseParser
+from logging import Logger
+from XstreamDL_CLI.extractors.hls.stream import HLSStream
+from XstreamDL_CLI.extractors.base import BaseParser
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.extractors.hls.ext.xkey import XKey
 
 
 class HLSParser(BaseParser):
-    def __init__(self, args: CmdArgs, uri_type: str):
-        super(HLSParser, self).__init__(args, uri_type)
+    def __init__(self, logger: Logger, args: CmdArgs, uri_type: str):
+        super(HLSParser, self).__init__(logger, args, uri_type)
         self.suffix = '.m3u8'
 
     def parse(self, uri: str, content: str, parent_stream: HLSStream) -> List[HLSStream]:
         uris = self.parse_uri(uri)
         if uris is None:
-            print(f'parse {uri} failed')
+            self.logger.error(f'parse {uri} failed')
             return []
         name, home_url, base_url = uris
         self.dump_content(name, content, self.suffix)
@@ -125,7 +126,7 @@ class HLSParser(BaseParser):
                 elif line.startswith('## Created with Unified Streaming Platform'):
                     pass
                 else:
-                    print(f'unknown TAG, skip\n\t{line}')
+                    self.logger.warning(f'unknown TAG, skip\n\t{line}')
             else:
                 # 进入此处 说明这一行没有任何已知的#EXT标签 也就是具体媒体文件的链接
                 if offset > 0 and lines[offset - 1].startswith('#EXT-X-BYTERANGE'):
@@ -147,7 +148,7 @@ class HLSParser(BaseParser):
                     stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
                     do_not_append_at_end_list_tag = True
                 else:
-                    print(f'unknow what to do here ->\n\t{line}')
+                    self.logger.warning(f'unknow what to do here ->\n\t{line}')
             offset += 1
         if do_not_append_at_end_list_tag is False:
             streams.append(stream)

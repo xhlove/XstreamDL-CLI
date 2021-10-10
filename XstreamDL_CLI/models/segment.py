@@ -60,8 +60,8 @@ class Segment:
         self.name = f'{self.index:0>4}{self.suffix}'
         return self
 
-    def set_folder(self, name: str):
-        self.folder = Path(name)
+    def set_folder(self, folder: Path):
+        self.folder = folder
         return self
 
     def get_path(self) -> Path:

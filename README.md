@@ -113,7 +113,6 @@ optional arguments:
                         stream
   --add-index-to-name   some dash live have the same name for different
                         stream, use this option to avoid
-  --repl                REPL mode
 ```
 
 部分参数说明

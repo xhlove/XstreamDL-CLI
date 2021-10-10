@@ -1,7 +1,8 @@
-from aiohttp.connector import TCPConnector
 import asyncio
 from typing import List
 from pathlib import Path
+from logging import Logger
+from aiohttp.connector import TCPConnector
 from aiohttp import ClientSession, ClientResponse
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.models.stream import Stream
@@ -22,7 +23,8 @@ class Extractor:
     或者读取含有多个元数据文件的文件夹
     最终得到一个Stream（流）对象供Downloader（下载器）下载
     '''
-    def __init__(self, args: CmdArgs):
+    def __init__(self, logger: Logger, args: CmdArgs):
+        self.logger = logger
         self.args = args
         self.parser = None
 
@@ -80,18 +82,18 @@ class Extractor:
         elif '<SmoothStreamingMedia' in content and '</SmoothStreamingMedia>' in content:
             return self.parse_as_mss(uri_type, uri, content, parent_stream)
         else:
-            print(t_msg.cannot_get_stream_metadata)
+            self.logger.warning(t_msg.cannot_get_stream_metadata)
             return []
 
     def parse_as_hls(self, uri_type: str, uri: str, content: str, parent_stream: HLSStream = None) -> List[HLSStream]:
-        _streams = HLSParser(self.args, uri_type).parse(uri, content, parent_stream)
+        _streams = HLSParser(self.logger, self.args, uri_type).parse(uri, content, parent_stream)
         streams = []
         for stream in _streams:
             # 针对master类型加载详细内容
             if stream.tag != '#EXT-X-STREAM-INF' and stream.tag != '#EXT-X-MEDIA':
                 streams.append(stream)
                 continue
-            print(f'Load {stream.tag} metadata from -> {stream.origin_url}')
+            self.logger.info(f'Load {stream.tag} metadata from -> {stream.origin_url}')
             new_streams = self.fetch_metadata(stream.origin_url, parent_stream=stream)
             if new_streams is None:
                 continue
@@ -104,10 +106,10 @@ class Extractor:
         return streams
 
     def parse_as_dash(self, uri_type: str, uri: str, content: str, parent_stream: DASHStream = None) -> List[DASHStream]:
-        self.parser = DASHParser(self.args, uri_type)
+        self.parser = DASHParser(self.logger, self.args, uri_type)
         streams = self.parser.parse(uri, content)
         return streams
 
     def parse_as_mss(self, uri_type: str, uri: str, content: str, parent_stream: MSSStream = None) -> List[MSSStream]:
-        streams = MSSParser(self.args, uri_type).parse(uri, content)
+        streams = MSSParser(self.logger, self.args, uri_type).parse(uri, content)
         return streams

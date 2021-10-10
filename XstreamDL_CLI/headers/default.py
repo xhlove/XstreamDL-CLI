@@ -1,8 +1,11 @@
+import json
+from logging import Logger
 from XstreamDL_CLI.cmdargs import CmdArgs
 
 
 class Headers:
-    def __init__(self):
+    def __init__(self, logger: Logger):
+        self.logger = logger
         self.referer = ''
         self.user_agent = (
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
@@ -29,6 +32,7 @@ class Headers:
             self.headers['referer'] = args.referer
         if args.headers != '':
             self.__add_headers(args.headers)
+        self.logger.debug(f'use headers:\n{json.dumps(self.headers, ensure_ascii=False, indent=4)}')
 
     def __add_headers(self, text: str):
         text = text.strip()

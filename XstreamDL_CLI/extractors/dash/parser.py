@@ -1,7 +1,7 @@
 import re
 import math
 from typing import List, Dict
-
+from logging import Logger
 from .mpd import MPD
 from .handler import xml_handler
 from .childs.adaptationset import AdaptationSet
@@ -22,8 +22,8 @@ from XstreamDL_CLI.cmdargs import CmdArgs
 
 
 class DASHParser(BaseParser):
-    def __init__(self, args: CmdArgs, uri_type: str):
-        super(DASHParser, self).__init__(args, uri_type)
+    def __init__(self, logger: Logger, args: CmdArgs, uri_type: str):
+        super(DASHParser, self).__init__(logger, args, uri_type)
         self.is_live = False
         self.root = None # type: MPD
         self.suffix = '.mpd'
@@ -31,10 +31,10 @@ class DASHParser(BaseParser):
     def parse(self, uri: str, content: str) -> List[DASHStream]:
         uris = self.parse_uri(uri)
         if uris is None:
-            print(f'parse {uri} failed')
+            self.logger.error(f'parse {uri} failed')
             return []
         name, home_url, base_url = uris
-        # self.dump_content(name, content, self.suffix)
+        self.dump_content(name, content, self.suffix)
         # 解析转换内容为期望的对象
         mpd = xml_handler(content)
         self.root = mpd
@@ -42,6 +42,7 @@ class DASHParser(BaseParser):
         if mpd.profiles == 'urn:mpeg:dash:profile:isoff-live:2011':
             self.is_live = True
         if self.args.live and self.is_live is False:
+            self.logger.debug('detect current dash content is a living stream')
             self.is_live = True
         # 检查有没有baseurl
         base_urls = mpd.find('BaseURL') # type: List[BaseURL]
@@ -97,6 +98,7 @@ class DASHParser(BaseParser):
         streams = []
         for adaptationset in adaptationsets:
             if adaptationset.mimeType == 'image/jpeg':
+                self.logger.debug(f'skip parse for AdaptationSet mimeType image/jpeg')
                 continue
             representations = adaptationset.find('Representation') # type: List[Representation]
             if len(representations) > 0:
@@ -194,9 +196,9 @@ class DASHParser(BaseParser):
             # 没有就无法计算分段 则跳过
             # 不止一个可能是没见过的类型 提醒上报
             if len(segmenttemplates) > 1:
-                print('please report this DASH content.')
+                self.logger.error('please report this DASH content.')
             else:
-                print('stream has no SegmentTemplate between Representation tag.')
+                self.logger.warning('stream has no SegmentTemplate between Representation tag.')
             return
         if len(segmenttemplates[0].find('SegmentTimeline')) == 0:
             self.generate_v1(period, representation.id, segmenttemplates[0], stream)
@@ -207,9 +209,9 @@ class DASHParser(BaseParser):
         segmenttimelines = segmenttemplate.find('SegmentTimeline') # type: List[SegmentTimeline]
         if len(segmenttimelines) != 1:
             if len(segmenttimelines) > 1:
-                print('please report this DASH content.')
+                self.logger.error('please report this DASH content.')
             else:
-                print('stream has no SegmentTimeline between SegmentTemplate tag.')
+                self.logger.warning('stream has no SegmentTimeline between SegmentTemplate tag.')
             return
         self.walk_s(segmenttimelines[0], segmenttemplate, representation, stream)
 

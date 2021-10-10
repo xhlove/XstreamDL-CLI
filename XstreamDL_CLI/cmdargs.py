@@ -1,4 +1,5 @@
 from typing import Union
+from pathlib import Path
 
 
 class CmdArgs:
@@ -9,9 +10,10 @@ class CmdArgs:
         self.name = None # type: str
         self.base_url = None # type: str
         self.prefer_content_base_url = None # type: bool
-        self.save_dir = None # type: str
-        self.ffmpeg = None # type: str
-        self.mp4decrypt = None # type: str
+        self.save_dir = None # type: Path
+        self.ffmpeg = None # type: Path
+        self.mp4decrypt = None # type: Path
+        self.mp4box = None # type: Path
         self.select = None # type: bool
         self.disable_force_close = None # type: bool
         self.limit_per_host = None # type: int
@@ -33,5 +35,5 @@ class CmdArgs:
         self.parse_only = None # type: bool
         self.show_init = None # type: bool
         self.add_index_to_name = None # type: bool
-        self.repl = None # type: bool
+        self.log_level = None # type: str
         self.URI = None # type: list

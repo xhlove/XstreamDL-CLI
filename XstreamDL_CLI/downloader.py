@@ -4,7 +4,7 @@ import time
 import signal
 import asyncio
 import binascii
-import logging
+from logging import Logger
 from typing import List, Set, Dict
 from asyncio import new_event_loop
 from asyncio import AbstractEventLoop, Future, Task
@@ -22,7 +22,6 @@ def get_selected_index(length: int) -> list:
     try:
         text = input(t_msg.input_stream_number).strip()
     except EOFError:
-        print(t_msg.select_without_any_stream)
         return []
     if text == '':
         return [index for index in range(length + 1)]
@@ -143,8 +142,8 @@ class XProgress:
 
 class Downloader:
 
-    def __init__(self, args: CmdArgs):
-        self.logger = logging.getLogger('downloader')
+    def __init__(self, logger: Logger, args: CmdArgs):
+        self.logger = logger
         self.args = args
         self.xprogress = None # type: XProgress
         self.terminate = False
@@ -168,6 +167,8 @@ class Downloader:
             stream.show_info(index, show_init=self.args.show_init, add_index_to_name=self.args.add_index_to_name)
         if self.args.select is True:
             selected = get_selected_index(len(streams))
+            if len(selected) == 0:
+                self.logger.info(t_msg.select_without_any_stream)
         else:
             selected = [index for index in range(len(streams))]
         if self.args.live is False:
@@ -198,7 +199,7 @@ class Downloader:
                 if len(stream.segments) <= 5:
                     stream.show_segments()
                 continue
-            print(f'{stream.get_name()} {t_msg.download_start}.')
+            self.logger.info(f'{stream.get_name()} {t_msg.download_start}.')
             while max_failed > 0:
                 loop = new_event_loop()
                 results = loop.run_until_complete(self.do_with_progress(loop, stream))
@@ -223,7 +224,7 @@ class Downloader:
                 #     # mpd中text类型 一般是字幕直链 跳过合并
                 #     pass
                 # if self.args.live is False and self.args.disable_auto_concat is False:
-                #     stream.concat(self.args)
+                #     stream.concat(self.logger, self.args)
                 self.try_concat(stream)
                 break
             # 只需要检查一个流的时间达到最大值就停止录制
@@ -236,14 +237,14 @@ class Downloader:
 
     def try_concat(self, stream: Stream):
         if self.args.live is False and self.args.disable_auto_concat is False:
-            stream.concat(self.args)
+            stream.concat(self.logger, self.args)
 
     def try_concat_streams(self, streams: List[Stream], selected: List[str]):
         for stream in streams:
             if stream.get_skey() not in selected:
                 continue
             if self.args.live is True and self.args.disable_auto_concat is False:
-                stream.concat(self.args)
+                stream.concat(self.logger, self.args)
 
     def init_progress(self, stream: Stream, count: int, completed: int):
         if completed > 0:
@@ -274,20 +275,20 @@ class Downloader:
                 segment, status, flag = _future.result()
                 if flag is None:
                     pass
-                    # print('下载过程中出现已知异常 需重新下载\n')
+                    # self.logger.error('下载过程中出现已知异常 需重新下载\n')
                 elif flag is False:
                     # 某几类已知异常 如状态码不对 返回头没有文件大小 视为无法下载 主动退出
                     cancel_all_task()
                     if status in ['STATUS_CODE_ERROR', 'NO_CONTENT_LENGTH']:
-                        print(f'{status} {t_msg.segment_cannot_download}')
+                        self.logger.error(f'{status} {t_msg.segment_cannot_download}')
                     elif status == 'EXIT':
                         pass
                     else:
-                        print(f'{status} {t_msg.segment_cannot_download_unknown_status}')
+                        self.logger.error(f'{status} {t_msg.segment_cannot_download_unknown_status}')
                 results[segment] = flag
             else:
                 # 出现未知异常 强制退出全部task
-                print(f'{t_msg.segment_cannot_download_unknown_exc} => {_future.exception()}\n')
+                self.logger.error(f'{t_msg.segment_cannot_download_unknown_exc} => {_future.exception()}\n')
                 cancel_all_task()
                 results['未知segment'] = False
 
@@ -298,20 +299,24 @@ class Downloader:
                 task.cancel()
         # limit_per_host 根据不同网站和网络状况调整 如果与目标地址连接性较好 那么设置小一点比较好
         count, completed, _left = get_left_segments(stream)
+        self.logger.debug(f'downloaded count {count}, downloaded size {completed}, left count {len(_left)}')
         if len(_left) == 0:
             return results
         # 没有需要下载的则尝试合并 返回False则说明需要继续下载完整
         self.init_progress(stream, count, completed)
+        ts = time.time()
         client = ClientSession(connector=get_connector(self.args)) # type: ClientSession
         for segment in _left:
             task = loop.create_task(self.download(client, stream, segment))
             task.add_done_callback(_done_callback)
             tasks.add(task)
+        self.logger.info(f'{len(tasks)} tasks start')
         # 阻塞并等待运行完成
         finished, unfinished = await asyncio.wait(tasks)
         # 关闭ClientSession
         await client.close()
         self.xprogress.to_stop()
+        self.logger.info(f'tasks end, time used {time.time() - ts:.2f}s')
         return results
 
     async def download(self, client: ClientSession, stream: Stream, segment: Segment):
@@ -320,6 +325,7 @@ class Downloader:
         try:
             async with client.get(segment.url + self.args.url_patch, proxy=proxy, headers=headers) as resp: # type: ClientResponse
                 _flag = True
+                self.logger.debug(f'status {resp.status}, {segment.url}')
                 if resp.status in [403, 404]:
                     status = 'STATUS_SKIP'
                     flag = False
@@ -335,6 +341,7 @@ class Downloader:
                     stream.filesize += int(resp.headers["Content-length"])
                     self.xprogress.update_total_size(stream.filesize)
                 else:
+                    self.logger.debug(f'response header has no Content-length, {segment.url}')
                     _flag = False
                 if flag:
                     while self.terminate is False:
@@ -379,10 +386,13 @@ class Downloader:
         解密部分
         '''
         if segment.is_encrypt() is False and segment.is_ism():
+            self.logger.info(f'fix header for ism content')
             segment.fix_header(stream)
         if self.args.disable_auto_decrypt is True:
+            self.logger.info(f'--disable-auto-decrypt, skip decrypt')
             return segment.dump()
         if segment.is_encrypt() and segment.is_supported_encryption():
+            self.logger.debug(f'common aes decrypt, key {segment.xkey.key.hex()} iv {segment.xkey.iv}')
             cipher = CommonAES(segment.xkey.key, binascii.a2b_hex(segment.xkey.iv))
             return cipher.decrypt(segment)
         else:

@@ -1,4 +1,5 @@
 from typing import List
+from logging import Logger
 from .ism import ISM
 from .childs.c import c as Cc
 from .childs.streamindex import StreamIndex
@@ -11,8 +12,8 @@ from XstreamDL_CLI.cmdargs import CmdArgs
 
 
 class MSSParser(BaseParser):
-    def __init__(self, args: CmdArgs, uri_type: str):
-        super(MSSParser, self).__init__(args, uri_type)
+    def __init__(self, logger: Logger, args: CmdArgs, uri_type: str):
+        super(MSSParser, self).__init__(logger, args, uri_type)
         self.suffix = '.ism'
 
     def init_stream(self, sindex: int, uris: list) -> MSSStream:
@@ -92,6 +93,7 @@ class MSSParser(BaseParser):
         protections = ism.find('Protection')
         if len(protections) > 0 and len(protections[0].find('ProtectionHeader')) > 0:
             protection_flag = True
+            self.logger.info(f'ProtectionHeader was found')
         else:
             protection_flag = False
         stream.set_protection_flag(protection_flag)

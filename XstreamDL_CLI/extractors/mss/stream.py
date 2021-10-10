@@ -1,11 +1,12 @@
 import re
 from typing import List
+from pathlib import Path
 from XstreamDL_CLI.models.stream import Stream
 from .segment import MSSSegment
 
 
 class MSSStream(Stream):
-    def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: str):
+    def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: Path):
         super(MSSStream, self).__init__(index, name, home_url, base_url, save_dir)
         self.timescale = 10000000
         self.channels = 2
