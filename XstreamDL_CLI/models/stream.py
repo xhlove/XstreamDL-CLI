@@ -54,7 +54,7 @@ class Stream:
         self.stream_type = '' # type: str
         self.suffix = '.mp4'
 
-    def segments_extend(self, segments: List[Segment], has_init: bool):
+    def segments_extend(self, segments: List[Segment], has_init: bool = False):
         '''
         某些情况下对流进行合并
         需要更新一下新增分段的文件名
