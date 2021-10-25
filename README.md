@@ -60,6 +60,7 @@ python -m XstreamDL_CLI.cli --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca5692
 如果连接性较好，则保持默认就好，当然`--disable-force-close`也是推荐开启的
 
 Q: 为什么`--disable-force-close`选项不是默认开启
+
 A: 之前在编写软件过程中，出现过bug，某个循环异常，开启该选项后导致在极短时间内网络连接数耗尽，然后网络瘫痪，所以默认强制关闭链接，以确保不会发生这种情况
 
 ### 直播录制
