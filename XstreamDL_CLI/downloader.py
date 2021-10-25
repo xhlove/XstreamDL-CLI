@@ -94,6 +94,8 @@ class XProgress:
     def calc_speed(self, total_size: int, downloaded_size: int):
         ts = time.time()
         tm = ts - self.last_time
+        if self.stop is True:
+            return
         if self.stop is False and tm < 0.3:
             return
         speed = (downloaded_size - self.last_size) / tm / 1024 / 1024

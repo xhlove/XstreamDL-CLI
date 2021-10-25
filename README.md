@@ -32,7 +32,7 @@ python -m XstreamDL_CLI.cli --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca5692
 
 ### 下载默认/指定流
 
-当前软件提供了`--select`选项用于辅助选择用户需要下载的流
+当前软件提供了`--select`选项用于辅助用户选择需要下载的流
 
 但更多的用户希望可以通过指定分辨率、最佳质量一类选项进行下载
 
