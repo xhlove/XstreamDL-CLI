@@ -93,7 +93,7 @@ class MSSParser(BaseParser):
         protections = ism.find('Protection')
         if len(protections) > 0 and len(protections[0].find('ProtectionHeader')) > 0:
             protection_flag = True
-            self.logger.info(f'ProtectionHeader was found')
+            self.logger.debug(f'ProtectionHeader was found')
         else:
             protection_flag = False
         stream.set_protection_flag(protection_flag)

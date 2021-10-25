@@ -1,56 +1,32 @@
 # XstreamDL-CLI
+
 基于`python 3.7.4+`的，命令行版本的，HLS/DASH流下载器，仅支持**HLS标准AES-128-CBC**解密
+
+本下载器使用较为复杂，请仔细阅读后使用
 
 ## 使用
 
-首先安装必要的库
+**首先将`ffmpeg`和`mp4decrypt`的可执行文件放置在`binaries`文件夹中**
+
+[可执行文件下载链接点此](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.3.1/binaries.7z)
+
+安装必要的库
+
 ```bash
 pip install -r requirements.txt
 ```
+
+使用样式示例
 
 ```bash
 python -m XstreamDL_CLI.cli [OPTION]... URL/FILE/FOLDER...
 ```
 
-GUI INFO
-
-![](/images/Snipaste_2021-08-07_16-00-35.png)
-
-实例
-
-1. 通过python执行下载模块
-    ```bash
-    python -m XstreamDL_CLI.cli --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8
-    ```
-2. 通过exe直接下载
-    ```bash
-    XstreamDL-CLI_v1.3.1.exe --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8
-    ```
-3. 如果使用`Windows Terminal`，可以将下面的命令保存为`bat`文件
-    ```bash
-    chcp 65001
-    wt new-tab -p "Command Prompt" -d "%cd%" cmd /k "XstreamDL-CLI_v1.0.0.exe --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8"
-    ```
-    
-    ![](images/Snipaste_2021-02-04_19-13-09.png)
-
-**合并需要先将ffmpeg置于环境变量**
-
-**ISM EXAMPLE**
-
-clear ism content
+简单示例
 
 ```bash
-python -m XstreamDL_CLI.cli --select --overwrite http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism/Manifest
+python -m XstreamDL_CLI.cli --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8
 ```
-
-drm ism content
-
-```bash
-python -m XstreamDL_CLI.cli --disable-auto-concat --select --overwrite https://akamaicdn.hbogo.eu/5acb29be-eba0-46b1-8646-0e8354ff9cda_hbo/COMP/140258727_adr_comp_0cc2c364-5dba-4f1c-96f9-5640f98f5bbb_3400000_v2.ism/manifest 
-```
-
-![](images/oCam_2021_08_03_18_19_56_590.gif)
 
 **HELP INFO**
 
@@ -108,51 +84,146 @@ optional arguments:
                         AES-128-CBC encryption
   --hexiv HEXIV         hex format aes iv
   --proxy PROXY         use http proxy, e.g. http://127.0.0.1:1080
-  --split               dash option, split one stream to multi sections
   --disable-auto-exit   disable auto exit after download end, GUI will use
                         this option
   --parse-only          parse only, not to download
   --show-init           show initialization to help you identify same name
                         stream
-  --add-index-to-name   some dash live have the same name for different
+  --index-to-name       some dash live have the same name for different
                         stream, use this option to avoid
   --log-level {DEBUG,INFO,WARNING,ERROR}
                         set log level, default is INFO
-  --redl-code RE_DOWNLOAD_STATUS
+  --redl-code REDL_CODE
                         re-download set of response status codes , e.g.
-                        500,502,503,504
+                        408,500,502,503,504
 ```
 
-部分参数说明
+## 详细说明
 
-- `--select`
-    选择要下载的流，如遇到master类型m3u8且不止一条流时
-- `--disable-force-close`
-    使用此选项可提升下载速度，但可能会造成部分连接在下载完成后无法关闭，影响网络连接性
-- `--limit-per-host`
-    设定单个域名的连接数，网络较差，使用代理等情况下适当增加可以提升下载速度
-- `--proxy`
-    暂时只支持HTTP代理
+### 下载默认/指定流
+
+当前软件提供了`--select`选项用于辅助选择用户需要下载的流
+
+但更多的用户希望可以通过指定分辨率、最佳质量一类选项进行下载
+
+**这会在以后实现**
+
+### 未成功下载任何文件
+
+对于dash流，这有可能是因为mpd链接与实际分段链接不匹配，即软件使用了错误的base-url
+
+这个时候请尝试使用`--prefer-content-base-url`选项进行修正
+
+这是一个mpd内容解析的遗留bug，后续会修复
+
+对于hls流，请上报详细信息给我
+
+对于这种情况，请检查浏览器中的分段请求链接是否与`raw.json`文件中的一致
+
+### 下载加速
+
+如果要下载的目标文件所在的服务器与下载器直接的连接性较差，比如在你使用代理的时候，你可以选择
+
+- 增大`--limit-per-host`数值，以提升下载速度
+- 开启`--disable-force-close`选项，提升下载速度
+
+如果连接性较好，则保持默认就好，当然`--disable-force-close`也是推荐开启的
+
+Q: 为什么`--disable-force-close`选项不是默认开启
+A: 之前在编写软件过程中，出现过bug，某个循环异常，开启该选项后导致在极短时间内网络连接数耗尽，然后网络瘫痪，所以默认强制关闭链接，以确保不会发生这种情况
+
+### 直播录制
+
+目前仅支持dash流的录制，可以通过`--live`选项指明这是直播流
+
+通过`--live-duration`指明要录制的时长，该选项不是特别准确，最终文件时长通常大于期望的时长
+
+如果是回放类似的dash流，可以尝试普通模式下载
+
+**后续会尝试支持m3u8直播流**
+
+### 代理
+
+目前`--proxy`选项仅支持设定`http`代理，示例 -> `http://127.0.0.1:10809`
+
+后续会尝试支持`socks5`代理
+
+### m3u8解密
+
+下载器会自动尝试下载key，但目前绝大部分网站是不提供可直接用于解密的key的
+
+所以需要手动指定解密所使用的`key`和`iv`
+
+- `--b64key` base64编码的解密key字符串
+- `--hexiv` 16进制形式的解密iv字符串，如果不设置则默认是二进制0
+
+### dash流解密
+
+下载器调用`mp4decrypt`解密，请通过`--key`设置解密key，不设置则会强制二进制合并
+
+### ism解密
+
+**暂不支持**
+
+似乎是可以通过`mp4decrypt`进行解密的，但是我不知道如何构造解密需要的文件头，如果有人可以提供这方面的帮助，请联系我
+
+### 访问受限
+
+某些网站需要携带cookies、referer或者特定的请求头才能访问分段文件，这种情况可以通过设置`--headers`实现正常下载
+
+### 链接鉴权
+
+某系网站会在常规的链接后面增加一系列参数，用于检查用户是否有权限访问，通常情况下和流本身无关，往往是相同的内容，常见于dash类型流
+
+遇到这种情况，可以使用`--url-patch`设置这部分内容，例如mpd域名是`nammaflix-streams.streamready.in`
+
+### 仅解析
+
+`--parse-only`表明仅仅解析流，而不会进行任何下载，使用该选项，只会产生`raw.json`文件
+
+### 重复流
+
+如果经常使用本下载器下载dash流，可能会发现有的网站两条流名字完全一样，实际上查看mpd内容，确实如此
+
+`--index-to-name`正是为了处理这一问题而设置的
+
+此外可以与`--show-init`搭配使用，将会显示对应的初始分段链接，辅助选择需要下载的流
+
+### 日志
+
+目前下载器添加了详细的日志记录，用于辅助程序异常定位，输出日志在`logs`文件夹中
+
+![](images/Snipaste_2021-10-25_23-39-04.png)
+
+`--log-level`选项用于指定要**显示输出**的日志级别，无论如何设置，完整的日志总是会记录到`logs`文件夹
+
+### GUI支持
+
+**已有基于`PySide6`的GUI计划**
+
+C#版写起来非常不顺手，搁置了
+
+### 混流支持
+
+已在计划中，将使用`mp4box`进行混流
+
+### 下载重试
+
+下载器重试次数为5
+
+如果遇到图中这样的情况，即进度没有达到100%，说明下载并没有完成，请按之前的步骤重复操作，下载器会自动下载未完成的分段
+
+![](images/Snipaste_2021-10-25_23-33-49.png)
+
+最终成功的进度示意
+
+![](images/Snipaste_2021-10-25_23-38-16.png)
 
 ## pyinstaller打包
 
 ```bash
 pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.1 -F XstreamDL_CLI\__main__.py
 ```
-
-## 示意
-
-- 普通m3u8下载
-
-![](images/normal_m3u8.gif)
-
-- master m3u8下载
-
-![](images/master_m3u8.gif)
-
-- 特殊master m3u8下载
-
-![](images/camf_master_m3u8.gif)
 
 ## 特性
 
