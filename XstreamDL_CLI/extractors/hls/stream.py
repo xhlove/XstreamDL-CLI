@@ -1,4 +1,5 @@
 import base64
+from logging import Logger
 from typing import List
 from pathlib import Path
 from XstreamDL_CLI.cmdargs import CmdArgs
@@ -99,7 +100,7 @@ class HLSStream(Stream):
         segment = HLSSegment().set_index(index).set_folder(self.save_dir)
         self.segments.append(segment)
 
-    def try_fetch_key(self, args: CmdArgs):
+    def try_fetch_key(self, args: CmdArgs, logger: Logger):
         '''
         在解析过程中 已经设置了key的信息了
         但是没有请求key 这里是独立加载key的部分
@@ -120,7 +121,8 @@ class HLSStream(Stream):
                 # 而命令行又指定了 也进行设定
                 self.set_segments_key(custom_xkey)
             return
-        if self.xkey.load(args, custom_xkey) is True:
+        if self.xkey.load(args, custom_xkey, logger) is True:
+            logger.info(f'm3u8 key loaded\nmethod => {self.xkey.method}\nkey    => {self.xkey.key}\niv     => {self.xkey.iv}')
             self.set_segments_key(self.xkey)
 
     def set_segments_key(self, xkey: XKey):

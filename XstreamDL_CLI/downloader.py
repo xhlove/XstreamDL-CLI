@@ -389,7 +389,7 @@ class Downloader:
             self.logger.info(f'fix header for ism content')
             segment.fix_header(stream)
         if self.args.disable_auto_decrypt is True:
-            self.logger.info(f'--disable-auto-decrypt, skip decrypt')
+            self.logger.debug(f'--disable-auto-decrypt, skip decrypt')
             return segment.dump()
         if segment.is_encrypt() and segment.is_supported_encryption():
             self.logger.debug(f'common aes decrypt, key {segment.xkey.key.hex()} iv {segment.xkey.iv}')

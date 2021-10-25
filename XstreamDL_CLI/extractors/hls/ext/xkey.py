@@ -1,5 +1,6 @@
 
 import asyncio
+from logging import Logger
 from aiohttp import ClientSession, ClientResponse
 from aiohttp.connector import TCPConnector
 
@@ -86,7 +87,7 @@ class XKey(X):
             async with client.get(url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
                 return await resp.content.read()
 
-    def load(self, args: CmdArgs, custom_xkey: 'XKey'):
+    def load(self, args: CmdArgs, custom_xkey: 'XKey', logger: Logger):
         '''
         如果custom_xkey存在key 那么覆盖解析结果中的key
         并且不进行请求key的动作 同时覆盖iv 如果有自定义iv的话
@@ -97,6 +98,7 @@ class XKey(X):
             self.key = custom_xkey.key
             return True
         if self.uri.startswith('http://') or self.uri.startswith('https://'):
+            logger.info(f'key uri => {self.uri}')
             loop = asyncio.get_event_loop()
             self.key = loop.run_until_complete(self.fetch(self.uri, args))
         elif self.uri.startswith('ftp://'):

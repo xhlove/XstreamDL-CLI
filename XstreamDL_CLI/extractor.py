@@ -112,7 +112,7 @@ class Extractor:
             streams.extend(new_streams)
         # 在全部流解析完成后 再处理key
         for stream in streams:
-            stream.try_fetch_key(self.args)
+            stream.try_fetch_key(self.args, logger=self.logger)
         return streams
 
     def parse_as_dash(self, uri_type: str, uri: str, content: str, parent_stream: DASHStream = None) -> List[DASHStream]:
