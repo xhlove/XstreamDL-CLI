@@ -81,8 +81,6 @@ class DASHParser(BaseParser):
         for stream in streams:
             if stream.segments[-1].url == '':
                 _ = stream.segments.pop(-1)
-        if len(periods) == 1 or self.args.split:
-            return streams
         # 合并流
         skey_stream = {} # type: Dict[str, DASHStream]
         for stream in streams:

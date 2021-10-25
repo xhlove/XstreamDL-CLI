@@ -109,14 +109,14 @@ class Stream:
                 return ' initialization -> ' + _.url.split('?')[0].split('/')[-1]
         return ''
 
-    def fix_name(self, index: int, add_index_to_name: bool = False):
-        if add_index_to_name:
+    def fix_name(self, index: int, index_to_name: bool = False):
+        if index_to_name:
             self.name = f'{index}_{self.name}'
 
-    def show_info(self, index: int, show_init: bool = False, add_index_to_name: bool = False):
+    def show_info(self, index: int, show_init: bool = False, index_to_name: bool = False):
         ''' 显示信息 '''
         self.calc()
-        self.fix_name(index, add_index_to_name)
+        self.fix_name(index, index_to_name)
         if self.filesize > 0:
             print(
                 f'{index:>3} {t_msg.total_segments_info_1} {len(self.segments):>4} {t_msg.total_segments_info_2} '

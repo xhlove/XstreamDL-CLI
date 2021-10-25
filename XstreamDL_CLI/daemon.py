@@ -77,7 +77,7 @@ class Daemon:
                 assert False, 'not support dash live stream for file/folder type, because cannot refresh'
         self.logger.info(f'refresh link {next_mpd_url}')
         # 初始化下载器
-        downloader = Downloader(self.args)
+        downloader = Downloader(self.logger, self.args)
         # 获取用户选择的流的skey
         skeys = downloader.do_select(streams)
         if len(skeys) == 0:

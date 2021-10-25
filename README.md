@@ -118,7 +118,7 @@ optional arguments:
                         stream, use this option to avoid
   --log-level {DEBUG,INFO,WARNING,ERROR}
                         set log level, default is INFO
-  --re-download-status RE_DOWNLOAD_STATUS
+  --redl-code RE_DOWNLOAD_STATUS
                         re-download set of response status codes , e.g.
                         500,502,503,504
 ```

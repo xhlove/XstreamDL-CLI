@@ -164,7 +164,7 @@ class Downloader:
         if len(streams) == 0:
             return
         for index, stream in enumerate(streams):
-            stream.show_info(index, show_init=self.args.show_init, add_index_to_name=self.args.add_index_to_name)
+            stream.show_info(index, show_init=self.args.show_init, index_to_name=self.args.index_to_name)
         if self.args.select is True:
             selected = get_selected_index(len(streams))
             if len(selected) == 0:
@@ -333,7 +333,7 @@ class Downloader:
                 if resp.status == 405:
                     status = 'STATUS_CODE_ERROR'
                     flag = False
-                if resp.status in self.args.re_download_status:
+                if resp.status in self.args.redl_code:
                     status = 'RE-DOWNLOAD'
                     flag = None
                 if resp.headers.get('Content-length') is not None:

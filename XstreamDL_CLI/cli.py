@@ -71,10 +71,10 @@ def command_handler(logger: Logger, args: CmdArgs):
         logger.debug(f'mp4decrypt {args.mp4decrypt.resolve().as_posix()}')
         logger.debug(f'mp4box {args.mp4box.resolve().as_posix()}')
     try:
-        args.re_download_status = [int(_.strip()) for _ in args.re_download_status.split(',') if _ != '']
+        args.redl_code = [int(_.strip()) for _ in args.redl_code.split(',') if _ != '']
     except Exception as e:
-        logger.error(f'parse --re-download-status option failed', exc_info=e)
-        args.re_download_status = []
+        logger.error(f'parse --redl-code option failed', exc_info=e)
+        args.redl_code = []
 
 
 def main():
@@ -109,13 +109,12 @@ def main():
     parser.add_argument('--b64key', default=None, help='base64 format aes key, only for HLS standard AES-128-CBC encryption')
     parser.add_argument('--hexiv', default=None, help='hex format aes iv')
     parser.add_argument('--proxy', default=None, help='use http proxy, e.g. http://127.0.0.1:1080')
-    parser.add_argument('--split', action='store_true', help='dash option, split one stream to multi sections')
     parser.add_argument('--disable-auto-exit', action='store_true', help='disable auto exit after download end, GUI will use this option')
     parser.add_argument('--parse-only', action='store_true', help='parse only, not to download')
     parser.add_argument('--show-init', action='store_true', help='show initialization to help you identify same name stream')
-    parser.add_argument('--add-index-to-name', action='store_true', help='some dash live have the same name for different stream, use this option to avoid')
+    parser.add_argument('--index-to-name', action='store_true', help='some dash live have the same name for different stream, use this option to avoid')
     parser.add_argument('--log-level', default='INFO', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], help='set log level, default is INFO')
-    parser.add_argument('--re-download-status', default='', help='re-download set of response status codes , e.g. 408,500,502,503,504')
+    parser.add_argument('--redl-code', default='', help='re-download set of response status codes , e.g. 408,500,502,503,504')
     parser.add_argument('URI', nargs='*', help='URL/FILE/FOLDER string')
     args = parser.parse_args()
     if args.help:
