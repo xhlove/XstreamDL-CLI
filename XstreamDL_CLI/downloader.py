@@ -325,7 +325,7 @@ class Downloader:
         try:
             async with client.get(segment.url + self.args.url_patch, proxy=proxy, headers=headers) as resp: # type: ClientResponse
                 _flag = True
-                self.logger.debug(f'status {resp.status}, {segment.url}')
+                self.logger.debug(f'{segment.name} status {resp.status}, {segment.url + self.args.url_patch}')
                 if resp.status in [403, 404]:
                     status = 'STATUS_SKIP'
                     flag = False
@@ -338,10 +338,12 @@ class Downloader:
                     flag = None
                 if resp.headers.get('Content-length') is not None:
                     # 对于 filesize 不为 0 后面再另外考虑
-                    stream.filesize += int(resp.headers["Content-length"])
+                    size = int(resp.headers["Content-length"])
+                    stream.filesize += size
+                    self.logger.debug(f'{segment.name} response Content-length => {size}')
                     self.xprogress.update_total_size(stream.filesize)
                 else:
-                    self.logger.debug(f'response header has no Content-length {dict(resp.headers)}')
+                    self.logger.debug(f'{segment.name} response header has no Content-length {dict(resp.headers)}')
                     _flag = False
                 if flag:
                     while self.terminate is False:
@@ -352,6 +354,7 @@ class Downloader:
                         self.xprogress.add_downloaded_size(len(data))
                         if _flag is False:
                             stream.filesize += len(data)
+                            self.logger.debug(f'{segment.name} recv {size} byte data')
                             self.xprogress.update_total_size(stream.filesize)
         except TimeoutError:
             return segment, 'TimeoutError', None
@@ -379,6 +382,7 @@ class Downloader:
         if flag is False:
             return segment, status, False
         self.xprogress.add_downloaded_count(1)
+        self.logger.debug(f'{segment.name} download end, size => {sum([len(data) for data in segment.content])}')
         return segment, 'SUCCESS', await self.decrypt(segment, stream)
 
     async def decrypt(self, segment: Segment, stream: Stream) -> bool:
