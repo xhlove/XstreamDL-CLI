@@ -28,76 +28,6 @@ python -m XstreamDL_CLI.cli [OPTION]... URL/FILE/FOLDER...
 python -m XstreamDL_CLI.cli --b64key oKi/hwKVuLveo/hISX1PQw== --hexiv b3d5ca56926d49d8e96b70aa5c7b358e --name 第一节总论 https://hls.videocc.net/d06ae002cb/2/d06ae002cb4a0bed78fb912c874fdbb2_2.m3u8
 ```
 
-**HELP INFO**
-
-```bash
-version 1.3.1, A downloader that download the HLS/DASH stream.
-usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
-
-A downloader that download the HLS/DASH stream
-
-positional arguments:
-  URI                   URL/FILE/FOLDER string
-
-optional arguments:
-  -v, --version         print version and exit
-  -h, --help            print help message and exit
-  -live, --live         live mode
-  -live-duration LIVE_DURATION, --live-duration LIVE_DURATION
-                        live record time, format HH:MM:SS, example 00:00:30
-                        will record about 30s
-  -name NAME, --name NAME
-                        specific stream base name
-  -base-url BASE_URL, --base-url BASE_URL
-                        set base url for Stream
-  -prefer-content-base-url, --prefer-content-base-url
-                        prefer use content base url for Stream
-  -service-location SERVICE_LOCATION, --service-location SERVICE_LOCATION
-                        set serviceLocation for BaseURL choose
-  -save-dir SAVE_DIR, --save-dir SAVE_DIR
-                        set save dir for Stream
-  --select              show stream to select and download, default is to
-                        download all
-  --disable-force-close
-                        default make all connections closed securely, but it
-                        will make DL speed slower
-  --limit-per-host LIMIT_PER_HOST
-                        increase the value if your connection to the stream
-                        host is poor, suggest >100 for DASH stream
-  --user-agent USER_AGENT
-                        set user-agent headers for request
-  --referer REFERER     set custom referer for request
-  --headers HEADERS     set custom headers for request, separators is |, e.g.
-                        "header1:value1|header2:value2"
-  --url-patch URL_PATCH
-                        add some custom strings for all segments link
-  --overwrite           overwrite output files
-  --raw-concat          concat content as raw
-  --disable-auto-concat
-                        disable auto-concat
-  --enable-auto-delete  enable auto-delete files after concat success
-  --disable-auto-decrypt
-                        disable auto-decrypt segments before dump to disk
-  --key KEY             <id>:<k>, <id> is either a track ID in decimal or a
-                        128-bit KID in hex, <k> is a 128-bit key in hex
-  --b64key B64KEY       base64 format aes key, only for HLS standard
-                        AES-128-CBC encryption
-  --hexiv HEXIV         hex format aes iv
-  --proxy PROXY         use http proxy, e.g. http://127.0.0.1:1080
-  --disable-auto-exit   disable auto exit after download end, GUI will use
-                        this option
-  --parse-only          parse only, not to download
-  --show-init           show initialization to help you identify same name
-                        stream
-  --index-to-name       some dash live have the same name for different
-                        stream, use this option to avoid
-  --log-level {DEBUG,INFO,WARNING,ERROR}
-                        set log level, default is INFO
-  --redl-code REDL_CODE
-                        re-download set of response status codes , e.g.
-                        408,500,502,503,504
-```
-
 ## 详细说明
 
 ### 下载默认/指定流
@@ -218,6 +148,76 @@ C#版写起来非常不顺手，搁置了
 最终成功的进度示意
 
 ![](images/Snipaste_2021-10-25_23-38-16.png)
+
+## HELP INFO
+
+```bash
+version 1.3.1, A downloader that download the HLS/DASH stream.
+usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
+
+A downloader that download the HLS/DASH stream
+
+positional arguments:
+  URI                   URL/FILE/FOLDER string
+
+optional arguments:
+  -v, --version         print version and exit
+  -h, --help            print help message and exit
+  -live, --live         live mode
+  -live-duration LIVE_DURATION, --live-duration LIVE_DURATION
+                        live record time, format HH:MM:SS, example 00:00:30
+                        will record about 30s
+  -name NAME, --name NAME
+                        specific stream base name
+  -base-url BASE_URL, --base-url BASE_URL
+                        set base url for Stream
+  -prefer-content-base-url, --prefer-content-base-url
+                        prefer use content base url for Stream
+  -service-location SERVICE_LOCATION, --service-location SERVICE_LOCATION
+                        set serviceLocation for BaseURL choose
+  -save-dir SAVE_DIR, --save-dir SAVE_DIR
+                        set save dir for Stream
+  --select              show stream to select and download, default is to
+                        download all
+  --disable-force-close
+                        default make all connections closed securely, but it
+                        will make DL speed slower
+  --limit-per-host LIMIT_PER_HOST
+                        increase the value if your connection to the stream
+                        host is poor, suggest >100 for DASH stream
+  --user-agent USER_AGENT
+                        set user-agent headers for request
+  --referer REFERER     set custom referer for request
+  --headers HEADERS     set custom headers for request, separators is |, e.g.
+                        "header1:value1|header2:value2"
+  --url-patch URL_PATCH
+                        add some custom strings for all segments link
+  --overwrite           overwrite output files
+  --raw-concat          concat content as raw
+  --disable-auto-concat
+                        disable auto-concat
+  --enable-auto-delete  enable auto-delete files after concat success
+  --disable-auto-decrypt
+                        disable auto-decrypt segments before dump to disk
+  --key KEY             <id>:<k>, <id> is either a track ID in decimal or a
+                        128-bit KID in hex, <k> is a 128-bit key in hex
+  --b64key B64KEY       base64 format aes key, only for HLS standard
+                        AES-128-CBC encryption
+  --hexiv HEXIV         hex format aes iv
+  --proxy PROXY         use http proxy, e.g. http://127.0.0.1:1080
+  --disable-auto-exit   disable auto exit after download end, GUI will use
+                        this option
+  --parse-only          parse only, not to download
+  --show-init           show initialization to help you identify same name
+                        stream
+  --index-to-name       some dash live have the same name for different
+                        stream, use this option to avoid
+  --log-level {DEBUG,INFO,WARNING,ERROR}
+                        set log level, default is INFO
+  --redl-code REDL_CODE
+                        re-download set of response status codes , e.g.
+                        408,500,502,503,504
+```
 
 ## pyinstaller打包
 
