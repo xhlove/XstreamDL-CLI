@@ -164,7 +164,7 @@ class DASHParser(BaseParser):
         streams = []
         for adaptationset in adaptationsets:
             # 修正 AdaptationSet 节点的 BaseURL
-            base_url = self.fix_dash_base_url(uri_item.base_url, period)
+            base_url = self.fix_dash_base_url(uri_item.base_url, adaptationset)
             current_uri_item = uri_item.new_base_url(base_url)
             if adaptationset.mimeType == 'image/jpeg':
                 self.logger.debug(f'skip parse for AdaptationSet mimeType image/jpeg')
@@ -190,7 +190,7 @@ class DASHParser(BaseParser):
         streams = []
         for representation in representations:
             # 修正 Representation 节点的 BaseURL
-            base_url = self.fix_dash_base_url(uri_item.base_url, period)
+            base_url = self.fix_dash_base_url(uri_item.base_url, representation)
             current_uri_item = uri_item.new_base_url(base_url)
             stream = DASHStream(sindex, current_uri_item, self.args.save_dir)
             sindex += 1
