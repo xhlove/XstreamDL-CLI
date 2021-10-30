@@ -195,6 +195,9 @@ class Downloader:
             else:
                 if stream.get_skey() not in selected:
                     continue
+            if self.args.live is False and len(stream.segments) == 1:
+                print(f'only one segment, please download it manually =>\n{stream.segments[0].url + self.args.url_patch}')
+                continue
             stream.dump_segments()
             max_failed = 5
             if self.args.parse_only:

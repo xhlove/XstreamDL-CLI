@@ -119,6 +119,7 @@ class DASHParser(BaseParser):
         self.root = mpd
         # 检查是不是直播流
         if mpd.profiles == 'urn:mpeg:dash:profile:isoff-live:2011':
+            self.args.live = True
             self.is_live = True
         if self.args.live and self.is_live is False:
             self.logger.debug('detect current dash content is a living stream')
@@ -172,7 +173,7 @@ class DASHParser(BaseParser):
             if len(representations) > 0:
                 _streams = self.walk_representation(adaptationset, period, sindex + len(streams), current_uri_item)
             else:
-                assert False, 'not implemented yet'
+                assert False, 'not implemented yet, report this mpd content to me'
                 segmenttemplates = adaptationset.find('SegmentTemplate') # type: List[SegmentTemplate]
                 assert len(segmenttemplates) == 1, 'plz report this mpd content to me'
                 segmenttimelines = segmenttemplates[0].find('SegmentTimeline') # type: List[SegmentTimeline]
