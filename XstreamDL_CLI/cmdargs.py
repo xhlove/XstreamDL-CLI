@@ -11,9 +11,9 @@ class CmdArgs:
         self.base_url = None # type: str
         self.service = None # type: str
         self.save_dir = None # type: Path
-        self.ffmpeg = None # type: Path
-        self.mp4decrypt = None # type: Path
-        self.mp4box = None # type: Path
+        self.ffmpeg = None # type: str
+        self.mp4decrypt = None # type: str
+        self.mp4box = None # type: str
         self.select = None # type: bool
         self.disable_force_close = None # type: bool
         self.limit_per_host = None # type: int

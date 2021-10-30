@@ -57,19 +57,22 @@ def command_handler(logger: Logger, args: CmdArgs):
     else:
         bin_path = Path(__file__).parent.parent / 'binaries'
     if bin_path.exists() is False:
-        logger.warning(f'binaries folder is not exist > {bin_path}')
+        args.ffmpeg = 'ffmpeg'
+        args.mp4decrypt = 'mp4decrypt'
+        args.mp4box = 'mp4box'
+        bin_path.mkdir()
     else:
         if platform.system() == 'Windows':
-            args.ffmpeg = bin_path / 'ffmpeg.exe'
-            args.mp4decrypt = bin_path / 'mp4decrypt.exe'
-            args.mp4box = bin_path / 'mp4box.exe'
+            args.ffmpeg = (bin_path / 'ffmpeg.exe').resolve().as_posix()
+            args.mp4decrypt = (bin_path / 'mp4decrypt.exe').resolve().as_posix()
+            args.mp4box = (bin_path / 'mp4box.exe').resolve().as_posix()
         else:
-            args.ffmpeg = bin_path / 'ffmpeg'
-            args.mp4decrypt = bin_path / 'mp4decrypt'
-            args.mp4box = bin_path / 'mp4box'
-        logger.debug(f'ffmpeg {args.ffmpeg.resolve().as_posix()}')
-        logger.debug(f'mp4decrypt {args.mp4decrypt.resolve().as_posix()}')
-        logger.debug(f'mp4box {args.mp4box.resolve().as_posix()}')
+            args.ffmpeg = (bin_path / 'ffmpeg').resolve().as_posix()
+            args.mp4decrypt = (bin_path / 'mp4decrypt').resolve().as_posix()
+            args.mp4box = (bin_path / 'mp4box').resolve().as_posix()
+    logger.debug(f'ffmpeg {args.ffmpeg}')
+    logger.debug(f'mp4decrypt {args.mp4decrypt}')
+    logger.debug(f'mp4box {args.mp4box}')
     try:
         args.redl_code = [int(_.strip()) for _ in args.redl_code.split(',') if _ != '']
     except Exception as e:

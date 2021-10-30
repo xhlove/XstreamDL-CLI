@@ -223,6 +223,8 @@ class Stream:
         # 需要在切换目录前获取
         os.chdir(self.save_dir.absolute().as_posix())
         cmds, _outs = Concat.gen_cmds_outs(out, names, args)
+        if len(cmds) > 0 and Path(args.ffmpeg).exists() is False:
+            logger.warning('ffmpeg is not exists, please put ffmpeg to binaries folder')
         for cmd in cmds:
             os.system(cmd)
         # 执行完合并命令后即刻返回原目录
@@ -236,6 +238,8 @@ class Stream:
         # 针对DASH流 如果有key 那么就解密 注意 HLS是边下边解密
         # 加密文件合并输出和临时文件夹同一级 所以前面的删除动作并不影响进一步解密
         if args.key is not None:
+            if Path(args.mp4decrypt).exists() is False:
+                logger.warning('mp4decrypt is not exists, please put mp4decrypt to binaries folder')
             Concat.call_mp4decrypt(out, args)
         if args.enable_auto_delete and self.save_dir.exists():
             shutil.rmtree(self.save_dir.absolute().as_posix())
