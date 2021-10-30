@@ -47,6 +47,7 @@ class DASHParser(BaseParser):
 
         每到一个层级都检查修正 修正后的base_url应当只适用于当前层级
         '''
+        self.logger.debug(f'[fix_dash_base_url] previous_base_url {previous_base_url}')
         # 不管何时 previous_base_url 都应当以 http(s):// 开头
         if re.match(r'^https?://', previous_base_url) is None:
             assert False, 'unexcepted condition, report information to me'
@@ -192,6 +193,7 @@ class DASHParser(BaseParser):
             # 修正 Representation 节点的 BaseURL
             base_url = self.fix_dash_base_url(uri_item.base_url, representation)
             current_uri_item = uri_item.new_base_url(base_url)
+            self.logger.debug(f'[DASHStream] base_url {current_uri_item.base_url}')
             stream = DASHStream(sindex, current_uri_item, self.args.save_dir)
             sindex += 1
             self.walk_contentprotection(adaptationset, stream)
