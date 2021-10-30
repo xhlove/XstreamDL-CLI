@@ -60,7 +60,7 @@ def command_handler(logger: Logger, args: CmdArgs):
         args.ffmpeg = 'ffmpeg'
         args.mp4decrypt = 'mp4decrypt'
         args.mp4box = 'mp4box'
-        bin_path.mkdir()
+        logger.warning(f'binaries folder is not exist > {bin_path}')
     else:
         if platform.system() == 'Windows':
             args.ffmpeg = (bin_path / 'ffmpeg.exe').resolve().as_posix()

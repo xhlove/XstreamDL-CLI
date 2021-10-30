@@ -94,8 +94,6 @@ class XProgress:
     def calc_speed(self, total_size: int, downloaded_size: int):
         ts = time.time()
         tm = ts - self.last_time
-        if self.stop is True:
-            return
         if self.stop is False and tm < 0.3:
             return
         speed = (downloaded_size - self.last_size) / tm / 1024 / 1024
@@ -116,7 +114,7 @@ class XProgress:
         self.update_progress(self.downloaded_count, self.total_size, self.downloaded_size)
 
     def update_progress(self, downloaded_count: int, total_size: int, downloaded_size: int):
-        barlen, status = 80, ''
+        barlen, status = 30, ''
         progress = downloaded_count / self.total_count
         if progress >= 1.0:
             progress, status = 1, '\r\n'
@@ -139,7 +137,6 @@ class XProgress:
     def to_stop(self):
         self.stop = True
         self.update_progress(self.downloaded_count, self.total_size, self.downloaded_size)
-        sys.stdout.write('\n')
 
 
 class Downloader:
