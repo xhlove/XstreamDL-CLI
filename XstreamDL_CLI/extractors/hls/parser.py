@@ -1,9 +1,9 @@
 from typing import List
 from logging import Logger
-from XstreamDL_CLI.extractors.hls.stream import HLSStream
-from XstreamDL_CLI.extractors.base import BaseParser
 from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.extractors.base import BaseParser
 from XstreamDL_CLI.extractors.hls.ext.xkey import XKey
+from XstreamDL_CLI.extractors.hls.stream import HLSStream
 
 
 class HLSParser(BaseParser):
@@ -12,16 +12,15 @@ class HLSParser(BaseParser):
         self.suffix = '.m3u8'
 
     def parse(self, uri: str, content: str, parent_stream: HLSStream) -> List[HLSStream]:
-        uris = self.parse_uri(uri)
-        if uris is None:
+        uri_item = self.parse_uri(uri)
+        if uri_item is None:
             self.logger.error(f'parse {uri} failed')
             return []
-        name, home_url, base_url = uris
-        self.dump_content(name, content, self.suffix)
+        self.dump_content(uri_item.name, content, self.suffix)
         streams = []
         sindex = 0
-        stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
-        stream.set_origin_url(home_url, base_url, uri)
+        stream = HLSStream(sindex, uri_item, self.args.save_dir, parent_stream)
+        stream.set_origin_url(uri_item.home_url, uri_item.base_url, uri)
         lines = [line.strip() for line in content.split('\n')]
         offset = 0
         last_segment_xkey = None # type: XKey
@@ -41,9 +40,9 @@ class HLSParser(BaseParser):
             elif line.startswith('#EXT-X-KEY'):
                 if offset > 0 and lines[offset - 1].startswith('#EXT-X-'):
                     # 把这个位置的#EXT-X-KEY认为是全局的
-                    stream.set_key(home_url, base_url, line)
+                    stream.set_key(uri_item.home_url, uri_item.base_url, line)
                 else:
-                    segment.set_key(home_url, base_url, line)
+                    segment.set_key(uri_item.home_url, uri_item.base_url, line)
                     if last_segment_has_xkey is False:
                         last_segment_has_xkey = True
                         last_segment_xkey = segment.get_xkey()
@@ -75,13 +74,13 @@ class HLSParser(BaseParser):
                 _xkey = stream.xkey
                 _bakcup_xkey = stream.bakcup_xkey
                 streams.append(stream)
-                stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
-                stream.set_origin_url(home_url, base_url, uri)
+                stream = HLSStream(sindex, uri_item, self.args.save_dir, parent_stream)
+                stream.set_origin_url(uri_item.home_url, uri_item.base_url, uri)
                 stream.set_xkey(_xkey)
                 stream.set_bakcup_xkey(_bakcup_xkey)
                 stream.set_tag('#EXT-X-DISCONTINUITY')
             elif line.startswith('#EXT-X-MAP'):
-                segment.set_map_url(home_url, base_url, line)
+                segment.set_map_url(uri_item.home_url, uri_item.base_url, line)
                 stream.set_map_flag()
                 stream.append_segment()
             elif line.startswith('#EXT-X-TIMESTAMP-MAP'):
@@ -102,10 +101,10 @@ class HLSParser(BaseParser):
                 # 外挂媒体 视为单独的一条流
                 sindex += 1
                 stream.set_tag('#EXT-X-MEDIA')
-                stream.set_media(home_url, base_url, line)
+                stream.set_media(uri_item.home_url, uri_item.base_url, line)
                 content_is_master_type = True
                 streams.append(stream)
-                stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
+                stream = HLSStream(sindex, uri_item, self.args.save_dir, parent_stream)
             # elif line.startswith('#EXT-X-STREAM-INF'):
             elif line.startswith('#EXT-X-') and 'STREAM-INF' in line:
                 stream.set_tag('#EXT-X-STREAM-INF')
@@ -117,9 +116,9 @@ class HLSParser(BaseParser):
                     # handle for #EXT-X-I-FRAME-STREAM-INF
                     sindex += 1
                     do_not_append_at_end_list_tag = True
-                    stream.set_origin_url(home_url, base_url, stream.xstream_inf.uri)
+                    stream.set_origin_url(uri_item.home_url, uri_item.base_url, stream.xstream_inf.uri)
                     streams.append(stream)
-                    stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
+                    stream = HLSStream(sindex, uri_item, self.args.save_dir, parent_stream)
             elif line.startswith('#'):
                 if line.startswith('## Generated with https://github.com/google/shaka-packager'):
                     pass
@@ -131,21 +130,21 @@ class HLSParser(BaseParser):
                 # 进入此处 说明这一行没有任何已知的#EXT标签 也就是具体媒体文件的链接
                 if offset > 0 and lines[offset - 1].startswith('#EXT-X-BYTERANGE'):
                     segment.set_xkey(last_segment_has_xkey, last_segment_xkey)
-                    segment.set_url(home_url, base_url, line)
+                    segment.set_url(uri_item.home_url, uri_item.base_url, line)
                     stream.append_segment()
                 elif offset > 0 and lines[offset - 1].startswith('#EXT-X-PRIVINF'):
                     segment.set_xkey(last_segment_has_xkey, last_segment_xkey)
-                    segment.set_url(home_url, base_url, line)
+                    segment.set_url(uri_item.home_url, uri_item.base_url, line)
                     stream.append_segment()
                 elif offset > 0 and lines[offset - 1].startswith('#EXTINF') or lines[offset - 1].startswith('#EXT-X-BITRATE'):
                     segment.set_xkey(last_segment_has_xkey, last_segment_xkey)
-                    segment.set_url(home_url, base_url, line)
+                    segment.set_url(uri_item.home_url, uri_item.base_url, line)
                     stream.append_segment()
                 elif offset > 0 and lines[offset - 1].startswith('#EXT-X-') and 'STREAM-INF' in lines[offset - 1]:
                     sindex += 1
-                    stream.set_url(home_url, base_url, line)
+                    stream.set_url(uri_item.home_url, uri_item.base_url, line)
                     streams.append(stream)
-                    stream = HLSStream(sindex, name, home_url, base_url, self.args.save_dir, parent_stream)
+                    stream = HLSStream(sindex, uri_item, self.args.save_dir, parent_stream)
                     do_not_append_at_end_list_tag = True
                 else:
                     self.logger.warning(f'unknow what to do here ->\n\t{line}')

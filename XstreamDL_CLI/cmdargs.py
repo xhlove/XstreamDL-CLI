@@ -9,7 +9,7 @@ class CmdArgs:
         self.live_duration = None # type: float
         self.name = None # type: str
         self.base_url = None # type: str
-        self.prefer_content_base_url = None # type: bool
+        self.service = None # type: str
         self.save_dir = None # type: Path
         self.ffmpeg = None # type: Path
         self.mp4decrypt = None # type: Path

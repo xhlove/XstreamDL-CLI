@@ -1,7 +1,7 @@
-from typing import Tuple
 from pathlib import Path
 from logging import Logger
 from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.models.base import BaseUri
 
 
 class BaseParser:
@@ -28,7 +28,7 @@ class BaseParser:
         self.logger.debug(f'save content to {dump_path.resolve().as_posix()}, size {len(content)}')
         dump_path.write_text(content, encoding='utf-8')
 
-    def parse_uri(self, uri: str) -> Tuple[str, str, str]:
+    def parse_uri(self, uri: str) -> BaseUri:
         '''
         进入此处的uri不可能是文件夹
         '''
@@ -66,4 +66,5 @@ class BaseParser:
             f'    home_url {home_url}\n'
             f'    base_url {base_url}'
         )
-        return [name, home_url, base_url]
+        # return [name, home_url, base_url]
+        return BaseUri(name, home_url, base_url)

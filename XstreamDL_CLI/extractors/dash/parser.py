@@ -1,7 +1,7 @@
 import re
 import math
-from typing import List, Dict
 from logging import Logger
+from typing import List, Dict, Union
 from .mpd import MPD
 from .handler import xml_handler
 from .childs.adaptationset import AdaptationSet
@@ -15,10 +15,11 @@ from .childs.s import S
 from .childs.segmenttemplate import SegmentTemplate
 from .childs.segmenttimeline import SegmentTimeline
 
-from .stream import DASHStream
-from ..base import BaseParser
-from .key import DASHKey
 from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.models.base import BaseUri
+from XstreamDL_CLI.extractors.base import BaseParser
+from XstreamDL_CLI.extractors.dash.key import DASHKey
+from XstreamDL_CLI.extractors.dash.stream import DASHStream
 
 
 class DASHParser(BaseParser):
@@ -28,13 +29,91 @@ class DASHParser(BaseParser):
         self.root = None # type: MPD
         self.suffix = '.mpd'
 
+    def fix_dash_base_url(self, previous_base_url: str, element: Union[MPD, Period, AdaptationSet, Representation]):
+        '''
+        BaseURL 可以是下面四个元素的子元素
+        - MPD
+        - Period
+        - AdaptationSet
+        - Representation
+
+        根据多个渠道得到的BaseURL样本
+        - 已有base_url路径上一级再拼接/all/ <BaseURL>../all/</BaseURL>
+        - 已有base_url路径根路径拼接 <BaseURL>/12345/2145124</BaseURL>
+        - 已有base_url路径常规拼接后续还需要拼接 <BaseURL>1280x720/</BaseURL>
+        - 已有base_url路径常规拼接得到完整路径 <BaseURL>subtitles/TH/023719X0TH.vtt</BaseURL>
+        - 已有base_url路径常规拼接得到完整路径 往往和SegmentBase搭配 <BaseURL>c0f671df-1314-4e9f-8aba-9ee42c26a69d_video_1.mp4</BaseURL>
+        - 替换掉已有base_url 且通常有多个cdn <BaseURL serviceLocation="15802-Akamai" dvb:priority="3" dvb:weight="33">http://xxx.movetv.com/15802/live/PREM1/xxx/</BaseURL>
+
+        每到一个层级都检查修正 修正后的base_url应当只适用于当前层级
+        '''
+        # 不管何时 previous_base_url 都应当以 http(s):// 开头
+        if re.match(r'^https?://', previous_base_url) is None:
+            assert False, 'unexcepted condition, report information to me'
+        assert isinstance(element, (MPD, Period, AdaptationSet, Representation)), f'unexpected element type => {type(element)}'
+        elements = element.find('BaseURL') # type: List[BaseURL]
+        # 当前层级子元素中没有BaseURL元素
+        # 那么原来的base_url是什么 那当前层级的base_url就是什么
+        if len(elements) == 0:
+            return previous_base_url
+        base_url_element = None # type: BaseURL
+        # 多个BaseURL则根据serviceLocation选择 否则选择第一个
+        if len(elements) == 1:
+            base_url_element = elements[0]
+        else:
+            # 没有指定 serviceLocation 则选第一个
+            if not self.args.service:
+                base_url_element = elements[0]
+            else:
+                # 如果BaseURL本身有serviceLocation 那么先尝试完全匹配
+                for _element in elements:
+                    if not _element.serviceLocation:
+                        continue
+                    if _element.serviceLocation == self.args.service:
+                        base_url_element = _element
+                        break
+                if base_url_element is None:
+                    # 不行再部分匹配
+                    for _element in elements:
+                        if not _element.serviceLocation:
+                            continue
+                        if self.args.service.lower() in _element.serviceLocation.lower():
+                            base_url_element = _element
+                            break
+                if base_url_element is None:
+                    # 还不行说明没有serviceLocation 那就选第一个
+                    base_url_element = elements[0]
+        # 先取内容
+        base_url = base_url_element.innertext
+        # 根据不同情况进行修正
+        if re.match(r'^https?://', base_url):
+            # 应当替换掉原有base_url
+            return base_url
+        if base_url.startswith('../'):
+            # 对于这种情况应当去除末尾的/
+            if previous_base_url.endswith('/'):
+                previous_base_url = previous_base_url.rstrip('/')
+            while base_url.startswith('../'):
+                previous_base_url = '/'.join(previous_base_url.split("/")[:-1])
+                base_url = base_url[3:]
+            return previous_base_url + '/' + base_url
+        if base_url.startswith('/'):
+            items = previous_base_url.split('/')
+            if len(items) >= 3:
+                return '/'.join(items[:3]) + base_url
+            else:
+                # 最开始做过判断了 理论上不会走到这个分支 断言以防万一(...
+                assert False, 'unexcepted condition, report information to me'
+        if not previous_base_url.endswith('/'):
+            previous_base_url += '/'
+        return previous_base_url + base_url
+
     def parse(self, uri: str, content: str) -> List[DASHStream]:
-        uris = self.parse_uri(uri)
-        if uris is None:
+        uri_item = self.parse_uri(uri)
+        if uri_item is None:
             self.logger.error(f'parse {uri} failed')
             return []
-        name, home_url, base_url = uris
-        self.dump_content(name, content, self.suffix)
+        self.dump_content(uri_item.name, content, self.suffix)
         # 解析转换内容为期望的对象
         mpd = xml_handler(content)
         self.root = mpd
@@ -44,18 +123,11 @@ class DASHParser(BaseParser):
         if self.args.live and self.is_live is False:
             self.logger.debug('detect current dash content is a living stream')
             self.is_live = True
-        # 检查有没有baseurl
-        base_urls = mpd.find('BaseURL') # type: List[BaseURL]
-        # locations = mpd.find('Location') # type: List[Location]
-        if base_url == '' and len(base_urls) > 0:
-            base_url = base_urls[0].innertext
-            uris = [name, home_url, base_url]
-        if self.args.prefer_content_base_url and len(base_urls) > 0:
-            base_url = base_urls[0].innertext
-            uris = [name, home_url, base_url]
-        return self.walk_period(mpd, uris)
+        # 修正 MPD 节点的 BaseURL
+        base_url = self.fix_dash_base_url(uri_item.base_url, mpd)
+        return self.walk_period(mpd, uri_item.new_base_url(base_url))
 
-    def walk_period(self, mpd: MPD, uris: list):
+    def walk_period(self, mpd: MPD, uri_item: BaseUri):
         periods = mpd.find('Period')  # type: List[Period]
         # 根据Period数量处理时长参数
         if len(periods) == 1 and periods[0].duration is None:
@@ -68,14 +140,9 @@ class DASHParser(BaseParser):
         # 遍历处理periods
         streams = []
         for period in periods:
-            base_urls = period.find('BaseURL') # type: List[BaseURL]
-            if (uris[-1] == '' or self.args.prefer_content_base_url) and len(base_urls) > 0:
-                base_url = base_urls[0].innertext
-                if base_url.startswith('http'):
-                    uris[-1] = base_url
-                else:
-                    uris[-1] = uris[-1] + base_url.rstrip('/')
-            _streams = self.walk_adaptationset(period, len(streams), uris)
+            # 修正 Period 节点的 BaseURL
+            base_url = self.fix_dash_base_url(uri_item.base_url, period)
+            _streams = self.walk_adaptationset(period, len(streams), uri_item.new_base_url(base_url))
             streams.extend(_streams)
         # 处理掉末尾的空分段
         for stream in streams:
@@ -91,35 +158,40 @@ class DASHParser(BaseParser):
         streams = list(skey_stream.values())
         return streams
 
-    def walk_adaptationset(self, period: Period, sindex: int, uris: list):
+    def walk_adaptationset(self, period: Period, sindex: int, uri_item: BaseUri):
         adaptationsets = period.find('AdaptationSet') # type: List[AdaptationSet]
         streams = []
         for adaptationset in adaptationsets:
+            # 修正 AdaptationSet 节点的 BaseURL
+            base_url = self.fix_dash_base_url(uri_item.base_url, period)
+            current_uri_item = uri_item.new_base_url(base_url)
             if adaptationset.mimeType == 'image/jpeg':
                 self.logger.debug(f'skip parse for AdaptationSet mimeType image/jpeg')
                 continue
             representations = adaptationset.find('Representation') # type: List[Representation]
             if len(representations) > 0:
-                _streams = self.walk_representation(adaptationset, period, sindex + len(streams), uris)
+                _streams = self.walk_representation(adaptationset, period, sindex + len(streams), current_uri_item)
             else:
                 assert False, 'not implemented yet'
                 segmenttemplates = adaptationset.find('SegmentTemplate') # type: List[SegmentTemplate]
                 assert len(segmenttemplates) == 1, 'plz report this mpd content to me'
                 segmenttimelines = segmenttemplates[0].find('SegmentTimeline') # type: List[SegmentTimeline]
-                _streams = self.walk_s_v2(segmenttimelines[0], adaptationset, period, sindex + len(streams), uris)
+                _streams = self.walk_s_v2(segmenttimelines[0], adaptationset, period, sindex + len(streams), current_uri_item)
             streams.extend(_streams)
         return streams
 
-    def walk_representation(self, adaptationset: AdaptationSet, period: Period, sindex: int, uris: list):
+    def walk_representation(self, adaptationset: AdaptationSet, period: Period, sindex: int, uri_item: BaseUri):
         '''
         每一个<Representation></Representation>都对应轨道的一/整段
         '''
-        name, home_url, base_url = uris
         representations = adaptationset.find('Representation') # type: List[Representation]
         segmenttemplates = adaptationset.find('SegmentTemplate') # type: List[SegmentTemplate]
         streams = []
         for representation in representations:
-            stream = DASHStream(sindex, name, home_url, base_url, self.args.save_dir)
+            # 修正 Representation 节点的 BaseURL
+            base_url = self.fix_dash_base_url(uri_item.base_url, period)
+            current_uri_item = uri_item.new_base_url(base_url)
+            stream = DASHStream(sindex, current_uri_item, self.args.save_dir)
             sindex += 1
             self.walk_contentprotection(adaptationset, stream)
             self.walk_contentprotection(representation, stream)
@@ -213,9 +285,8 @@ class DASHParser(BaseParser):
             return
         self.walk_s(segmenttimelines[0], segmenttemplate, representation, stream)
 
-    def walk_s_v2(self, segmenttimeline: SegmentTimeline, adaptationset: AdaptationSet, period: Period, sindex: int, uris: list):
-        name, home_url, base_url = uris
-        stream = DASHStream(sindex, name, home_url, base_url, self.args.save_dir)
+    def walk_s_v2(self, segmenttimeline: SegmentTimeline, adaptationset: AdaptationSet, period: Period, sindex: int, uri_item: BaseUri):
+        stream = DASHStream(sindex, uri_item, self.args.save_dir)
         stream.set_skey(adaptationset.id, None)
         sindex += 1
         return [stream]

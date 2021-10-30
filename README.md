@@ -104,15 +104,9 @@ README中存在一些对于新人不友好的术语或者我使用的名词，�
 
 ### 未成功下载任何文件
 
-对于dash流，这有可能是因为mpd链接与实际分段链接不匹配，即软件使用了错误的base-url
+对于这种情况，请检查浏览器中的分段链接是否与`raw.json`文件中的一致
 
-这个时候请尝试使用`--prefer-content-base-url`选项进行修正
-
-这是一个mpd内容解析的遗留bug，后续会修复
-
-对于hls流，请上报详细信息给我
-
-对于这种情况，请检查浏览器中的分段请求链接是否与`raw.json`文件中的一致
+不一致，请上报详细信息给我
 
 ### 下载加速
 
@@ -168,7 +162,7 @@ A: 之前在编写软件过程中，出现过bug，某个循环异常，开启�
 
 ### 链接鉴权
 
-某系网站会在常规的链接后面增加一系列参数，用于检查用户是否有权限访问，通常情况下和流本身无关，往往是相同的内容，常见于dash类型流
+某些网站会在常规的链接后面增加一系列参数，用于检查用户是否有权限访问，通常情况下和流本身无关，往往是相同的内容，常见于dash类型流
 
 遇到这种情况，可以使用`--url-patch`设置这部分内容，例如mpd域名是`nammaflix-streams.streamready.in`
 
@@ -236,10 +230,7 @@ optional arguments:
                         specific stream base name
   -base-url BASE_URL, --base-url BASE_URL
                         set base url for Stream
-  -prefer-content-base-url, --prefer-content-base-url
-                        prefer use content base url for Stream
-  -service-location SERVICE_LOCATION, --service-location SERVICE_LOCATION
-                        set serviceLocation for BaseURL choose
+  --service SERVICE     set serviceLocation for BaseURL choose
   -save-dir SAVE_DIR, --save-dir SAVE_DIR
                         set save dir for Stream
   --select              show stream to select and download, default is to

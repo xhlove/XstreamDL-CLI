@@ -6,9 +6,10 @@ from .childs.streamindex import StreamIndex
 from .childs.qualitylevel import QualityLevel
 from .handler import xml_handler
 
-from .stream import MSSStream
-from ..base import BaseParser
 from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.models.base import BaseUri
+from XstreamDL_CLI.extractors.mss.stream import MSSStream
+from XstreamDL_CLI.extractors.base import BaseParser
 
 
 class MSSParser(BaseParser):
@@ -16,39 +17,34 @@ class MSSParser(BaseParser):
         super(MSSParser, self).__init__(logger, args, uri_type)
         self.suffix = '.ism'
 
-    def init_stream(self, sindex: int, uris: list) -> MSSStream:
-        name, home_url, base_url = uris
-        return MSSStream(sindex, name, home_url, base_url, self.args.save_dir)
-
     def parse(self, uri: str, content: str) -> List[MSSStream]:
-        uris = self.parse_uri(uri)
-        assert uris is not None, f'parse {uri} failed'
-        name, home_url, base_url = uris
-        self.dump_content(name, content, self.suffix)
+        uri_item = self.parse_uri(uri)
+        assert uri_item is not None, f'parse {uri} failed'
+        self.dump_content(uri_item.name, content, self.suffix)
         # 解析转换内容为期望的对象
         ism = xml_handler(content)
-        return self.walk_streamindex(ism, uris)
+        return self.walk_streamindex(ism, uri_item)
 
-    def walk_streamindex(self, ism: ISM, uris: list) -> List[MSSStream]:
+    def walk_streamindex(self, ism: ISM, uri_item: BaseUri) -> List[MSSStream]:
         streamindexs = ism.find('StreamIndex') # type: List[StreamIndex]
         assert len(streamindexs) > 0, 'there is no StreamIndex'
         # 遍历处理streamindexs
         streams = [] # type: List[MSSStream]
         for streamindex in streamindexs:
-            streams.extend(self.walk_qualitylevel(streamindex, ism, len(streams), uris))
+            streams.extend(self.walk_qualitylevel(streamindex, ism, len(streams), uri_item))
         # 处理空分段
         for stream in streams:
             if stream.segments[-1].url == '':
                 _ = stream.segments.pop(-1)
         return streams
 
-    def walk_qualitylevel(self, streamindex: StreamIndex, ism: ISM, sindex: int, uris: list) -> List[MSSStream]:
+    def walk_qualitylevel(self, streamindex: StreamIndex, ism: ISM, sindex: int, uri_item: BaseUri) -> List[MSSStream]:
         streams = [] # type: List[MSSStream]
         qualitylevels = streamindex.find('QualityLevel') # type: List[QualityLevel]
         if len(qualitylevels) == 0:
             return streams
         for qualitylevel in qualitylevels:
-            stream = self.init_stream(sindex + len(streams), uris)
+            stream = MSSStream(sindex + len(streams), uri_item, self.args.save_dir)
             streams.extend(self.walk_c(qualitylevel, streamindex, ism, stream))
         return streams
 

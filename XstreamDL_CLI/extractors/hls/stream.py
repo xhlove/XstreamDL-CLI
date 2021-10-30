@@ -3,8 +3,9 @@ from logging import Logger
 from typing import List
 from pathlib import Path
 from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.models.base import BaseUri
 from XstreamDL_CLI.models.stream import Stream
-from .segment import HLSSegment
+from XstreamDL_CLI.extractors.hls.segment import HLSSegment
 from XstreamDL_CLI.extractors.hls.ext.xkey import XKey
 from XstreamDL_CLI.extractors.hls.ext.xmedia import XMedia
 from XstreamDL_CLI.extractors.hls.ext.xdaterange import XDateRange
@@ -25,8 +26,8 @@ class HLSStream(Stream):
     一些可选的属性
     - 语言
     '''
-    def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: Path, parent_stream: 'HLSStream'):
-        super(HLSStream, self).__init__(index, name, home_url, base_url, save_dir)
+    def __init__(self, index: int, uri_item: BaseUri, save_dir: Path, parent_stream: 'HLSStream'):
+        super(HLSStream, self).__init__(index, uri_item, save_dir)
         self.segments = [] # type: List[HLSSegment]
         # <------对于HLS类型的流额外的属性------>
         self.xkey = None

@@ -6,12 +6,12 @@ from urllib.parse import urlparse
 from typing import List
 from pathlib import Path
 from datetime import datetime
-from .key import StreamKey
-from ..util.concat import Concat
-from .segment import Segment
 from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.models.base import BaseUri
+from XstreamDL_CLI.models.key import StreamKey
+from XstreamDL_CLI.models.segment import Segment
 from XstreamDL_CLI.util.texts import t_msg
-# from XstreamDL_CLI.log import logger
+from XstreamDL_CLI.util.concat import Concat
 
 
 class Stream:
@@ -35,12 +35,12 @@ class Stream:
         - 增加密钥信息
         - 合并 一般在下载完成之后
     '''
-    def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: Path):
+    def __init__(self, index: int, uri_item: BaseUri, save_dir: Path):
         self.index = index
-        self.name = name
-        self.home_url = home_url
-        self.base_url = base_url[:-1] if base_url.endswith('/') else base_url
-        self.save_dir = save_dir / name
+        self.name = uri_item.name
+        self.home_url = uri_item.home_url
+        self.base_url = uri_item.base_url.rstrip('/')
+        self.save_dir = save_dir / self.name
         self.segments = [] # type: List[Segment]
         self.duration = 0.0
         self.filesize = 0
@@ -84,7 +84,6 @@ class Stream:
             if urlparse(segment.url).path in url_paths:
                 continue
             segment.set_offset_for_name(offset, has_init)
-            # logger.info(f'live add {urlparse(segment.url).path} name {segment.name}')
             offset += 1
             _segments.append(segment)
         self.segments.extend(_segments)

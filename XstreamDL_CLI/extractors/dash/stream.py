@@ -1,14 +1,15 @@
 import re
 from pathlib import Path
 from typing import List, Union
+from XstreamDL_CLI.models.base import BaseUri
 from XstreamDL_CLI.models.stream import Stream
 from XstreamDL_CLI.util.maps.codecs import AUDIO_CODECS
 from XstreamDL_CLI.extractors.dash.segment import DASHSegment
 
 
 class DASHStream(Stream):
-    def __init__(self, index: int, name: str, home_url: str, base_url: str, save_dir: Path):
-        super(DASHStream, self).__init__(index, name, home_url, base_url, save_dir)
+    def __init__(self, index: int, uri_item: BaseUri, save_dir: Path):
+        super(DASHStream, self).__init__(index, uri_item, save_dir)
         self.segments = [] # type: List[DASHSegment]
         self.suffix = '.mp4'
         self.has_init_segment = False

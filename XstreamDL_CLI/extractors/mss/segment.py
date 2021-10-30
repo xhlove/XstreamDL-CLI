@@ -4,7 +4,6 @@ import struct
 import binascii
 
 from XstreamDL_CLI.models.segment import Segment
-# from .stream import MSSStream
 
 
 u8 = struct.Struct('>B')
