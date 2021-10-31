@@ -126,8 +126,6 @@ def main():
     if args.version:
         print_version()
         sys.exit()
-    logger = setup_logger('XstreamDL', args.log_level)
-    command_handler(logger, args)
     if len(args.URI) == 0:
         try:
             uri = input('Paste your URL/FILE/FOLDER string at the end of commands, plz.\nCtrl C to exit or input here:')
@@ -137,6 +135,8 @@ def main():
             args.URI.append(uri.strip())
     if len(args.URI) == 0:
         sys.exit('No URL/FILE/FOLDER input')
+    logger = setup_logger('XstreamDL', args.log_level)
+    command_handler(logger, args)
     logger.info(f'set URI to {args.URI}')
     daemon = Daemon(logger, args)
     daemon.daemon()
