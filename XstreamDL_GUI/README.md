@@ -25,5 +25,5 @@ python -m XstreamDL_GUI.gui
 打包前先修改`XstreamDL-GUI.spec`中的`pathex`为自己的`XstreamDL-CLI`文件夹路径
 
 ```bash
-pyinstaller XstreamDL_GUI/XstreamDL-GUI.spec
+pyinstaller XstreamDL-GUI.spec
 ```
