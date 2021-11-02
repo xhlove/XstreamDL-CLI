@@ -344,7 +344,7 @@ class DASHParser(BaseParser):
             interval = s.d / st.timescale
             for number in range(s.r):
                 tmp_offset_r += 1
-                if self.is_live and target_r is not None and tmp_offset_r < target_r - 1:
+                if self.is_live and tmp_offset_r < target_r - 1:
                     continue
                 media_url = st.get_media_url()
                 if '$Bandwidth$' in media_url:
