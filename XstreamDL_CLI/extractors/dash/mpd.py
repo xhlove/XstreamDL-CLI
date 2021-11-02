@@ -1,3 +1,4 @@
+from datetime import datetime
 from .mpditem import MPDItem
 
 
@@ -16,6 +17,7 @@ class MPD(MPDItem):
         self.type = None # type: str
         # only use when type is 'dynamic' which specifies the smallest period between potential changes to the MPD
         self.minimumUpdatePeriod = None # type: str
+        # time of client to fetch the mpd content
         self.publishTime = None # type: str
         self.availabilityStartTime = None # type: str
         self.timeShiftBufferDepth = None # type: str
@@ -28,3 +30,8 @@ class MPD(MPDItem):
             self.mediaPresentationDuration = self.match_duration(self.mediaPresentationDuration)
         if isinstance(self.minBufferTime, str):
             self.minBufferTime = self.match_duration(self.minBufferTime)
+        if isinstance(self.availabilityStartTime, str):
+            try:
+                self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%S.%fZ')
+            except Exception:
+                pass

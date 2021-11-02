@@ -2,6 +2,7 @@ import re
 import math
 from logging import Logger
 from typing import List, Dict, Union
+from datetime import datetime, timedelta
 from .mpd import MPD
 from .handler import xml_handler
 from .childs.adaptationset import AdaptationSet
@@ -231,7 +232,7 @@ class DASHParser(BaseParser):
             if len(segmenttemplates) == 0:
                 self.walk_segmenttemplate(representation, period, stream)
             elif len(segmenttemplates) == 1 and len(segmenttemplates[0].find('SegmentTimeline')) == 1:
-                self.walk_segmenttimeline(segmenttemplates[0], representation, stream)
+                self.walk_segmenttimeline(segmenttemplates[0], representation, period, stream)
             elif len(segmenttemplates) == 1 and segmenttemplates[0].initialization is None:
                 # tv-player.ap1.admint.biz live
                 _segmenttemplates = representation.find('SegmentTemplate')
@@ -276,9 +277,9 @@ class DASHParser(BaseParser):
         if len(segmenttemplates[0].find('SegmentTimeline')) == 0:
             self.generate_v1(period, representation.id, segmenttemplates[0], stream)
             return
-        self.walk_segmenttimeline(segmenttemplates[0], representation, stream)
+        self.walk_segmenttimeline(segmenttemplates[0], representation, period, stream)
 
-    def walk_segmenttimeline(self, segmenttemplate: SegmentTemplate, representation: Representation, stream: DASHStream):
+    def walk_segmenttimeline(self, segmenttemplate: SegmentTemplate, representation: Representation, period: Period, stream: DASHStream):
         segmenttimelines = segmenttemplate.find('SegmentTimeline') # type: List[SegmentTimeline]
         if len(segmenttimelines) != 1:
             if len(segmenttimelines) > 1:
@@ -286,7 +287,7 @@ class DASHParser(BaseParser):
             else:
                 self.logger.warning('stream has no SegmentTimeline between SegmentTemplate tag.')
             return
-        self.walk_s(segmenttimelines[0], segmenttemplate, representation, stream)
+        self.walk_s(segmenttimelines[0], segmenttemplate, representation, period, stream)
 
     def walk_s_v2(self, segmenttimeline: SegmentTimeline, adaptationset: AdaptationSet, period: Period, sindex: int, uri_item: BaseUri):
         stream = DASHStream(sindex, uri_item, self.args.save_dir)
@@ -294,7 +295,7 @@ class DASHParser(BaseParser):
         sindex += 1
         return [stream]
 
-    def walk_s(self, segmenttimeline: SegmentTimeline, st: SegmentTemplate, representation: Representation, stream: DASHStream):
+    def walk_s(self, segmenttimeline: SegmentTimeline, st: SegmentTemplate, representation: Representation, period: Period, stream: DASHStream):
         init_url = st.get_url()
         if init_url is not None:
             if '$RepresentationID$' in init_url:
@@ -308,18 +309,43 @@ class DASHParser(BaseParser):
         else:
             # 这种情况可能是因为流是字幕
             pass
+        target_r = 0 # type: int
         ss = segmenttimeline.find('S') # type: List[S]
         if len(ss) > 0 and self.is_live and ss[0].t > 0:
-            base_time = ss[0].t
+            # timeShiftBufferDepth => cdn max cache time for segments
+            # newest available segment $Time$ should meet below condition
+            # SegmentTimeline.S.t / timescale + (mpd.availabilityStartTime + Period.start) <= time.time()
+            base_time = None # type: int
+            assert isinstance(self.root.availabilityStartTime, datetime), 'report mpd to me'
+            current_utctime = datetime.utcnow().timestamp()
+            start_utctime = (self.root.availabilityStartTime + timedelta(milliseconds=period.start * 1000)).timestamp()
+            self.logger.debug(f'mpd.availabilityStartTime {self.root.availabilityStartTime} Period.start {period.start}')
+            self.logger.debug(f'start_utctime {start_utctime} current_utctime {current_utctime}')
+            tmp_t = ss[0].t
+            for s in ss:
+                for number in range(s.r):
+                    target_r += 1
+                    if (tmp_t + s.d) / st.timescale + start_utctime > current_utctime:
+                        base_time = tmp_t
+                        self.logger.debug(f'set base_time {base_time}')
+                    else:
+                        tmp_t += s.d
+            assert base_time is not None, f'{representation.id} report mpd to me'
+            # if base_time is None:
+            #     base_time = ss[0].t
         else:
             base_time = 0
         # 如果 base_time 不为 0 即第一个 s.t 不为
         # 那么 time_offset 就不需要 即设置为 0
         time_offset = st.presentationTimeOffset if base_time == 0 else 0
         start_number = st.startNumber
+        tmp_offset_r = 0
         for s in ss:
             interval = s.d / st.timescale
             for number in range(s.r):
+                tmp_offset_r += 1
+                if self.is_live and target_r is not None and tmp_offset_r < target_r - 1:
+                    continue
                 media_url = st.get_media_url()
                 if '$Bandwidth$' in media_url:
                     media_url = media_url.replace('$Bandwidth$', str(representation.bandwidth))

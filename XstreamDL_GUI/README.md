@@ -27,3 +27,5 @@ python -m XstreamDL_GUI.gui
 ```bash
 pyinstaller XstreamDL-GUI.spec
 ```
+
+use pyinstaller 4.6
