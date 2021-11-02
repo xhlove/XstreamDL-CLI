@@ -99,6 +99,7 @@ class Daemon:
             downloader.download_streams(streams, selected=skeys)
             # 检查是不是主动退出了
             if downloader.terminate:
+                self.logger.debug(f'downloader terminated break')
                 break
             # 继续循环
         downloader.try_concat_streams(streams, skeys)

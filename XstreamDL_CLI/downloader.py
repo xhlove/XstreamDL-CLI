@@ -231,6 +231,7 @@ class Downloader:
                 break
             # 只需要检查一个流的时间达到最大值就停止录制
             if self.args.live and should_stop_record is False and stream.check_record_time(self.args.live_duration):
+                self.logger.debug(f'set should_stop_record flag as {should_stop_record}')
                 should_stop_record = True
         # 主动停止录制
         if should_stop_record:
