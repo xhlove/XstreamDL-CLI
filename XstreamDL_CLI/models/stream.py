@@ -98,6 +98,8 @@ class Stream:
 
     def check_record_time(self, live_duration: float):
         # 修正calc计算后 直接比较当前流的 duration 即可
+        if live_duration == 0.0:
+            return False
         return self.duration >= live_duration
 
     def get_init_msg(self, show_init: bool = False):
