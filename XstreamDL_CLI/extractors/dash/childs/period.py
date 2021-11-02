@@ -10,7 +10,7 @@ class Period(MPDItem):
 
     def generate(self):
         if isinstance(self.start, str):
-            self.start = self.match_duration(self.duration)
+            self.start = self.match_duration(self.start)
         # else:
         #     self.start = 0.0
         if isinstance(self.duration, str):
