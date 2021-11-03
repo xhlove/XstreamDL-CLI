@@ -1,4 +1,3 @@
-from enum import Flag
 import re
 import math
 from logging import Logger
