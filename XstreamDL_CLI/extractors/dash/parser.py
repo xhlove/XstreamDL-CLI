@@ -224,7 +224,6 @@ class DASHParser(BaseParser):
                     stream.set_subtitle_url(BaseURLs[0].innertext)
                     streams.append(stream)
                     continue
-                stream.fix_base_url(BaseURLs[0].innertext)
                 if len(segmenttemplates) == 0 and len(representation.find('SegmentTimeline')) == 0:
                     stream.base2url(period.duration)
                     streams.append(stream)

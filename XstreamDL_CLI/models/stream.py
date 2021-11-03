@@ -186,16 +186,6 @@ class Stream:
         else:
             return f'{self.base_url}/{url}'
 
-    def fix_base_url(self, url: str) -> str:
-        if url.startswith('http://') or url.startswith('https://') or url.startswith('ftp://'):
-            self.base_url = url
-        elif url.startswith('/'):
-            self.base_url = f'{self.home_url}{url}'
-        else:
-            self.base_url = f'{self.base_url}/{url}'
-        # 这里可能会引起bug
-        self.base_url = self.base_url.rstrip('/')
-
     def concat(self, logger: Logger, args: CmdArgs):
         ''' 合并视频 '''
         out = Path(self.save_dir.absolute().as_posix() + self.suffix)
