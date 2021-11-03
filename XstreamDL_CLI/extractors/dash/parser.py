@@ -319,6 +319,7 @@ class DASHParser(BaseParser):
             current_utctime = datetime.utcnow().timestamp()
             presentation_start = (period.start + st.presentationTimeOffset / st.timescale) * 1000
             start_utctime = (self.root.availabilityStartTime + timedelta(milliseconds=presentation_start)).timestamp()
+            self.logger.debug(f'mpd.presentationTimeOffset {st.presentationTimeOffset} timescale {st.timescale}')
             self.logger.debug(f'mpd.availabilityStartTime {self.root.availabilityStartTime} Period.start {period.start}')
             self.logger.debug(f'start_utctime {start_utctime} current_utctime {current_utctime}')
             tmp_t = ss[0].t
@@ -333,7 +334,7 @@ class DASHParser(BaseParser):
                     target_r += 1
                 if base_time:
                     break
-            assert base_time is not None, f'{representation.id} report mpd to me'
+            assert base_time is not None, f'{representation.id} report mpd to me, maybe need wait {current_utctime - tmp_t / st.timescale}s'
             # if base_time is None:
             #     base_time = ss[0].t
         else:
