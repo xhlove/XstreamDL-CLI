@@ -1,3 +1,4 @@
+from enum import Flag
 import re
 import math
 from logging import Logger
@@ -318,18 +319,22 @@ class DASHParser(BaseParser):
             base_time = None # type: int
             assert isinstance(self.root.availabilityStartTime, datetime), 'report mpd to me'
             current_utctime = datetime.utcnow().timestamp()
-            start_utctime = (self.root.availabilityStartTime + timedelta(milliseconds=period.start * 1000)).timestamp()
+            presentation_start = (period.start + st.presentationTimeOffset / st.timescale) * 1000
+            start_utctime = (self.root.availabilityStartTime + timedelta(milliseconds=presentation_start)).timestamp()
             self.logger.debug(f'mpd.availabilityStartTime {self.root.availabilityStartTime} Period.start {period.start}')
             self.logger.debug(f'start_utctime {start_utctime} current_utctime {current_utctime}')
             tmp_t = ss[0].t
             for s in ss:
                 for number in range(s.r):
-                    target_r += 1
                     if (tmp_t + s.d) / st.timescale + start_utctime > current_utctime:
                         base_time = tmp_t
-                        self.logger.debug(f'set base_time {base_time}')
-                    else:
+                        self.logger.debug(f'set base_time base_time {base_time} target_r {target_r}')
+                        break
+                    if target_r > 0:
                         tmp_t += s.d
+                    target_r += 1
+                if base_time:
+                    break
             assert base_time is not None, f'{representation.id} report mpd to me'
             # if base_time is None:
             #     base_time = ss[0].t
@@ -344,7 +349,7 @@ class DASHParser(BaseParser):
             interval = s.d / st.timescale
             for number in range(s.r):
                 tmp_offset_r += 1
-                if self.is_live and tmp_offset_r < target_r - 1:
+                if self.is_live and tmp_offset_r < target_r:
                     continue
                 media_url = st.get_media_url()
                 if '$Bandwidth$' in media_url:
