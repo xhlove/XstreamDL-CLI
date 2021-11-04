@@ -138,6 +138,7 @@ class DASHStream(Stream):
         if width is None or height is None:
             return
         self.resolution = f'{width}x{height}'
+        self.skey += '_' + self.resolution
 
     def set_stream_type(self, stream_type: str):
         if stream_type is None:

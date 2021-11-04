@@ -120,7 +120,7 @@ class DASHParser(BaseParser):
         mpd = xml_handler(content)
         self.root = mpd
         # 检查是不是直播流
-        if mpd.profiles == 'urn:mpeg:dash:profile:isoff-live:2011':
+        if mpd.profiles == 'urn:mpeg:dash:profile:isoff-live:2011' and mpd.type != 'static':
             self.args.live = True
             self.is_live = True
         if self.args.live and self.is_live is False:
