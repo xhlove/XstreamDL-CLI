@@ -334,7 +334,9 @@ class DASHParser(BaseParser):
                     target_r += 1
                 if base_time:
                     break
-            assert base_time is not None, f'{representation.id} report mpd to me, maybe need wait {current_utctime - tmp_t / st.timescale}s'
+            if base_time is None:
+                self.logger.debug(f'{representation.id} report mpd to me, maybe need wait {current_utctime - start_utctime - tmp_t / st.timescale}s')
+            assert base_time is not None, f'{representation.id} report mpd to me, maybe need wait {current_utctime - start_utctime - tmp_t / st.timescale}s'
             # if base_time is None:
             #     base_time = ss[0].t
         else:
