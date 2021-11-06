@@ -156,3 +156,5 @@ class DASHStream(Stream):
             else:
                 return
         self.stream_type = stream_type
+        if self.stream_type == 'audio':
+            self.suffix = '.m4a'

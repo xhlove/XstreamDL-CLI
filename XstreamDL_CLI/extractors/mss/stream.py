@@ -138,6 +138,8 @@ class MSSStream(Stream):
         if stream_type is None:
             return
         self.stream_type = stream_type
+        if self.stream_type == 'audio':
+            self.suffix = 'm4a'
 
     def set_timescale(self, timescale: int):
         if timescale is None:
