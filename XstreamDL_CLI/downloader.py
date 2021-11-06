@@ -17,6 +17,68 @@ from XstreamDL_CLI.util.decryptors.aes import CommonAES
 from XstreamDL_CLI.util.texts import t_msg
 
 
+def auto_choose_resolution(args: CmdArgs, streams: List[Stream]) -> List[Stream]:
+    target_indexes = []
+    for index, stream in enumerate(streams):
+        # 跳过非目标类型
+        if stream.stream_type != 'video':
+            continue
+        # 如果当前流的目标分辨率与预设分辨率不匹配 跳过
+        if stream.resolution.split('x')[1] != args.resolution:
+            continue
+        target_indexes.append(index)
+    return target_indexes
+
+
+def auto_choose_best_streams(args: CmdArgs, streams: List[Stream]) -> List[Stream]:
+    def choose_best_stream_by_type(target_type: str):
+        ''' return target index '''
+        target_stream = None
+        for stream in streams:
+            # 跳过非目标类型
+            if stream.stream_type != target_type:
+                continue
+            # 跳过没有bandwidth的流
+            if not stream.bandwidth:
+                continue
+            # 目标是视频并且下载选项设定了目标分辨率
+            if target_type == 'video' and args.resolution != '':
+                # 如果当前流的目标分辨率与预设分辨率不匹配 跳过
+                if stream.resolution.split('x')[1] != args.resolution:
+                    continue
+            # 如果target_stream还没设置 当前流设置为target_stream
+            if target_stream is None:
+                target_stream = stream
+                continue
+            # 当前流码率比之前选定的流更高 设置当前流为选择的流
+            if stream.bandwidth > target_stream.bandwidth:
+                target_stream = stream
+        # 在上面的检查中确实设置了流 则返回其索引
+        # 这里其实返回流更合理 但是上一级其他位置一直用的索引 所以这里先不改
+        if target_stream:
+            return streams.index(target_stream)
+        # 否则返回None 交由上一级判断
+        return target_stream
+    best_audio_stream_index = choose_best_stream_by_type('audio')
+    best_video_stream_index = choose_best_stream_by_type('video')
+    if args.audio_only:
+        if best_audio_stream_index:
+            return [best_audio_stream_index]
+        else:
+            return []
+    if args.video_only:
+        if best_video_stream_index:
+            return [best_video_stream_index]
+        else:
+            return []
+    target_streams = []
+    if best_audio_stream_index:
+        target_streams.append(best_audio_stream_index)
+    if best_video_stream_index:
+        target_streams.append(best_video_stream_index)
+    return target_streams
+
+
 def get_selected_index(length: int) -> list:
     selected = []
     try:
@@ -170,6 +232,10 @@ class Downloader:
             selected = get_selected_index(len(streams))
             if len(selected) == 0:
                 self.logger.info(t_msg.select_without_any_stream)
+        elif self.args.best_quality:
+            selected = auto_choose_best_streams(self.args, streams)
+        elif self.args.resolution != '':
+            selected = auto_choose_resolution(self.args, streams)
         else:
             selected = [index for index in range(len(streams))]
         if self.args.live is False:
@@ -181,6 +247,7 @@ class Downloader:
 
     def download_streams(self, streams: List[Stream], selected: list = []):
         selected = self.do_select(streams, selected)
+        self.logger.debug(f'selected is {selected}')
         if selected is None:
             return
         should_stop_record = False

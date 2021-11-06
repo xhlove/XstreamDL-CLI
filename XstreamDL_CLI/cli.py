@@ -28,6 +28,8 @@ def command_handler(logger: Logger, args: CmdArgs):
             assert float(hms[2]) <= 60.0, '--live-duration second must less than or equal to 60'
             args.live_duration = float(hms[0]) * 60 * 60 + float(hms[1]) * 60 + float(hms[2])
     logger.debug(f'set --live-duration to {args.live_duration}')
+    if args.video_only is True and args.audio_only is True:
+        assert False, '--video-only and --audio-only cannot be used at the same time'
     args.save_dir = Path(args.save_dir)
     if args.save_dir.exists() is False:
         args.save_dir.mkdir()
@@ -90,11 +92,13 @@ def main():
     parser.add_argument('-live', '--live', action='store_true', help='live mode')
     parser.add_argument('-live-duration', '--live-duration', default='', help='live record time, format HH:MM:SS, example 00:00:30 will record about 30s')
     parser.add_argument('-name', '--name', default='', help='specific stream base name')
-    parser.add_argument('-base-url', '--base-url', default='', help='set base url for Stream')
+    parser.add_argument('--base-url', default='', help='set base url for Stream')
+    parser.add_argument('--resolution', default='', choices=['', '270', '360', '480', '540', '576', '720', '1080', '2160'], help='auto choose target quality')
+    parser.add_argument('--best-quality', action='store_true', help='auto choose best quality for dash streams')
+    parser.add_argument('--video-only', action='store_true', help='only choose video stream when use --best-quality')
+    parser.add_argument('--audio-only', action='store_true', help='only choose audio stream when use --best-quality')
     parser.add_argument('--service', default='', help='set serviceLocation for BaseURL choose')
-    parser.add_argument('-save-dir', '--save-dir', default='Downloads', help='set save dir for Stream')
-    # parser.add_argument('--ffmpeg', default='ffmpeg', help='set executable ffmpeg path')
-    # parser.add_argument('--mp4decrypt', default='mp4decrypt', help='set executable mp4decrypt path')
+    parser.add_argument('--save-dir', default='Downloads', help='set save dir for Stream')
     parser.add_argument('--select', action='store_true', help='show stream to select and download, default is to download all')
     parser.add_argument('--disable-force-close', action='store_true', help='default make all connections closed securely, but it will make DL speed slower')
     parser.add_argument('--limit-per-host', default=4, help='increase the value if your connection to the stream host is poor, suggest >100 for DASH stream')

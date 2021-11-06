@@ -9,6 +9,10 @@ class CmdArgs:
         self.live_duration = None # type: float
         self.name = None # type: str
         self.base_url = None # type: str
+        self.resolution = None # type: str
+        self.best_quality = None # type: bool
+        self.video_only = None # type: bool
+        self.audio_only = None # type: bool
         self.service = None # type: str
         self.save_dir = None # type: Path
         self.ffmpeg = None # type: str
