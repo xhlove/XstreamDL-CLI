@@ -62,12 +62,12 @@ def auto_choose_best_streams(args: CmdArgs, streams: List[Stream]) -> List[Strea
     best_audio_stream_index = choose_best_stream_by_type('audio')
     best_video_stream_index = choose_best_stream_by_type('video')
     if args.audio_only:
-        if best_audio_stream_index:
+        if best_audio_stream_index is not None:
             return [best_audio_stream_index]
         else:
             return []
     if args.video_only:
-        if best_video_stream_index:
+        if best_video_stream_index is not None:
             return [best_video_stream_index]
         else:
             return []
