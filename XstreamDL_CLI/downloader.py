@@ -96,6 +96,8 @@ class XProgress:
         tm = ts - self.last_time
         if self.stop is False and tm < 0.3:
             return
+        if tm == 0.0:
+            return
         speed = (downloaded_size - self.last_size) / tm / 1024 / 1024
         self.last_time = ts
         self.last_size = downloaded_size
