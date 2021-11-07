@@ -54,7 +54,7 @@ class HLSStream(Stream):
         ''' #EXT-X-MEDIA 会表明流类型 '''
         self.stream_type = stream_type
         if self.stream_type == 'audio':
-            self.suffix = 'm4a'
+            self.suffix = '.m4a'
 
     def get_name(self):
         if self.stream_type != '':
