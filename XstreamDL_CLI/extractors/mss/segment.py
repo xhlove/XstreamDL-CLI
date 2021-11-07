@@ -99,8 +99,8 @@ class MSSSegment(Segment):
         tfhd_data = extract_box_data(self.content[0], [b'moof', b'traf', b'tfhd'])
         track_id = u32.unpack(tfhd_data[4:8])[0]
         params['track_id'] = track_id
-        # self.write_piff_header(track_id, params)
-        self.write_iso6_header(track_id, params)
+        self.write_piff_header(track_id, params)
+        # self.write_iso6_header(track_id, params)
 
     @staticmethod
     def fix_header_test():
