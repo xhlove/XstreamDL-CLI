@@ -2,6 +2,7 @@ import io
 import time
 import struct
 import binascii
+from typing_extensions import Self
 
 from XstreamDL_CLI.models.segment import Segment
 
@@ -116,24 +117,23 @@ class MSSSegment(Segment):
     #     params['track_id'] = 1
     #     MSSSegment.write_iso6_header(params)
 
-    @staticmethod
-    def write_iso6_header(params: dict, write_time: bool = False):
-        def get_sinf_payload(codec: bytes):
-            sinf_payload = box(b'frma', codec)
+    def get_sinf_payload(self, kid: bytes, codec: bytes):
+        sinf_payload = box(b'frma', codec)
 
-            schm_payload = u32.pack(0x63656E63) # scheme_type 'cenc' => common encryption
-            schm_payload += u32.pack(0x00010000) # scheme_version Major version 1, Minor version 0
-            sinf_payload += full_box(b'schm', 0, 0, schm_payload)
+        schm_payload = u32.pack(0x63656E63) # scheme_type 'cenc' => common encryption
+        schm_payload += u32.pack(0x00010000) # scheme_version Major version 1, Minor version 0
+        sinf_payload += full_box(b'schm', 0, 0, schm_payload)
 
-            tenc_payload = u8.pack(0x0) * 2
-            tenc_payload += u8.pack(0x1) # default_IsEncrypted
-            tenc_payload += u8.pack(0x8) # default_IV_size
-            tenc_payload += kid # default_KID
-            tenc_payload = full_box(b'tenc', 0, 0, tenc_payload)
-            sinf_payload += box(b'schi', tenc_payload)
-            sinf_payload = box(b'sinf', sinf_payload)
-            return sinf_payload
-        print(params)
+        tenc_payload = u8.pack(0x0) * 2
+        tenc_payload += u8.pack(0x1) # default_IsEncrypted
+        tenc_payload += u8.pack(0x8) # default_IV_size
+        tenc_payload += kid # default_KID
+        tenc_payload = full_box(b'tenc', 0, 0, tenc_payload)
+        sinf_payload += box(b'schi', tenc_payload)
+        sinf_payload = box(b'sinf', sinf_payload)
+        return sinf_payload
+
+    def write_iso6_header(self, params: dict, write_time: bool = False):
         # track info
         representation_id = 'audio_0'
         # representation_id = 'video_7'
@@ -284,7 +284,7 @@ class MSSSegment(Segment):
             esds_payload += u8.pack(len(audioSpecificConfig)) # size
             esds_payload += audioSpecificConfig # AudioSpecificConfig bytes
 
-            sample_entry_payload += full_box(b'esds', 0, 0, esds_payload) + get_sinf_payload(b'mp4a') # AVC Decoder Configuration Record
+            sample_entry_payload += full_box(b'esds', 0, 0, esds_payload) + self.get_sinf_payload(kid, b'mp4a') # AVC Decoder Configuration Record
             sample_entry_box = box(b'enca', sample_entry_payload) # AVC Simple Entry
         elif stream_type == 'video':
             sample_entry_payload += u16.pack(0) # pre defined
@@ -354,7 +354,7 @@ class MSSSegment(Segment):
                     avcc_payload += u8.pack((len(item) & 0x00FF))
                     avcc_payload += item
 
-                sample_entry_payload += box(b'avcC', avcc_payload) + get_sinf_payload(b'avc1') # AVC Decoder Configuration Record
+                sample_entry_payload += box(b'avcC', avcc_payload) + self.get_sinf_payload(kid, b'avc1') # AVC Decoder Configuration Record
                 sample_entry_box = box(b'encv', sample_entry_payload) # AVC Simple Entry
             else:
                 assert False
@@ -398,9 +398,7 @@ class MSSSegment(Segment):
         moov_payload += box(b'mvex', mvex_payload) # Movie Extends Box
         moov_payload = box(b'moov', moov_payload)
         moov_payload = box(b'ftyp', ftyp_payload) + moov_payload
-        from pathlib import Path
-        Path(r'C:\Users\weimo\Downloads\tutorial muxing init\tutorial muxing init\FILES\rrr0a.bin').write_bytes(moov_payload)
-        # self.content.insert(0, box(b'moov', moov_payload))
+        self.content.insert(0, moov_payload)
 
     def write_piff_header(self, track_id: int, params: dict):
 
