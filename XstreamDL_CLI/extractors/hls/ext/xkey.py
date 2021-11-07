@@ -1,6 +1,7 @@
 
 import asyncio
 from logging import Logger
+from aiohttp_socks import ProxyConnector
 from aiohttp import ClientSession, ClientResponse
 from aiohttp.connector import TCPConnector
 
@@ -82,9 +83,12 @@ class XKey(X):
             return 'http', base_url + '/' + self.uri
 
     async def fetch(self, url: str, args: CmdArgs) -> bytes:
-        proxy, headers = args.proxy, args.headers
-        async with ClientSession(connector=TCPConnector(ssl=False)) as client: # type: ClientSession
-            async with client.get(url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
+        if self.args.proxy != '':
+            connector = ProxyConnector.from_url(self.args.proxy, ssl=False)
+        else:
+            connector = TCPConnector(ssl=False)
+        async with ClientSession(connector=connector) as client: # type: ClientSession
+            async with client.get(url, headers=args.headers) as resp: # type: ClientResponse
                 return await resp.content.read()
 
     def load(self, args: CmdArgs, custom_xkey: 'XKey', logger: Logger):

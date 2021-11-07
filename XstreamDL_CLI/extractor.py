@@ -4,6 +4,7 @@ from pathlib import Path
 from logging import Logger
 from aiohttp.connector import TCPConnector
 from aiohttp import ClientSession, ClientResponse
+from aiohttp_socks import ProxyConnector
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.models.stream import Stream
 from XstreamDL_CLI.extractors.hls.parser import HLSParser
@@ -74,9 +75,12 @@ class Extractor:
         return streams
 
     async def fetch(self, url: str) -> str:
-        proxy, headers = self.args.proxy, self.args.headers
-        async with ClientSession(connector=TCPConnector(ssl=False)) as client: # type: ClientSession
-            async with client.get(url, proxy=proxy, headers=headers) as resp: # type: ClientResponse
+        if self.args.proxy != '':
+            connector = ProxyConnector.from_url(self.args.proxy, ssl=False)
+        else:
+            connector = TCPConnector(ssl=False)
+        async with ClientSession(connector=connector) as client: # type: ClientSession
+            async with client.get(url, headers=self.args.headers) as resp: # type: ClientResponse
                 return str(resp.url), self.load_raw2text(await resp.read())
 
     def raw2streams(self, uri_type: str, uri: str, content: str, parent_stream: Stream) -> List[Stream]:

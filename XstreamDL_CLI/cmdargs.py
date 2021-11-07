@@ -1,4 +1,3 @@
-from typing import Union
 from pathlib import Path
 
 
@@ -21,9 +20,7 @@ class CmdArgs:
         self.select = None # type: bool
         self.disable_force_close = None # type: bool
         self.limit_per_host = None # type: int
-        self.user_agent = None # type: str
-        self.referer = None # type: str
-        self.headers = None # type: Union[str, dict]
+        self.headers = None # type: str
         self.url_patch = None # type: str
         self.overwrite = None # type: bool
         self.raw_concat = None # type: bool
@@ -33,7 +30,7 @@ class CmdArgs:
         self.key = None # type: str
         self.b64key = None # type: str
         self.hexiv = None # type: str
-        self.proxy = None # type: Union[str, None]
+        self.proxy = None # type: str
         self.disable_auto_exit = None # type: bool
         self.parse_only = None # type: bool
         self.show_init = None # type: bool

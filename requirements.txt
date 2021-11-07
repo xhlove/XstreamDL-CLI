@@ -1,3 +1,4 @@
 aiohttp
+aiohttp_socks
 argparse
 pycryptodome

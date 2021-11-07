@@ -9,6 +9,7 @@ from typing import List, Set, Dict
 from asyncio import new_event_loop
 from asyncio import AbstractEventLoop, Future, Task
 from aiohttp import ClientSession, ClientResponse, TCPConnector, client_exceptions
+from aiohttp_socks import ProxyConnector
 from concurrent.futures._base import TimeoutError, CancelledError
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.models.stream import Stream
@@ -131,6 +132,16 @@ def get_connector(args: CmdArgs):
     connector在一个ClientSession使用后可能就会关闭
     若需要再次使用则需要重新生成
     '''
+    if args.proxy != '':
+        return ProxyConnector.from_url(
+            args.proxy,
+            ttl_dns_cache=500,
+            ssl=False,
+            limit_per_host=args.limit_per_host,
+            limit=500,
+            force_close=not args.disable_force_close,
+            enable_cleanup_closed=not args.disable_force_close
+        )
     return TCPConnector(
         ttl_dns_cache=500,
         ssl=False,
@@ -171,6 +182,10 @@ class XProgress:
 
     def update_total_size(self, total_size: int):
         self.total_size = total_size
+        self.update_progress(self.downloaded_count, self.total_size, self.downloaded_size)
+
+    def decrease_total_count(self):
+        self.total_count -= 1
         self.update_progress(self.downloaded_count, self.total_size, self.downloaded_size)
 
     def add_downloaded_size(self, downloaded_size: int):
@@ -392,15 +407,15 @@ class Downloader:
         return results
 
     async def download(self, client: ClientSession, stream: Stream, segment: Segment):
-        proxy, headers = self.args.proxy, self.args.headers
         status, flag = 'EXIT', True
         try:
-            async with client.get(segment.url + self.args.url_patch, proxy=proxy, headers=headers) as resp: # type: ClientResponse
+            async with client.get(segment.url + self.args.url_patch, headers=self.args.headers) as resp: # type: ClientResponse
                 _flag = True
                 self.logger.debug(f'{segment.name} status {resp.status}, {segment.url + self.args.url_patch}')
                 if resp.status in [403, 404]:
                     status = 'STATUS_SKIP'
                     flag = False
+                    self.xprogress.decrease_total_count()
                     segment.skip_concat = True
                 if resp.status == 405:
                     status = 'STATUS_CODE_ERROR'

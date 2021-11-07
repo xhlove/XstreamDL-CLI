@@ -18,8 +18,8 @@ class MPD(MPDItem):
         # only use when type is 'dynamic' which specifies the smallest period between potential changes to the MPD
         self.minimumUpdatePeriod = None # type: str
         # time of client to fetch the mpd content
-        self.publishTime = None # type: str
-        self.availabilityStartTime = None # type: str
+        self.publishTime = None # type: datetime
+        self.availabilityStartTime = None # type: datetime
         self.timeShiftBufferDepth = None # type: str
         self.suggestedPresentationDelay = None # type: str
 
@@ -36,5 +36,13 @@ class MPD(MPDItem):
             except Exception:
                 try:
                     self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%SZ')
+                except Exception:
+                    pass
+        if isinstance(self.publishTime, str):
+            try:
+                self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%S.%fZ')
+            except Exception:
+                try:
+                    self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%SZ')
                 except Exception:
                     pass

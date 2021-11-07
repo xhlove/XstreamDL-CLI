@@ -133,9 +133,10 @@ A: 之前在编写软件过程中，出现过bug，某个循环异常，开启�
 
 ### 代理
 
-目前`--proxy`选项仅支持设定`http`代理，示例 -> `http://127.0.0.1:10809`
+目前`--proxy`选项支持设定`socks5`和`http`代理，示例
 
-后续会尝试支持`socks5`代理
+- `socks5://127.0.0.1:10808`
+- `http://127.0.0.1:10809`
 
 ### m3u8解密
 
@@ -222,12 +223,11 @@ positional arguments:
 optional arguments:
   -v, --version         print version and exit
   -h, --help            print help message and exit
-  -live, --live         live mode
-  -live-duration LIVE_DURATION, --live-duration LIVE_DURATION
+  --live                live mode
+  --live-duration LIVE_DURATION
                         live record time, format HH:MM:SS, example 00:00:30
                         will record about 30s
-  -name NAME, --name NAME
-                        specific stream base name
+  --name NAME           specific stream base name
   --base-url BASE_URL   set base url for Stream
   --resolution {,270,360,480,540,576,720,1080,2160}
                         auto choose target quality
@@ -244,11 +244,8 @@ optional arguments:
   --limit-per-host LIMIT_PER_HOST
                         increase the value if your connection to the stream
                         host is poor, suggest >100 for DASH stream
-  --user-agent USER_AGENT
-                        set user-agent headers for request
-  --referer REFERER     set custom referer for request
-  --headers HEADERS     set custom headers for request, separators is |, e.g.
-                        "header1:value1|header2:value2"
+  --headers HEADERS     read headers from headers.json, you can also use
+                        custom config
   --url-patch URL_PATCH
                         add some custom strings for all segments link
   --overwrite           overwrite output files
@@ -263,7 +260,8 @@ optional arguments:
   --b64key B64KEY       base64 format aes key, only for HLS standard
                         AES-128-CBC encryption
   --hexiv HEXIV         hex format aes iv
-  --proxy PROXY         use http proxy, e.g. http://127.0.0.1:1080
+  --proxy PROXY         use socks/http proxy, e.g. socks5://127.0.0.1:10808 or
+                        http://127.0.0.1:10809
   --disable-auto-exit   disable auto exit after download end, GUI will use
                         this option
   --parse-only          parse only, not to download

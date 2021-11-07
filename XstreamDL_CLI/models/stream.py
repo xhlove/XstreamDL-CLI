@@ -89,8 +89,8 @@ class Stream:
         self.segments.extend(_segments)
 
     def calc(self):
-        self.duration = sum([segment.duration for segment in self.segments])
-        self.filesize = sum([segment.filesize for segment in self.segments])
+        self.duration = sum([segment.duration for segment in self.segments if segment.skip_concat is False])
+        self.filesize = sum([segment.filesize for segment in self.segments if segment.skip_concat is False])
         self.filesize = self.filesize / 1024 / 1024
 
     def get_name(self):
