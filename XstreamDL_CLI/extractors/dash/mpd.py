@@ -34,4 +34,7 @@ class MPD(MPDItem):
             try:
                 self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%S.%fZ')
             except Exception:
-                pass
+                try:
+                    self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%SZ')
+                except Exception:
+                    pass
