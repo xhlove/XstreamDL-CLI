@@ -317,7 +317,7 @@ class DASHParser(BaseParser):
             base_time = None # type: int
             assert isinstance(self.root.availabilityStartTime, datetime), 'report mpd to me'
             current_utctime = datetime.utcnow().timestamp()
-            presentation_start = (period.start + st.presentationTimeOffset / st.timescale) * 1000
+            presentation_start = (period.start - st.presentationTimeOffset / st.timescale + 30) * 1000
             start_utctime = (self.root.availabilityStartTime + timedelta(milliseconds=presentation_start)).timestamp()
             self.logger.debug(f'mpd.presentationTimeOffset {st.presentationTimeOffset} timescale {st.timescale}')
             self.logger.debug(f'mpd.availabilityStartTime {self.root.availabilityStartTime} Period.start {period.start}')
