@@ -476,7 +476,7 @@ class Downloader:
         '''
         解密部分
         '''
-        if segment.is_encrypt() is False and segment.is_ism():
+        if segment.index == 0 and segment.is_ism():
             self.logger.info(f'fix header for ism content')
             segment.fix_header(stream)
         if self.args.disable_auto_decrypt is True:

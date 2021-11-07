@@ -2,7 +2,6 @@ import io
 import time
 import struct
 import binascii
-from typing_extensions import Self
 
 from XstreamDL_CLI.models.segment import Segment
 
