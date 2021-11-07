@@ -8,6 +8,7 @@ from .handler import xml_handler
 
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.models.base import BaseUri
+from XstreamDL_CLI.extractors.mss.key import MSSKey
 from XstreamDL_CLI.extractors.mss.stream import MSSStream
 from XstreamDL_CLI.extractors.base import BaseParser
 
@@ -89,6 +90,9 @@ class MSSParser(BaseParser):
         protections = ism.find('Protection')
         if len(protections) > 0 and len(protections[0].find('ProtectionHeader')) > 0:
             protection_flag = True
+            protectionheaders = protections[0].find('ProtectionHeader')
+            for protectionheader in protectionheaders:
+                stream.append_key(MSSKey(protectionheader))
             self.logger.debug(f'ProtectionHeader was found')
         else:
             protection_flag = False
