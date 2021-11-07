@@ -82,7 +82,7 @@ class Daemon:
         skeys = downloader.do_select(streams)
         if len(skeys) == 0:
             return
-        refresh_interval = 3
+        refresh_interval = 6
         last_time = time.time()
         while True:
             # 刷新间隔时间检查

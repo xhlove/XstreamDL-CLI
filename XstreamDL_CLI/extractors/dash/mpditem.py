@@ -30,6 +30,11 @@ class MPDItem:
         if duration is not None:
             _m, _s, _ss = duration.groups()
             return int(_m) * 60 + int(_s) + float("0" + _ss)
+        # P8DT11H6M41.1367016S
+        duration = re.match(r"P(\d+)DT(\d+)H(\d+)M(\d+)(\.?\d+)S", _duration)
+        if duration is not None:
+            _d, _h, _m, _s, _ss = duration.groups()
+            return int(_d) * 24 * 60 * 60 + int(_h) * 60 * 60 + int(_m) * 60 + int(_s) + float("0" + _ss)
         # P0Y0M0DT0H3M30.000S
         duration = re.match(r"PT(\d+)H(\d+)M(\d+)(\.?\d+)S", _duration.replace('0Y0M0D', ''))
         if duration is not None:
