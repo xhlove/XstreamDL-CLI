@@ -73,9 +73,9 @@ def auto_choose_best_streams(args: CmdArgs, streams: List[Stream]) -> List[Strea
         else:
             return []
     target_streams = []
-    if best_audio_stream_index:
+    if best_audio_stream_index is not None:
         target_streams.append(best_audio_stream_index)
-    if best_video_stream_index:
+    if best_video_stream_index is not None:
         target_streams.append(best_video_stream_index)
     return target_streams
 
