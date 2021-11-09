@@ -2,7 +2,6 @@ import os
 import json
 import shutil
 from logging import Logger
-from urllib.parse import urlparse
 from typing import List
 from pathlib import Path
 from datetime import datetime
@@ -75,13 +74,16 @@ class Stream:
         - 更新新增分段的文件名
         - 根据链接中的path部分检查是不是重复了
         '''
-        url_paths = [urlparse(segment.url).path for segment in self.segments]
+        last_fmt_time = max([segment.fmt_time for segment in self.segments if segment.skip_concat is False])
         offset = len(self.segments)
         _segments = []
         for segment in segments:
             if segment.index == -1:
                 continue
-            if urlparse(segment.url).path in url_paths:
+            # 对于直播流
+            # 不能通过比较分段链接中的path是不是在之前出现过来找到合适的分段
+            # 而是确保当前分段的对应时间必须大于之前的时间即可
+            if segment.fmt_time <= last_fmt_time:
                 continue
             segment.set_offset_for_name(offset, has_init)
             offset += 1

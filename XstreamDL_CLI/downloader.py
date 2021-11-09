@@ -229,9 +229,11 @@ class Downloader:
         signal.signal(signal.SIGTERM, self.stop)
 
     def stop(self, signum: int, frame):
+        self.logger.debug('stopped by Ctrl C')
         self.terminate = True
 
     def stop_record(self):
+        self.logger.debug('stopped reason: stop_record')
         self.terminate = True
 
     def do_select(self, streams: List[Stream], selected: list = []):
@@ -314,9 +316,10 @@ class Downloader:
                 self.try_concat(stream)
                 break
             # 只需要检查一个流的时间达到最大值就停止录制
+            # 应当进行优化 只针对单个流进行停止录制
             if self.args.live and should_stop_record is False and stream.check_record_time(self.args.live_duration):
-                self.logger.debug(f'set should_stop_record flag as {should_stop_record}')
                 should_stop_record = True
+                self.logger.debug(f'set should_stop_record flag as {should_stop_record}')
         # 主动停止录制
         if should_stop_record:
             self.stop_record()

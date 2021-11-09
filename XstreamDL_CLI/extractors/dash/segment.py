@@ -15,6 +15,9 @@ class DASHSegment(Segment):
     def set_duration(self, duration: float):
         self.duration = duration
 
+    def set_fmt_time(self, fmt_time: float):
+        self.fmt_time = fmt_time
+
     def set_subtitle_url(self, subtitle_url: str):
         self.name = subtitle_url.split('?')[0].split('/')[-1]
         self.index = -1

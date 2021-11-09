@@ -366,7 +366,9 @@ class DASHParser(BaseParser):
                 if '$RepresentationID$' in media_url:
                     media_url = media_url.replace('$RepresentationID$', representation.id)
                 if '$Time$' in media_url:
-                    media_url = media_url.replace('$Time$', str(time_offset + base_time))
+                    fmt_time = time_offset + base_time
+                    stream.set_segment_fmt_time(fmt_time)
+                    media_url = media_url.replace('$Time$', str(fmt_time))
                     time_offset += s.d
                 stream.set_segment_duration(interval)
                 stream.set_media_url(media_url)

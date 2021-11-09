@@ -85,6 +85,9 @@ class DASHStream(Stream):
     def set_segment_duration(self, duration: float):
         self.segments[-1].set_duration(duration)
 
+    def set_segment_fmt_time(self, fmt_time: int):
+        self.segments[-1].set_fmt_time(fmt_time)
+
     def set_segments_duration(self, duration: float):
         '''' init分段没有时长 这里只用设置普通分段的 '''
         for segment in self.segments:

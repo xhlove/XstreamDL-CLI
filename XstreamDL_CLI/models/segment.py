@@ -22,6 +22,8 @@ class Segment:
         self.url = ''
         self.filesize = 0
         self.duration = 0.0
+        # dash直播流需要通过比较时间来确定是不是需要下载
+        self.fmt_time = 0
         self.byterange = [] # type: list
         # <---临时存放二进制内容--->
         self.content = [] # type: List[bytes]
