@@ -27,6 +27,10 @@ def command_handler(logger: Logger, args: CmdArgs):
             assert float(hms[1]) <= 60.0, '--live-duration minute must less than or equal to 60'
             assert float(hms[2]) <= 60.0, '--live-duration second must less than or equal to 60'
             args.live_duration = float(hms[0]) * 60 * 60 + float(hms[1]) * 60 + float(hms[2])
+    try:
+        args.live_utc_offset = int(args.live_utc_offset)
+    except Exception:
+        assert False, '--live-utc-offset can not be convert to int value'
     logger.debug(f'set --live-duration to {args.live_duration}')
     if args.video_only is True and args.audio_only is True:
         assert False, '--video-only and --audio-only cannot be used at the same time'
@@ -91,6 +95,7 @@ def main():
     parser.add_argument('-h', '--help', action='store_true', help='print help message and exit')
     parser.add_argument('--live', action='store_true', help='live mode')
     parser.add_argument('--live-duration', default='', help='live record time, format HH:MM:SS, example 00:00:30 will record about 30s')
+    parser.add_argument('--live-utc-offset', default='0', help='the value is used to correct utc time')
     parser.add_argument('--name', default='', help='specific stream base name')
     parser.add_argument('--base-url', default='', help='set base url for Stream')
     parser.add_argument('--resolution', default='', choices=['', '270', '360', '480', '540', '576', '720', '1080', '2160'], help='auto choose target quality')

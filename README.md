@@ -227,6 +227,8 @@ optional arguments:
   --live-duration LIVE_DURATION
                         live record time, format HH:MM:SS, example 00:00:30
                         will record about 30s
+  --live-utc-offset LIVE_UTC_OFFSET
+                        the value is used to correct utc time
   --name NAME           specific stream base name
   --base-url BASE_URL   set base url for Stream
   --resolution {,270,360,480,540,576,720,1080,2160}
