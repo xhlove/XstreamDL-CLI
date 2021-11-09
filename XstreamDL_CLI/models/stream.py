@@ -74,7 +74,9 @@ class Stream:
         - 更新新增分段的文件名
         - 根据链接中的path部分检查是不是重复了
         '''
-        last_fmt_time = max([segment.fmt_time for segment in self.segments if segment.skip_concat is False])
+        # 到这个位置这一轮下载结束了 先去除404分段
+        self.segments = [segment for segment in self.segments if segment.skip_concat is False]
+        last_fmt_time = max([segment.fmt_time for segment in self.segments])
         offset = len(self.segments)
         _segments = []
         for segment in segments:
