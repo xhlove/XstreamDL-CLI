@@ -14,9 +14,9 @@ class Headers:
         if getattr(sys, 'frozen', False):
             config_path = Path(sys.executable).parent / args.headers
         else:
-            config_path = Path(__file__).parent.parent / args.headers
+            config_path = Path(__file__).parent.parent.parent / args.headers
         if config_path.exists() is False:
-            self.logger.warning(f'{config_path.stem} is not exists, put your config file to {config_path.parent.resolve().as_posix()}')
+            self.logger.warning(f'{config_path.stem} is not exists, put your config file to {config_path.parent.parent.resolve().as_posix()}')
             return
         try:
             self.headers = json.loads(config_path.read_text(encoding='utf-8'))
