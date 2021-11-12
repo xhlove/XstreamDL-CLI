@@ -9,6 +9,9 @@ from .childs.period import Period
 from .childs.representation import Representation
 from .childs.role import Role
 from .childs.s import S
+from .childs.segmentlist import SegmentList
+from .childs.initialization import Initialization
+from .childs.segmenturl import SegmentURL
 from .childs.segmenttemplate import SegmentTemplate
 from .childs.segmenttimeline import SegmentTimeline
 
@@ -56,6 +59,9 @@ def xml_handler(content: str):
         'AdaptationSet': AdaptationSet,
         'Representation': Representation,
         'SegmentTemplate': SegmentTemplate,
+        'SegmentURL': SegmentURL,
+        'Initialization': Initialization,
+        'SegmentList': SegmentList,
         'SegmentTimeline': SegmentTimeline,
         'Role': Role,
         'S': S,

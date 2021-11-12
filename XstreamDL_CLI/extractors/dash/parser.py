@@ -8,11 +8,13 @@ from .handler import xml_handler
 from .childs.adaptationset import AdaptationSet
 from .childs.role import Role
 from .childs.baseurl import BaseURL
-# from .childs.location import Location
 from .childs.contentprotection import ContentProtection
 from .childs.period import Period
 from .childs.representation import Representation
 from .childs.s import S
+from .childs.segmentlist import SegmentList
+from .childs.initialization import Initialization
+from .childs.segmenturl import SegmentURL
 from .childs.segmenttemplate import SegmentTemplate
 from .childs.segmenttimeline import SegmentTimeline
 
@@ -227,8 +229,11 @@ class DASHParser(BaseParser):
                     stream.base2url(period.duration)
                     streams.append(stream)
                     continue
+            segmentlists = representation.find('SegmentList') # type: List[SegmentList]
             # 针对视频音频流处理 分情况生成链接
-            if len(segmenttemplates) == 0:
+            if len(segmentlists) == 1:
+                self.walk_segmentlist(segmentlists[0], representation, period, stream)
+            elif len(segmenttemplates) == 0:
                 self.walk_segmenttemplate(representation, period, stream)
             elif len(segmenttemplates) == 1 and len(segmenttemplates[0].find('SegmentTimeline')) == 1:
                 self.walk_segmenttimeline(segmenttemplates[0], representation, period, stream)
@@ -250,6 +255,19 @@ class DASHParser(BaseParser):
                 self.generate_v1(period, representation.id, segmenttemplates[0], stream)
             streams.append(stream)
         return streams
+
+    def walk_segmentlist(self, segmentlist: SegmentList, representation: Representation, period: Period, stream: DASHStream):
+        initializations = segmentlist.find('Initialization') # type: List[Initialization]
+        has_initialization = False
+        if len(initializations) == 1:
+            has_initialization = True
+            stream.set_init_url(initializations[0].sourceURL)
+        segmenturls = segmentlist.find('SegmentURL') # type: List[SegmentURL]
+        for segmenturl in segmenturls:
+            stream.set_media_url(segmenturl.media)
+        if has_initialization:
+            interval = float(segmentlist.duration / segmentlist.timescale)
+            stream.set_segments_duration(interval)
 
     def walk_contentprotection(self, representation: Representation, stream: DASHStream):
         ''' 流的加密方案 '''
