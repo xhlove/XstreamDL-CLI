@@ -2,6 +2,7 @@ from typing import List
 from logging import Logger
 from .ism import ISM
 from .childs.c import c as Cc
+from .childs.protectionheader import ProtectionHeader
 from .childs.streamindex import StreamIndex
 from .childs.qualitylevel import QualityLevel
 from .handler import xml_handler
@@ -31,21 +32,22 @@ class MSSParser(BaseParser):
         assert len(streamindexs) > 0, 'there is no StreamIndex'
         # 遍历处理streamindexs
         streams = [] # type: List[MSSStream]
-        for streamindex in streamindexs:
-            streams.extend(self.walk_qualitylevel(streamindex, ism, len(streams), uri_item))
+        for track_index, streamindex in enumerate(streamindexs):
+            streams.extend(self.walk_qualitylevel(track_index, streamindex, ism, len(streams), uri_item))
         # 处理空分段
         for stream in streams:
             if stream.segments[-1].url == '':
                 _ = stream.segments.pop(-1)
         return streams
 
-    def walk_qualitylevel(self, streamindex: StreamIndex, ism: ISM, sindex: int, uri_item: BaseUri) -> List[MSSStream]:
+    def walk_qualitylevel(self, track_index: int, streamindex: StreamIndex, ism: ISM, sindex: int, uri_item: BaseUri) -> List[MSSStream]:
         streams = [] # type: List[MSSStream]
         qualitylevels = streamindex.find('QualityLevel') # type: List[QualityLevel]
         if len(qualitylevels) == 0:
             return streams
         for qualitylevel in qualitylevels:
             stream = MSSStream(sindex + len(streams), uri_item, self.args.save_dir)
+            stream.set_track_index(track_index)
             streams.extend(self.walk_c(qualitylevel, streamindex, ism, stream))
         return streams
 
@@ -54,6 +56,7 @@ class MSSParser(BaseParser):
         if len(cs) == 0:
             return []
         # 设置基本信息
+        stream.set_track_name(streamindex.Name)
         stream.set_timescale(streamindex.TimeScale or ism.TimeScale)
         stream.set_stream_type(streamindex.Type)
         stream.set_codecs(qualitylevel.FourCC)
@@ -90,8 +93,11 @@ class MSSParser(BaseParser):
         protections = ism.find('Protection')
         if len(protections) > 0 and len(protections[0].find('ProtectionHeader')) > 0:
             protection_flag = True
-            protectionheaders = protections[0].find('ProtectionHeader')
+            protectionheaders = protections[0].find('ProtectionHeader') # type: List[ProtectionHeader]
+            if len(protectionheaders) > 1:
+                print('please report this ism content to me')
             for protectionheader in protectionheaders:
+                stream.set_kid(protectionheader.kid)
                 stream.append_key(MSSKey(protectionheader))
             self.logger.debug(f'ProtectionHeader was found')
         else:

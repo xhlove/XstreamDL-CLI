@@ -10,6 +10,7 @@ from XstreamDL_CLI.extractors.dash.segment import DASHSegment
 class DASHStream(Stream):
     def __init__(self, index: int, uri_item: BaseUri, save_dir: Path):
         super(DASHStream, self).__init__(index, uri_item, save_dir)
+        self.model = 'dash'
         self.segments = [] # type: List[DASHSegment]
         self.suffix = '.mp4'
         self.has_init_segment = False

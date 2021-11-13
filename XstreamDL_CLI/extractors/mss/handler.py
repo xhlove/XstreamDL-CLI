@@ -10,6 +10,7 @@ from .childs.streamindex import StreamIndex
 def xml_handler(content: str):
     def handle_start_element(tag, attrs):
         nonlocal ism
+        nonlocal ism_handlers
         if ism is None:
             if tag != 'SmoothStreamingMedia':
                 raise Exception('the first tag is not SmoothStreamingMedia!')
@@ -22,22 +23,26 @@ def xml_handler(content: str):
                 return
             child = ism_handlers[tag](tag)
             child.addattrs(attrs)
-            child.generate()
+            if tag != 'ProtectionHeader':
+                child.generate()
             ism.childs.append(child)
             ism = child
             stack.append(child)
 
     def handle_end_element(tag):
         nonlocal ism
+        nonlocal ism_handlers
         if ism_handlers.get(tag) is None:
             return
+        if tag == 'ProtectionHeader':
+            ism.generate()
         if len(stack) > 1:
             _ = stack.pop(-1)
             ism = stack[-1]
 
     def handle_character_data(texts: str):
         if texts.strip() != '':
-            ism.innertext = texts.strip()
+            ism.innertext += texts.strip()
     stack = []
     ism = None # type: ISM
     ism_handlers = {

@@ -51,6 +51,7 @@ class Stream:
         self.streamkeys = [] # type: List[StreamKey]
         # 初始化默认设定流类型
         self.stream_type = '' # type: str
+        self.model = ''
         self.suffix = '.mp4'
 
     def segments_extend(self, segments: List[Segment], has_init: bool = False):
@@ -99,6 +100,10 @@ class Stream:
 
     def get_name(self):
         return self.name
+
+    def get_stream_model(self):
+        assert self.model != '', 'report this content to me'
+        return self.model
 
     def check_record_time(self, live_duration: float):
         # 修正calc计算后 直接比较当前流的 duration 即可

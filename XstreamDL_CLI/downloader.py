@@ -287,6 +287,8 @@ class Downloader:
                 if len(stream.segments) <= 5:
                     stream.show_segments()
                 continue
+            if stream.get_stream_model() == 'mss':
+                stream.fix_header()
             self.logger.info(f'{stream.get_name()} {t_msg.download_start}.')
             while max_failed > 0:
                 loop = new_event_loop()
@@ -479,9 +481,6 @@ class Downloader:
         '''
         解密部分
         '''
-        if segment.index == 0 and segment.is_ism():
-            self.logger.info(f'fix header for ism content')
-            segment.fix_header(stream)
         if self.args.disable_auto_decrypt is True:
             self.logger.debug(f'--disable-auto-decrypt, skip decrypt')
             return segment.dump()

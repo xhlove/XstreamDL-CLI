@@ -59,7 +59,10 @@ class Segment:
 
     def set_index(self, index: str):
         self.index = index
-        self.name = f'{self.index:0>4}{self.suffix}'
+        if index == -1:
+            self.name = f'init{self.suffix}'
+        else:
+            self.name = f'{self.index:0>4}{self.suffix}'
         return self
 
     def set_folder(self, folder: Path):

@@ -5,6 +5,8 @@ class Representation(MPDItem):
     def __init__(self, name: str):
         super(Representation, self).__init__(name)
         self.id = None
+        self.scanType = None
+        self.frameRate = None
         self.bandwidth = None
         self.codecs = None
         self.mimeType = None
