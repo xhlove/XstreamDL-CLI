@@ -315,16 +315,11 @@ class Downloader:
                 if count_none > 0:
                     max_failed -= 1
                     continue
-                # if stream.stream_type == 'text':
-                #     # mpd中text类型 一般是字幕直链 跳过合并
-                #     pass
-                # if self.args.live is False and self.args.disable_auto_concat is False:
-                #     stream.concat(self.logger, self.args)
-                self.try_concat(stream)
                 break
             # track_id 最佳获取方案是从实际分段中提取 通过ism元数据无法直接计算出来
             if stream.get_stream_model() == 'mss':
                 stream.fix_header(is_fake=False)
+            self.try_concat(stream)
             # 只需要检查一个流的时间达到最大值就停止录制
             # 应当进行优化 只针对单个流进行停止录制
             if self.args.live and should_stop_record is False and stream.check_record_time(self.args.live_duration):
