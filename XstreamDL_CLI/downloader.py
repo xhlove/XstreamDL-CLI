@@ -288,7 +288,8 @@ class Downloader:
                     stream.show_segments()
                 continue
             if stream.get_stream_model() == 'mss':
-                stream.fix_header()
+                # 这里的init实际上是不正确的 这里生成是为了满足下载文件检查等逻辑
+                stream.fix_header(is_fake=True)
             self.logger.info(f'{stream.get_name()} {t_msg.download_start}.')
             while max_failed > 0:
                 loop = new_event_loop()
@@ -317,6 +318,9 @@ class Downloader:
                 #     stream.concat(self.logger, self.args)
                 self.try_concat(stream)
                 break
+            # track_id 最佳获取方案是从实际分段中提取 通过ism元数据无法直接计算出来
+            if stream.get_stream_model() == 'mss':
+                stream.fix_header(is_fake=False)
             # 只需要检查一个流的时间达到最大值就停止录制
             # 应当进行优化 只针对单个流进行停止录制
             if self.args.live and should_stop_record is False and stream.check_record_time(self.args.live_duration):

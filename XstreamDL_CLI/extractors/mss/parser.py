@@ -32,20 +32,20 @@ class MSSParser(BaseParser):
         assert len(streamindexs) > 0, 'there is no StreamIndex'
         # 遍历处理streamindexs
         streams = [] # type: List[MSSStream]
-        for track_index, streamindex in enumerate(streamindexs):
-            streams.extend(self.walk_qualitylevel(track_index, streamindex, ism, len(streams), uri_item))
+        for streamindex in streamindexs:
+            streams.extend(self.walk_qualitylevel(streamindex, ism, len(streams), uri_item))
         # 处理空分段
         for stream in streams:
             if stream.segments[-1].url == '':
                 _ = stream.segments.pop(-1)
         return streams
 
-    def walk_qualitylevel(self, track_index: int, streamindex: StreamIndex, ism: ISM, sindex: int, uri_item: BaseUri) -> List[MSSStream]:
+    def walk_qualitylevel(self, streamindex: StreamIndex, ism: ISM, sindex: int, uri_item: BaseUri) -> List[MSSStream]:
         streams = [] # type: List[MSSStream]
         qualitylevels = streamindex.find('QualityLevel') # type: List[QualityLevel]
         if len(qualitylevels) == 0:
             return streams
-        for qualitylevel in qualitylevels:
+        for track_index, qualitylevel in enumerate(qualitylevels):
             stream = MSSStream(sindex + len(streams), uri_item, self.args.save_dir)
             stream.set_track_index(track_index)
             streams.extend(self.walk_c(qualitylevel, streamindex, ism, stream))

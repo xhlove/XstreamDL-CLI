@@ -17,6 +17,7 @@ from XstreamDL_CLI.extractors.mss.box_util import (
     box,
     full_box,
     unity_matrix,
+    extract_box_data,
 )
 
 TRACK_ENABLED = 0x1
@@ -147,7 +148,7 @@ class MSSStream(Stream):
     def set_lang(self, lang: str):
         if lang is None:
             return
-        self.lang = lang
+        self.lang = lang.lower()
 
     def set_bandwidth(self, bandwidth: int):
         self.bandwidth = bandwidth
@@ -222,8 +223,13 @@ class MSSStream(Stream):
             return
         self.nal_unit_length_field = nal_unit_length_field
 
-    def fix_header(self):
-        init_payload = self.write_iso6_header(self.segments[0].has_protection)
+    def fix_header(self, is_fake: bool):
+        if is_fake:
+            track_id = 1
+        else:
+            tfhd_data = extract_box_data(self.segments[1].get_path().read_bytes(), [b'moof', b'traf', b'tfhd'])
+            track_id = u32.unpack(tfhd_data[4:8])[0]
+        init_payload = self.write_iso6_header(track_id, is_enc=self.segments[0].has_protection)
         self.segments[0].get_path().write_bytes(init_payload)
 
     def get_sinf_payload(self, kid: bytes, codec: bytes):
@@ -242,7 +248,7 @@ class MSSStream(Stream):
         sinf_payload = box(b'sinf', sinf_payload)
         return sinf_payload
 
-    def write_iso6_header(self, write_time: bool = False, is_enc: bool = False):
+    def write_iso6_header(self, track_id: int, write_time: bool = False, is_enc: bool = False):
         '''
         根据dashif的信息，需要以下信息构成ism的init数据
         - track_name
@@ -262,9 +268,7 @@ class MSSStream(Stream):
             creation_time = modification_time = int(time.time())
         else:
             creation_time = modification_time = 0
-
         track_name = self.get_track_name()
-        track_id = self.track_index + 1
         fourcc = self.codecs
         duration = self.duration
         timescale = self.timescale
