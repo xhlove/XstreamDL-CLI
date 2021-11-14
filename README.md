@@ -212,7 +212,7 @@ C#版写起来非常不顺手，搁置了
 ## HELP INFO
 
 ```bash
-version 1.3.4, A downloader that download the HLS/DASH stream.
+version 1.3.5, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
 A downloader that download the HLS/DASH stream
@@ -236,6 +236,8 @@ optional arguments:
   --best-quality        auto choose best quality for dash streams
   --video-only          only choose video stream when use --best-quality
   --audio-only          only choose audio stream when use --best-quality
+  --all-videos          choose all video stream to download
+  --all-audios          choose all audio stream to download
   --service SERVICE     set serviceLocation for BaseURL choose
   --save-dir SAVE_DIR   set save dir for Stream
   --select              show stream to select and download, default is to
@@ -281,7 +283,7 @@ optional arguments:
 ## pyinstaller打包
 
 ```bash
-pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.4 -F XstreamDL_CLI\__main__.py
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.5 -F XstreamDL_CLI\__main__.py
 ```
 
 ## 特性

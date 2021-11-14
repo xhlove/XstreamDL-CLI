@@ -251,6 +251,10 @@ class Downloader:
                 self.logger.info(t_msg.select_without_any_stream)
         elif self.args.best_quality:
             selected = auto_choose_best_streams(self.args, streams)
+        elif self.args.all_videos:
+            selected = [index for index, stream in enumerate(streams) if stream.stream_type == 'video']
+        elif self.args.all_audios:
+            selected = [index for index, stream in enumerate(streams) if stream.stream_type == 'audio']
         elif self.args.resolution != '':
             selected = auto_choose_resolution(self.args, streams)
         else:
