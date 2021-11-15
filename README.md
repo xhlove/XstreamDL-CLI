@@ -4,6 +4,8 @@
 
 ## 使用
 
+[README_ENG.md](README_ENG.md)
+
 **首先将`ffmpeg`和`mp4decrypt`的可执行文件放置在`binaries`文件夹中**
 
 [可执行文件下载链接点此](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.3.1/binaries.7z)
