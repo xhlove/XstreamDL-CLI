@@ -345,7 +345,7 @@ class DASHParser(BaseParser):
                 for number in range(s.r):
                     if (tmp_t + s.d) / st.timescale + start_utctime > current_utctime:
                         base_time = tmp_t
-                        self.logger.debug(f'set base_time base_time {base_time} target_r {target_r}')
+                        self.logger.debug(f'set base_time {base_time} target_r {target_r}')
                         break
                     if target_r > 0:
                         tmp_t += s.d
@@ -357,6 +357,9 @@ class DASHParser(BaseParser):
             assert base_time is not None, f'{representation.id} report mpd to me, maybe need wait {current_utctime - start_utctime - tmp_t / st.timescale}s'
             # if base_time is None:
             #     base_time = ss[0].t
+        elif ss[0].t > 0:
+            base_time = ss[0].t
+            self.logger.debug(f'ss[0].t > 0, set base_time {base_time}')
         else:
             base_time = 0
         # 如果 base_time 不为 0 即第一个 s.t 不为

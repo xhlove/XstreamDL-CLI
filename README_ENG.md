@@ -28,7 +28,7 @@ some_folder
     binaries
         ffmpeg.exe
         mp4decrypt.exe
-    XstreamDL-CLI_v1.3.5.exe
+    XstreamDL-CLI_v1.3.6.exe
 ```
 
 ## tips
@@ -77,8 +77,8 @@ if you want to privacy protection, you can
 
 ```bash
 [question]: download successfully, but cannot decrypt
-[version]: XstreamDL-CLI_v1.3.5.exe
-[command]: XstreamDL-CLI_v1.3.5.exe --select --raw-concat "https://ec05-poz1.waw2.cache.orange.pl/canal/v/canal/vod/store01/FPL_Y6mY2VScXBCoXRHn6R9K/_/hd4-hssdrm02.ism/manifest"
+[version]: XstreamDL-CLI_v1.3.6.exe
+[command]: XstreamDL-CLI_v1.3.6.exe --select --raw-concat "https://ec05-poz1.waw2.cache.orange.pl/canal/v/canal/vod/store01/FPL_Y6mY2VScXBCoXRHn6R9K/_/hd4-hssdrm02.ism/manifest"
 [traceback]:
 [init segment]:
 [sample segment]:
@@ -122,7 +122,7 @@ read **HELP INFO** for more option
 # HELP INFO
 
 ```bash
-version 1.3.5, A downloader that download the HLS/DASH stream.
+version 1.3.6, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
 A downloader that download the HLS/DASH stream
