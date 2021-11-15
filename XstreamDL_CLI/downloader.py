@@ -369,9 +369,10 @@ class Downloader:
             if _future.exception() is None:
                 segment, status, flag = _future.result()
                 if flag is None:
-                    pass
+                    segment.content = []
                     # self.logger.error('下载过程中出现已知异常 需重新下载\n')
                 elif flag is False:
+                    segment.content = []
                     # 某几类已知异常 如状态码不对 返回头没有文件大小 视为无法下载 主动退出
                     cancel_all_task()
                     if status in ['STATUS_CODE_ERROR', 'NO_CONTENT_LENGTH']:
