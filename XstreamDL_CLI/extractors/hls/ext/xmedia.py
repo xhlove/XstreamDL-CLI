@@ -1,3 +1,4 @@
+import re
 from .x import X
 
 
@@ -34,6 +35,14 @@ class XMedia(X):
             'CHARACTERISTICS': 'subtitles',
             'CHANNELS': int,
         }
+
+    def convert_type(self, name: str, value: str, _type: type):
+        if name == 'CHANNELS':
+            try:
+                value = re.findall('(\d+)', value)[0]
+            except Exception:
+                pass
+        self.__setattr__(self.format_key(name), _type(value))
 
     def set_attrs_from_line(self, line: str):
         '''

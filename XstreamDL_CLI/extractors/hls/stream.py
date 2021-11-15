@@ -125,6 +125,8 @@ class HLSStream(Stream):
                 # 而命令行又指定了 也进行设定
                 self.set_segments_key(custom_xkey)
             return
+        if self.xkey.method and self.xkey.method.upper() in ['SAMPLE-AES']:
+            return
         if self.xkey.load(args, custom_xkey, logger) is True:
             logger.info(f'm3u8 key loaded\nmethod => {self.xkey.method}\nkey    => {self.xkey.key}\niv     => {self.xkey.iv}')
             self.set_segments_key(self.xkey)
