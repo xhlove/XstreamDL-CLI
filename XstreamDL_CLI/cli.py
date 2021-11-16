@@ -29,6 +29,7 @@ def command_handler(logger: Logger, args: CmdArgs):
             args.live_duration = float(hms[0]) * 60 * 60 + float(hms[1]) * 60 + float(hms[2])
     try:
         args.live_utc_offset = int(args.live_utc_offset)
+        args.live_refresh_interval = int(args.live_refresh_interval)
     except Exception:
         assert False, '--live-utc-offset can not be convert to int value'
     logger.debug(f'set --live-duration to {args.live_duration}')
@@ -96,6 +97,7 @@ def main():
     parser.add_argument('--live', action='store_true', help='live mode')
     parser.add_argument('--live-duration', default='', help='live record time, format HH:MM:SS, example 00:00:30 will record about 30s')
     parser.add_argument('--live-utc-offset', default='0', help='the value is used to correct utc time')
+    parser.add_argument('--live-refresh-interval', default='3', help='live refresh interval')
     parser.add_argument('--name', default='', help='specific stream base name')
     parser.add_argument('--base-url', default='', help='set base url for Stream')
     parser.add_argument('--resolution', default='', choices=['', '270', '360', '480', '540', '576', '720', '1080', '2160'], help='auto choose target quality')

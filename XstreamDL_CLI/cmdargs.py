@@ -7,6 +7,7 @@ class CmdArgs:
         self.live = None # type: bool
         self.live_duration = None # type: float
         self.live_utc_offset = None # type: int
+        self.live_refresh_interval = None # type: int
         self.name = None # type: str
         self.base_url = None # type: str
         self.resolution = None # type: str
