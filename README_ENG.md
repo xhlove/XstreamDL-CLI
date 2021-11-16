@@ -28,7 +28,7 @@ some_folder
     binaries
         ffmpeg.exe
         mp4decrypt.exe
-    XstreamDL-CLI_v1.3.6.exe
+    XstreamDL-CLI_v1.3.7.exe
 ```
 
 ## tips
@@ -77,8 +77,8 @@ if you want to privacy protection, you can
 
 ```bash
 [question]: download successfully, but cannot decrypt
-[version]: XstreamDL-CLI_v1.3.6.exe
-[command]: XstreamDL-CLI_v1.3.6.exe --select --raw-concat "https://ec05-poz1.waw2.cache.orange.pl/canal/v/canal/vod/store01/FPL_Y6mY2VScXBCoXRHn6R9K/_/hd4-hssdrm02.ism/manifest"
+[version]: XstreamDL-CLI_v1.3.7.exe
+[command]: XstreamDL-CLI_v1.3.7.exe --select --raw-concat "https://ec05-poz1.waw2.cache.orange.pl/canal/v/canal/vod/store01/FPL_Y6mY2VScXBCoXRHn6R9K/_/hd4-hssdrm02.ism/manifest"
 [traceback]:
 [init segment]:
 [sample segment]:
@@ -122,13 +122,13 @@ read **HELP INFO** for more option
 # HELP INFO
 
 ```bash
-version 1.3.6, A downloader that download the HLS/DASH stream.
+version 1.3.7, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
-A downloader that download the HLS/DASH stream
+A downloader that download the HLS/DASH stream     
 
 positional arguments:
-  URI                   URL/FILE/FOLDER string
+  URI                   URL/FILE/FOLDER string     
 
 optional arguments:
   -v, --version         print version and exit
@@ -139,6 +139,8 @@ optional arguments:
                         will record about 30s
   --live-utc-offset LIVE_UTC_OFFSET
                         the value is used to correct utc time
+  --live-refresh-interval LIVE_REFRESH_INTERVAL
+                        live refresh interval
   --name NAME           specific stream base name
   --base-url BASE_URL   set base url for Stream
   --resolution {,270,360,480,540,576,720,1080,2160}

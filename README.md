@@ -214,13 +214,13 @@ C#版写起来非常不顺手，搁置了
 ## HELP INFO
 
 ```bash
-version 1.3.6, A downloader that download the HLS/DASH stream.
+version 1.3.7, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
-A downloader that download the HLS/DASH stream
+A downloader that download the HLS/DASH stream     
 
 positional arguments:
-  URI                   URL/FILE/FOLDER string
+  URI                   URL/FILE/FOLDER string     
 
 optional arguments:
   -v, --version         print version and exit
@@ -231,6 +231,8 @@ optional arguments:
                         will record about 30s
   --live-utc-offset LIVE_UTC_OFFSET
                         the value is used to correct utc time
+  --live-refresh-interval LIVE_REFRESH_INTERVAL
+                        live refresh interval
   --name NAME           specific stream base name
   --base-url BASE_URL   set base url for Stream
   --resolution {,270,360,480,540,576,720,1080,2160}
@@ -285,7 +287,7 @@ optional arguments:
 ## pyinstaller打包
 
 ```bash
-pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.6 -F XstreamDL_CLI\__main__.py
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.7 -F XstreamDL_CLI\__main__.py
 ```
 
 ## 特性
