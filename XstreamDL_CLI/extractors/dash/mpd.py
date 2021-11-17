@@ -19,7 +19,7 @@ class MPD(MPDItem):
         self.minimumUpdatePeriod = None # type: str
         # time of client to fetch the mpd content
         self.publishTime = None # type: datetime
-        self.availabilityStartTime = None # type: datetime
+        self.availabilityStartTime = None # type: float
         self.timeShiftBufferDepth = None # type: str
         self.suggestedPresentationDelay = None # type: str
 
@@ -31,11 +31,13 @@ class MPD(MPDItem):
         if isinstance(self.minBufferTime, str):
             self.minBufferTime = self.match_duration(self.minBufferTime)
         if isinstance(self.availabilityStartTime, str):
+            if self.availabilityStartTime == '1970-01-01T00:00:00Z':
+                self.availabilityStartTime = 0.0
             try:
-                self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%S.%fZ')
+                self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp()
             except Exception:
                 try:
-                    self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%SZ')
+                    self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%SZ').timestamp()
                 except Exception:
                     pass
         if isinstance(self.publishTime, str):

@@ -2,7 +2,6 @@ import re
 import math
 from logging import Logger
 from typing import List, Dict, Union
-from datetime import datetime, timedelta
 from .mpd import MPD
 from .handler import xml_handler
 from .childs.adaptationset import AdaptationSet
@@ -333,10 +332,10 @@ class DASHParser(BaseParser):
             # newest available segment $Time$ should meet below condition
             # SegmentTimeline.S.t / timescale + (mpd.availabilityStartTime + Period.start) <= time.time()
             base_time = None # type: int
-            assert isinstance(self.root.availabilityStartTime, datetime), 'report mpd to me'
+            assert isinstance(self.root.availabilityStartTime, float), 'report mpd to me'
             current_utctime = self.root.publishTime.timestamp() - self.args.live_utc_offset
-            presentation_start = (period.start - st.presentationTimeOffset / st.timescale + 30) * 1000
-            start_utctime = (self.root.availabilityStartTime + timedelta(milliseconds=presentation_start)).timestamp()
+            presentation_start = period.start - st.presentationTimeOffset / st.timescale + 30
+            start_utctime = self.root.availabilityStartTime + presentation_start
             self.logger.debug(f'mpd.presentationTimeOffset {st.presentationTimeOffset} timescale {st.timescale}')
             self.logger.debug(f'mpd.availabilityStartTime {self.root.availabilityStartTime} Period.start {period.start}')
             self.logger.debug(f'start_utctime {start_utctime} current_utctime {current_utctime}')
