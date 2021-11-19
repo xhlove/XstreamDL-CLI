@@ -40,7 +40,7 @@ class Texts:
         self.try_to_concat = 'try to concat'
         self.cancel_concat_reason_1 = 'but file already exists'
         self.cancel_concat_reason_2 = 'buf download not completely'
-        self.force_use_raw_concat_for_sample_aes = 'force use --raw-concat for SAMPLE-AES'
+        self.force_use_raw_concat_for_sample_aes = 'force use --raw-concat for SAMPLE-AES(-CTR)'
 
 
 t_msg = Texts()

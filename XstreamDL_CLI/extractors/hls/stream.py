@@ -40,16 +40,28 @@ class HLSStream(Stream):
         self.xmedias = [] # type: List[XMedia]
         self.xstream_inf = None # type: XStreamInf
         self.bakcup_xkey = None
+        self.group_id = ''
         # 如果parent_stream不为空 那么将一些属性进行赋值
         if parent_stream is not None:
             self.fps = parent_stream.fps
             self.lang = parent_stream.lang
+            self.group_id = parent_stream.group_id
             self.codecs = parent_stream.codecs
             self.bandwidth = parent_stream.bandwidth
             self.resolution = parent_stream.resolution
             self.stream_type = parent_stream.stream_type
         # 初始化默认设定一个分段
         self.append_segment()
+
+    def set_stream_lang(self, lang: str):
+        if not lang:
+            return
+        self.lang = lang
+
+    def set_stream_group_id(self, group_id: str):
+        if not group_id:
+            return
+        self.group_id = group_id
 
     def set_stream_type(self, stream_type: str):
         ''' #EXT-X-MEDIA 会表明流类型 '''
@@ -64,6 +76,10 @@ class HLSStream(Stream):
             base_name = self.name
         if self.resolution != '':
             base_name += f'_{self.resolution}'
+        if self.lang != '':
+            base_name += f'_{self.lang}'
+        if self.group_id != '':
+            base_name += f'_{self.group_id}'
         if self.bandwidth is not None:
             base_name += f'_{self.bandwidth / 1000:.2f}kbps'
         return base_name
@@ -125,7 +141,7 @@ class HLSStream(Stream):
                 # 而命令行又指定了 也进行设定
                 self.set_segments_key(custom_xkey)
             return
-        if self.xkey.method and self.xkey.method.upper() in ['SAMPLE-AES']:
+        if self.xkey.method and self.xkey.method.upper() in ['SAMPLE-AES', 'SAMPLE-AES-CTR']:
             return
         if self.xkey.load(args, custom_xkey, logger) is True:
             logger.info(f'm3u8 key loaded\nmethod => {self.xkey.method}\nkey    => {self.xkey.key}\niv     => {self.xkey.iv}')
@@ -180,6 +196,8 @@ class HLSStream(Stream):
         xmedia = XMedia()
         xmedia.set_attrs_from_line(line)
         xmedia.uri = self.set_origin_url(home_url, base_url, xmedia.uri)
+        self.set_stream_lang(xmedia.language)
+        self.set_stream_group_id(xmedia.group_id)
         self.set_stream_type(xmedia.type)
         self.xmedias.append(xmedia)
 

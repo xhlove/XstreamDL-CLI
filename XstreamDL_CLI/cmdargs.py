@@ -41,4 +41,5 @@ class CmdArgs:
         self.index_to_name = None # type: bool
         self.log_level = None # type: str
         self.redl_code = None # type: list
+        self.hide_load_metadata = None # type: bool
         self.URI = None # type: list

@@ -211,7 +211,7 @@ class Stream:
         if args.live is False and len(names) != len(self.segments) - skip_count:
             logger.error(f'{t_msg.try_to_concat} {self.get_name()} {t_msg.cancel_concat_reason_2}')
             return False
-        if hasattr(self, "xkey") and self.xkey is not None and self.xkey.method.upper() == "SAMPLE-AES":
+        if hasattr(self, "xkey") and self.xkey is not None and self.xkey.method.upper() in ['SAMPLE-AES', 'SAMPLE-AES-CTR']:
             logger.warning(t_msg.force_use_raw_concat_for_sample_aes)
             args.raw_concat = True
         if len(self.streamkeys) > 0:

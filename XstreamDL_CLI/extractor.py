@@ -107,7 +107,10 @@ class Extractor:
             if stream.tag != '#EXT-X-STREAM-INF' and stream.tag != '#EXT-X-MEDIA':
                 streams.append(stream)
                 continue
-            self.logger.info(f'Load {stream.tag} metadata from -> {stream.origin_url}')
+            if self.args.hide_load_metadata:
+                self.logger.debug(f'Load {stream.tag} metadata from -> {stream.origin_url}')
+            else:
+                self.logger.info(f'Load {stream.tag} metadata from -> {stream.origin_url}')
             new_streams = self.fetch_metadata(stream.origin_url, parent_stream=stream)
             if new_streams is None:
                 continue
