@@ -33,6 +33,9 @@ class MPD(MPDItem):
         if isinstance(self.availabilityStartTime, str):
             if self.availabilityStartTime == '1970-01-01T00:00:00Z':
                 self.availabilityStartTime = 0.0
+            # 2019-03-05T08:26:06.748000+00:00
+            if self.availabilityStartTime[-9:] == '000+00:00':
+                self.availabilityStartTime = self.availabilityStartTime[:-9] + 'Z'
             try:
                 self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp()
             except Exception:
@@ -47,4 +50,8 @@ class MPD(MPDItem):
                 try:
                     self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%SZ')
                 except Exception:
-                    pass
+                    try:
+                        # 2021-11-28T12:33:53
+                        self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%S')
+                    except Exception:
+                        pass
