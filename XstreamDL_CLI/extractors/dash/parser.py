@@ -367,7 +367,10 @@ class DASHParser(BaseParser):
         start_number = st.startNumber
         tmp_offset_r = 0
         for s in ss:
-            interval = s.d / st.timescale
+            if st.timescale == 0:
+                interval = 0
+            else:
+                interval = s.d / st.timescale
             for number in range(s.r):
                 tmp_offset_r += 1
                 if self.is_live and tmp_offset_r < target_r:

@@ -24,7 +24,7 @@ class DASHStream(Stream):
             base_name = self.name
         if 'ixigua.com' in self.home_url:
             base_name += f'_{self.index}'
-        if self.codecs is not None:
+        if self.codecs is not None and self.codecs != '':
             base_name += f'_{self.codecs}'
         if self.stream_type == 'subtitle' and self.lang != '':
             base_name += f'_{self.lang}'
@@ -36,6 +36,8 @@ class DASHStream(Stream):
             base_name += f'_{self.lang}'
         if self.stream_type in ['audio', 'video'] and self.bandwidth is not None:
             base_name += f'_{self.bandwidth / 1000:.2f}kbps'
+        if self.stream_type == '' and self.skey:
+            base_name += self.skey
         return base_name
 
     def append_segment(self):
@@ -155,6 +157,8 @@ class DASHStream(Stream):
             self.suffix = '.vtt'
             stream_type = 'subtitle'
         if stream_type == 'application':
+            if self.codecs is None:
+                return
             if self.codecs.lower() in ['wvtt', 'ttml', 'stpp']:
                 stream_type = 'subtitle'
             else:
