@@ -4,6 +4,12 @@
 
 基于`python 3.7.4`的，命令行版本的，HLS/DASH流下载器，仅支持**HLS标准AES-128-CBC**解密
 
+![XstreamDL-GUI](images/oCam_2021_12_19_00_07_34_559.gif)
+
+[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.3.8/XstreamDL-GUI_v1.3.8.exe)
+
+**使用XstreamDL-GUI需要和XstreamDL-CLI放一起**
+
 ## 使用
 
 **首先将`ffmpeg`和`mp4decrypt`的可执行文件放置在`binaries`文件夹中**

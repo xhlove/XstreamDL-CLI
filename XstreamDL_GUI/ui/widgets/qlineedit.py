@@ -8,6 +8,43 @@ from PySide6.QtCore import Signal, Slot, QEvent, QUrl, QMimeData
 from PySide6.QtGui import QDropEvent, QMouseEvent, QDragEnterEvent
 
 
+class HeaderFileQLineEdit(QLineEdit):
+    update_name = Signal(str)
+
+    def __init__(self, parent: QLineEdit):
+        super(HeaderFileQLineEdit, self).__init__(parent=parent)
+        self.installEventFilter(self)
+
+    def eventFilter(self, source: QLineEdit, event: Union[QDropEvent, QMouseEvent, QDragEnterEvent]):
+        if event.type() == QEvent.DragEnter:
+            event.accept()
+        elif event.type() == QEvent.Drop:
+            # 任何拖放事件 都先清空原来的内容
+            source.clear()
+            md = event.mimeData() # type: QMimeData
+            if md.hasUrls() and len(md.urls()) == 1:
+                path = md.urls()[0].toLocalFile()
+                if os.path.exists(path):
+                    source.setText(path)
+                    self.update_name.emit(path)
+            return True
+        elif event.type() == QEvent.MouseButtonDblClick:
+            # 选择本地headers.json文件
+            fileName, selectedFilter = QFileDialog.getOpenFileUrl(None, caption="select headers.json", dir=QUrl("file://."))
+            if isinstance(fileName, QUrl):
+                path = fileName.toLocalFile()
+                if os.path.exists(path):
+                    source.clear()
+                    source.setText(path)
+                    self.update_name.emit(path)
+            return True
+        return super(HeaderFileQLineEdit, self).eventFilter(source, event)
+
+    @Slot()
+    def tell_text(self):
+        return self.update_name.emit(self.text())
+
+
 class URIQLineEdit(QLineEdit):
 
     # 这个信号用于更新name输入框内容

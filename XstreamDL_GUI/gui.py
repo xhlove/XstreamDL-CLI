@@ -7,12 +7,13 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 
 # from XstreamDL_CLI.daemon import Daemon
 from XstreamDL_GUI.ui.mainui import Ui_MainWindow
+from XstreamDL_GUI.ui.widgets.headers_editor import EditorForm
 from XstreamDL_GUI.handler import ArgsHandler
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
-        super(MainWindow, self).__init__()
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent=parent)
         # self.daemon = None # type: Daemon
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -33,6 +34,7 @@ class MainWindow(QMainWindow):
         self.ui.pushButton_do.clicked.connect(self.do_work)
         # 点击复制按钮 复制完整命令到剪切板
         self.ui.pushButton_copy_command.clicked.connect(self.ui.textEdit_command.copy_text)
+        self.ui.pushButton_edit_headers.clicked.connect(self.show_headers_editor)
         # 数据变化更新command内容
         # <------checkBox------>
         self.ui.checkBox_live.stateChanged.connect(self.update_command)
@@ -148,6 +150,20 @@ class MainWindow(QMainWindow):
                 break
         self.ui.lineEdit_redl_code.setText(self.handler.redl_code)
         self.ui.checkBox_hide_load_metadata.setChecked(self.handler.hide_load_metadata)
+
+    def closeEvent(self, event):
+        if hasattr(self, 'headers_editor'):
+            if self.headers_editor.isVisible():
+                self.headers_editor.close()
+        super(MainWindow, self).closeEvent(event)
+
+    @Slot()
+    def show_headers_editor(self):
+        '''
+        打开headers.json编辑界面
+        '''
+        self.headers_editor = EditorForm(self.windowIcon())
+        self.headers_editor.show()
 
     @Slot()
     def do_work(self):
