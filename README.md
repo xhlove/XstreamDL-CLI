@@ -2,7 +2,7 @@
 
 # XstreamDL-CLI
 
-基于`python 3.7.4+`的，命令行版本的，HLS/DASH流下载器，仅支持**HLS标准AES-128-CBC**解密
+基于`python 3.7.4`的，命令行版本的，HLS/DASH流下载器，仅支持**HLS标准AES-128-CBC**解密
 
 ## 使用
 
@@ -214,13 +214,13 @@ C#版写起来非常不顺手，搁置了
 ## HELP INFO
 
 ```bash
-version 1.3.7, A downloader that download the HLS/DASH stream.
+version 1.3.8, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
-A downloader that download the HLS/DASH stream     
+A downloader that download the HLS/DASH stream
 
 positional arguments:
-  URI                   URL/FILE/FOLDER string     
+  URI                   URL/FILE/FOLDER string
 
 optional arguments:
   -v, --version         print version and exit
@@ -282,12 +282,13 @@ optional arguments:
   --redl-code REDL_CODE
                         re-download set of response status codes , e.g.
                         408,500,502,503,504
+  --hide-load-metadata  hide `Load #EXT-X-MEDIA metadata` balabala
 ```
 
 ## pyinstaller打包
 
 ```bash
-pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.7 -F XstreamDL_CLI\__main__.py
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.8 -F XstreamDL_CLI\__main__.py
 ```
 
 ## 特性

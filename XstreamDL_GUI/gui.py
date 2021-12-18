@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 
 # from XstreamDL_CLI.daemon import Daemon
 from XstreamDL_GUI.ui.mainui import Ui_MainWindow
+from XstreamDL_GUI.handler import ArgsHandler
 
 
 class MainWindow(QMainWindow):
@@ -15,8 +16,13 @@ class MainWindow(QMainWindow):
         # self.daemon = None # type: Daemon
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.connect_signal_slot()
+        self.handler = ArgsHandler().load_config().save_config()
+        # 根据本地配置设置界面
+        self.refresh_ui_config()
+        # 根据界面选择生成完整命令
         self.update_command()
+        # 处理好界面配置后再关联信号槽 否则容易搞乱配置
+        self.connect_signal_slot()
 
     def connect_signal_slot(self):
         '''
@@ -41,6 +47,13 @@ class MainWindow(QMainWindow):
         self.ui.checkBox_index_name.stateChanged.connect(self.update_command)
         self.ui.checkBox_disable_auto_decrypt.stateChanged.connect(self.update_command)
         self.ui.checkBox_use_proxy.stateChanged.connect(self.update_command)
+        self.ui.checkBox_best_quality.stateChanged.connect(self.update_command)
+        self.ui.checkBox_video_only.stateChanged.connect(self.update_command)
+        self.ui.checkBox_audio_only.stateChanged.connect(self.update_command)
+        self.ui.checkBox_all_videos.stateChanged.connect(self.update_command)
+        self.ui.checkBox_all_audios.stateChanged.connect(self.update_command)
+        self.ui.checkBox_disable_auto_exit.stateChanged.connect(self.update_command)
+        self.ui.checkBox_hide_load_metadata.stateChanged.connect(self.update_command)
         # <------lineEdit------>
         self.ui.lineEdit_redl_code.textChanged.connect(self.update_command)
         self.ui.lineEdit_save_dir.textChanged.connect(self.update_command)
@@ -54,9 +67,87 @@ class MainWindow(QMainWindow):
         self.ui.lineEdit_URI.textChanged.connect(self.update_command)
         # <------spinBox------>
         self.ui.spinBox_limit_per_host.valueChanged.connect(self.update_command)
+        self.ui.spinBox_live_utc_offset.valueChanged.connect(self.update_command)
+        self.ui.spinBox_live_refresh_interval.valueChanged.connect(self.update_command)
         self.ui.spinBox_live_duration_hour.valueChanged.connect(self.update_command)
         self.ui.spinBox_live_duration_minute.valueChanged.connect(self.update_command)
         self.ui.spinBox_live_duration_second.valueChanged.connect(self.update_command)
+        # <------comboBox------>
+        self.ui.comboBox_resolution.currentTextChanged.connect(self.update_command)
+        self.ui.comboBox_log_level.currentTextChanged.connect(self.update_command)
+
+    def fetch_ui_config(self):
+        '''
+        获取界面配置
+        '''
+        self.handler.live_utc_offset = self.ui.spinBox_live_utc_offset.value()
+        self.handler.live_refresh_interval = self.ui.spinBox_live_refresh_interval.value()
+        if self.handler.live_refresh_interval == 0:
+            self.handler.live_refresh_interval = 3
+        self.handler.resolution = self.ui.comboBox_resolution.currentText()
+        self.handler.best_quality = self.ui.checkBox_best_quality.isChecked()
+        self.handler.video_only = self.ui.checkBox_video_only.isChecked()
+        self.handler.audio_only = self.ui.checkBox_audio_only.isChecked()
+        self.handler.all_videos = self.ui.checkBox_all_videos.isChecked()
+        self.handler.all_audios = self.ui.checkBox_all_audios.isChecked()
+        self.handler.save_dir = self.ui.lineEdit_save_dir.text().strip()
+        self.handler.select = self.ui.checkBox_select.isChecked()
+        self.handler.disable_force_close = self.ui.checkBox_disable_force_close.isChecked()
+        self.handler.limit_per_host = self.ui.spinBox_limit_per_host.value()
+        if self.handler.limit_per_host == 0:
+            self.handler.limit_per_host = 4
+        self.handler.overwrite = self.ui.checkBox_overwrite.isChecked()
+        self.handler.raw_concat = self.ui.checkBox_raw_concat.isChecked()
+        self.handler.disable_auto_concat = self.ui.checkBox_disable_auto_concat.isChecked()
+        self.handler.enable_auto_delete = self.ui.checkBox_enable_auto_delete.isChecked()
+        self.handler.disable_auto_decrypt = self.ui.checkBox_disable_auto_decrypt.isChecked()
+        self.handler.proxy = self.ui.lineEdit_proxy.text().strip()
+        self.handler.use_proxy = self.ui.checkBox_use_proxy.isChecked()
+        self.handler.disable_auto_exit = self.ui.checkBox_disable_auto_exit.isChecked()
+        self.handler.parse_only = self.ui.checkBox_parse_only.isChecked()
+        self.handler.show_init = self.ui.checkBox_show_init.isChecked()
+        self.handler.index_to_name = self.ui.checkBox_index_name.isChecked()
+        self.handler.log_level = self.ui.comboBox_log_level.currentText()
+        self.handler.redl_code = self.ui.lineEdit_redl_code.text().strip()
+        self.handler.hide_load_metadata = self.ui.checkBox_hide_load_metadata.isChecked()
+        self.handler.save_config()
+
+    def refresh_ui_config(self):
+        '''
+        根据配置刷新UI
+        '''
+        self.ui.spinBox_live_utc_offset.setValue(self.handler.live_utc_offset)
+        self.ui.spinBox_live_refresh_interval.setValue(self.handler.live_refresh_interval)
+        for index in range(self.ui.comboBox_resolution.count()):
+            if self.handler.resolution == self.ui.comboBox_resolution.itemText(index):
+                self.ui.comboBox_resolution.setCurrentIndex(index)
+                break
+        self.ui.checkBox_best_quality.setChecked(self.handler.best_quality)
+        self.ui.checkBox_video_only.setChecked(self.handler.video_only)
+        self.ui.checkBox_audio_only.setChecked(self.handler.audio_only)
+        self.ui.checkBox_all_videos.setChecked(self.handler.all_videos)
+        self.ui.checkBox_all_audios.setChecked(self.handler.all_audios)
+        self.ui.lineEdit_save_dir.setText(self.handler.save_dir)
+        self.ui.checkBox_select.setChecked(self.handler.select)
+        self.ui.checkBox_disable_force_close.setChecked(self.handler.disable_force_close)
+        self.ui.spinBox_limit_per_host.setValue(self.handler.limit_per_host)
+        self.ui.checkBox_overwrite.setChecked(self.handler.overwrite)
+        self.ui.checkBox_raw_concat.setChecked(self.handler.raw_concat)
+        self.ui.checkBox_disable_auto_concat.setChecked(self.handler.disable_auto_concat)
+        self.ui.checkBox_enable_auto_delete.setChecked(self.handler.enable_auto_delete)
+        self.ui.checkBox_disable_auto_decrypt.setChecked(self.handler.disable_auto_decrypt)
+        self.ui.lineEdit_proxy.setText(self.handler.proxy)
+        self.ui.checkBox_use_proxy.setChecked(self.handler.use_proxy)
+        self.ui.checkBox_disable_auto_exit.setChecked(self.handler.disable_auto_exit)
+        self.ui.checkBox_parse_only.setChecked(self.handler.parse_only)
+        self.ui.checkBox_show_init.setChecked(self.handler.show_init)
+        self.ui.checkBox_index_name.setChecked(self.handler.index_to_name)
+        for index in range(self.ui.comboBox_log_level.count()):
+            if self.handler.log_level == self.ui.comboBox_log_level.itemText(index):
+                self.ui.comboBox_log_level.setCurrentIndex(index)
+                break
+        self.ui.lineEdit_redl_code.setText(self.handler.redl_code)
+        self.ui.checkBox_hide_load_metadata.setChecked(self.handler.hide_load_metadata)
 
     @Slot()
     def do_work(self):
@@ -96,47 +187,71 @@ class MainWindow(QMainWindow):
         '''
         点击后组合命令 弹出终端调用CLI
         '''
+        self.fetch_ui_config()
         command = []
         if self.ui.checkBox_live.isChecked():
             command.append('--live')
             command.append('--live-duration')
             duration = (
-                f'{self.ui.spinBox_live_duration_hour.value()}:'
-                f'{self.ui.spinBox_live_duration_minute.value()}:'
-                f'{self.ui.spinBox_live_duration_second.value()}'
+                f'{self.ui.spinBox_live_duration_hour.value():0>2}:'
+                f'{self.ui.spinBox_live_duration_minute.value():0>2}:'
+                f'{self.ui.spinBox_live_duration_second.value():0>2}'
             )
             command.append(duration)
-        if self.ui.checkBox_select.isChecked():
+            if self.handler.live_utc_offset != 0:
+                command.append('--live-utc-offset')
+                command.append(str(self.handler.live_utc_offset))
+            command.append('--live-refresh-interval')
+            if self.handler.live_refresh_interval != 0:
+                command.append(str(self.handler.live_refresh_interval))
+            else:
+                command.append('3')
+        if self.handler.select:
             command.append('--select')
-        if self.ui.checkBox_disable_force_close.isChecked():
+        if self.handler.disable_force_close:
             command.append('--disable-force-close')
-        if self.ui.checkBox_overwrite.isChecked():
+        if self.handler.overwrite:
             command.append('--overwrite')
-        if self.ui.checkBox_raw_concat.isChecked():
+        if self.handler.raw_concat:
             command.append('--raw-concat')
-        if self.ui.checkBox_disable_auto_concat.isChecked():
+        if self.handler.disable_auto_concat:
             command.append('--disable-auto-concat')
-        if self.ui.checkBox_enable_auto_delete.isChecked():
+        if self.handler.enable_auto_delete:
             command.append('--enable-auto-delete')
-        if self.ui.checkBox_disable_auto_decrypt.isChecked():
+        if self.handler.disable_auto_decrypt:
             command.append('--disable-auto-decrypt')
-        if self.ui.checkBox_parse_only.isChecked():
+        if self.handler.parse_only:
             command.append('--parse-only')
-        if self.ui.checkBox_show_init.isChecked():
+        if self.handler.show_init:
             command.append('--show-init')
-        if self.ui.checkBox_index_name.isChecked():
+        if self.handler.best_quality:
+            command.append('--best-quality')
+        if self.handler.video_only:
+            command.append('--video-only')
+        if self.handler.audio_only:
+            command.append('--audio-only')
+        if self.handler.all_videos:
+            command.append('--all-videos')
+        if self.handler.all_audios:
+            command.append('--all-audios')
+        if self.handler.disable_auto_exit:
+            command.append('--disable-auto-exit')
+        if self.handler.hide_load_metadata:
+            command.append('--hide-load-metadata')
+        if self.handler.index_to_name:
             command.append('--index-to-name')
-        if self.ui.checkBox_use_proxy.isChecked():
+        if self.handler.use_proxy and self.handler.proxy:
             command.append('--proxy')
-            command.append(self.ui.lineEdit_proxy.text().strip())
-        redl_code = self.ui.lineEdit_redl_code.text().strip()
-        if redl_code:
+            command.append(self.handler.proxy)
+        if self.handler.log_level != 'INFO':
+            command.append('--log-level')
+            command.append(self.handler.log_level)
+        if self.handler.redl_code:
             command.append('--redl_code')
-            command.append(redl_code)
-        save_dir = self.ui.lineEdit_save_dir.text().strip()
-        if save_dir:
+            command.append(self.handler.redl_code)
+        if self.handler.save_dir:
             command.append('--save-dir')
-            command.append(f'"{save_dir}"')
+            command.append(f'"{self.handler.save_dir}"')
         b64key = self.ui.lineEdit_b64key.text().strip()
         if b64key:
             command.append('--b64key')
@@ -162,7 +277,7 @@ class MainWindow(QMainWindow):
             command.append('--name')
             command.append(name)
         command.append('--limit-per-host')
-        command.append(str(self.ui.spinBox_limit_per_host.value()))
+        command.append(str(self.handler.limit_per_host))
         uri = self.ui.lineEdit_URI.text().strip()
         if uri:
             command.append(f'"{uri}"')

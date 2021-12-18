@@ -28,7 +28,7 @@ some_folder
     binaries
         ffmpeg.exe
         mp4decrypt.exe
-    XstreamDL-CLI_v1.3.7.exe
+    XstreamDL-CLI_v1.3.8.exe
 ```
 
 ## tips
@@ -77,8 +77,8 @@ if you want to privacy protection, you can
 
 ```bash
 [question]: download successfully, but cannot decrypt
-[version]: XstreamDL-CLI_v1.3.7.exe
-[command]: XstreamDL-CLI_v1.3.7.exe --select --raw-concat "https://ec05-poz1.waw2.cache.orange.pl/canal/v/canal/vod/store01/FPL_Y6mY2VScXBCoXRHn6R9K/_/hd4-hssdrm02.ism/manifest"
+[version]: XstreamDL-CLI_v1.3.8.exe
+[command]: XstreamDL-CLI_v1.3.8.exe --select --raw-concat "https://ec05-poz1.waw2.cache.orange.pl/canal/v/canal/vod/store01/FPL_Y6mY2VScXBCoXRHn6R9K/_/hd4-hssdrm02.ism/manifest"
 [traceback]:
 [init segment]:
 [sample segment]:
@@ -122,13 +122,13 @@ read **HELP INFO** for more option
 # HELP INFO
 
 ```bash
-version 1.3.7, A downloader that download the HLS/DASH stream.
+version 1.3.8, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
-A downloader that download the HLS/DASH stream     
+A downloader that download the HLS/DASH stream
 
 positional arguments:
-  URI                   URL/FILE/FOLDER string     
+  URI                   URL/FILE/FOLDER string
 
 optional arguments:
   -v, --version         print version and exit
@@ -190,4 +190,5 @@ optional arguments:
   --redl-code REDL_CODE
                         re-download set of response status codes , e.g.
                         408,500,502,503,504
+  --hide-load-metadata  hide `Load #EXT-X-MEDIA metadata` balabala
 ```
