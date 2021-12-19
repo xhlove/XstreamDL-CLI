@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QCheckBox, QCombo
     QMainWindow, QPushButton, QSizePolicy, QSpinBox,
     QVBoxLayout, QWidget)
 
-from XstreamDL_GUI.ui.widgets.qlineedit import (NameQLineEdit, URIQLineEdit)
+from XstreamDL_GUI.ui.widgets.qlineedit import (NameQLineEdit, SaveDirQLineEdit, URIQLineEdit)
 from XstreamDL_GUI.ui.widgets.qtextedit import CommandQTextEdit
 from  . import res_rc
 
@@ -49,7 +49,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_9.setContentsMargins(-1, 5, -1, 5)
         self.label_9 = QLabel(self.centralwidget)
         self.label_9.setObjectName(u"label_9")
-        self.label_9.setMinimumSize(QSize(60, 0))
+        self.label_9.setMinimumSize(QSize(70, 0))
         self.label_9.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_9.addWidget(self.label_9)
@@ -72,12 +72,12 @@ class Ui_MainWindow(object):
         self.horizontalLayout_11.setContentsMargins(-1, 5, -1, 5)
         self.label_11 = QLabel(self.centralwidget)
         self.label_11.setObjectName(u"label_11")
-        self.label_11.setMinimumSize(QSize(60, 0))
+        self.label_11.setMinimumSize(QSize(70, 0))
         self.label_11.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_11.addWidget(self.label_11)
 
-        self.lineEdit_save_dir = QLineEdit(self.centralwidget)
+        self.lineEdit_save_dir = SaveDirQLineEdit(self.centralwidget)
         self.lineEdit_save_dir.setObjectName(u"lineEdit_save_dir")
         sizePolicy.setHeightForWidth(self.lineEdit_save_dir.sizePolicy().hasHeightForWidth())
         self.lineEdit_save_dir.setSizePolicy(sizePolicy)
@@ -97,7 +97,7 @@ class Ui_MainWindow(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.checkBox_use_proxy.sizePolicy().hasHeightForWidth())
         self.checkBox_use_proxy.setSizePolicy(sizePolicy1)
-        self.checkBox_use_proxy.setMinimumSize(QSize(60, 0))
+        self.checkBox_use_proxy.setMinimumSize(QSize(70, 0))
         self.checkBox_use_proxy.setLayoutDirection(Qt.LeftToRight)
 
         self.horizontalLayout_5.addWidget(self.checkBox_use_proxy)
@@ -117,7 +117,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.setContentsMargins(-1, 5, -1, 5)
         self.label_7 = QLabel(self.centralwidget)
         self.label_7.setObjectName(u"label_7")
-        self.label_7.setMinimumSize(QSize(60, 0))
+        self.label_7.setMinimumSize(QSize(70, 0))
         self.label_7.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_7.addWidget(self.label_7)
@@ -137,7 +137,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_6.setContentsMargins(-1, 5, -1, 5)
         self.label_6 = QLabel(self.centralwidget)
         self.label_6.setObjectName(u"label_6")
-        self.label_6.setMinimumSize(QSize(60, 0))
+        self.label_6.setMinimumSize(QSize(70, 0))
         self.label_6.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_6.addWidget(self.label_6)
@@ -157,7 +157,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_10.setContentsMargins(-1, 5, -1, 5)
         self.label_10 = QLabel(self.centralwidget)
         self.label_10.setObjectName(u"label_10")
-        self.label_10.setMinimumSize(QSize(60, 0))
+        self.label_10.setMinimumSize(QSize(70, 0))
         self.label_10.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_10.addWidget(self.label_10)
@@ -177,7 +177,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.setContentsMargins(-1, 5, -1, 5)
         self.label_8 = QLabel(self.centralwidget)
         self.label_8.setObjectName(u"label_8")
-        self.label_8.setMinimumSize(QSize(60, 0))
+        self.label_8.setMinimumSize(QSize(70, 0))
         self.label_8.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_8.addWidget(self.label_8)
@@ -197,7 +197,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setContentsMargins(-1, 5, -1, 5)
         self.label_2 = QLabel(self.centralwidget)
         self.label_2.setObjectName(u"label_2")
-        self.label_2.setMinimumSize(QSize(60, 0))
+        self.label_2.setMinimumSize(QSize(70, 0))
         self.label_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_2.addWidget(self.label_2)
@@ -217,7 +217,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.setContentsMargins(-1, 5, -1, 5)
         self.label_3 = QLabel(self.centralwidget)
         self.label_3.setObjectName(u"label_3")
-        self.label_3.setMinimumSize(QSize(60, 0))
+        self.label_3.setMinimumSize(QSize(70, 0))
         self.label_3.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_3.addWidget(self.label_3)
@@ -631,7 +631,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.setContentsMargins(-1, 5, -1, 5)
         self.label_4 = QLabel(self.centralwidget)
         self.label_4.setObjectName(u"label_4")
-        self.label_4.setMinimumSize(QSize(60, 0))
+        self.label_4.setMinimumSize(QSize(70, 0))
         self.label_4.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_4.addWidget(self.label_4)
@@ -678,7 +678,7 @@ class Ui_MainWindow(object):
         self.label_15.setObjectName(u"label_15")
         sizePolicy1.setHeightForWidth(self.label_15.sizePolicy().hasHeightForWidth())
         self.label_15.setSizePolicy(sizePolicy1)
-        self.label_15.setMinimumSize(QSize(60, 0))
+        self.label_15.setMinimumSize(QSize(70, 0))
         self.label_15.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout_19.addWidget(self.label_15)

@@ -8,6 +8,41 @@ from PySide6.QtCore import Signal, Slot, QEvent, QUrl, QMimeData
 from PySide6.QtGui import QDropEvent, QMouseEvent, QDragEnterEvent
 
 
+class SaveDirQLineEdit(QLineEdit):
+    update_name = Signal(str)
+
+    def __init__(self, parent: QLineEdit):
+        super(SaveDirQLineEdit, self).__init__(parent=parent)
+        self.installEventFilter(self)
+
+    def eventFilter(self, source: QLineEdit, event: Union[QDropEvent, QMouseEvent, QDragEnterEvent]):
+        if event.type() == QEvent.DragEnter:
+            event.accept()
+        elif event.type() == QEvent.Drop:
+            # 任何拖放事件 都先清空原来的内容
+            source.clear()
+            md = event.mimeData() # type: QMimeData
+            if md.hasUrls() and len(md.urls()) == 1:
+                path = md.urls()[0].toLocalFile()
+                if os.path.exists(path):
+                    source.setText(path)
+                    self.update_name.emit(path)
+            return True
+        elif event.type() == QEvent.MouseButtonDblClick:
+            # 选择本地headers.json文件
+            filePath = QFileDialog.getExistingDirectory(None, "select save dir", './')
+            if filePath and os.path.exists(filePath):
+                source.clear()
+                source.setText(filePath)
+                self.update_name.emit(filePath)
+            return True
+        return super(SaveDirQLineEdit, self).eventFilter(source, event)
+
+    @Slot()
+    def tell_text(self):
+        return self.update_name.emit(self.text())
+
+
 class HeaderFileQLineEdit(QLineEdit):
     update_name = Signal(str)
 

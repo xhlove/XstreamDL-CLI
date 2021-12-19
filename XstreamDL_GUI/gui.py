@@ -1,14 +1,34 @@
 import os
 import sys
+import locale
 import platform
 from pathlib import Path
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, QTranslator
 from PySide6.QtWidgets import QApplication, QMainWindow
 
 # from XstreamDL_CLI.daemon import Daemon
 from XstreamDL_GUI.ui.mainui import Ui_MainWindow
 from XstreamDL_GUI.ui.widgets.headers_editor import EditorForm
 from XstreamDL_GUI.handler import ArgsHandler
+
+LOG_LEVEL_CONFIG = {
+    0: 'INFO',
+    1: 'DEBUG',
+    2: 'WARNING',
+    3: 'ERROR',
+}
+
+RESOLUTION_CONFIG = {
+    0: '',
+    1: '2160',
+    2: '1080',
+    3: '720',
+    4: '576',
+    5: '540',
+    6: '480',
+    7: '360',
+    8: '270',
+}
 
 
 class MainWindow(QMainWindow):
@@ -86,7 +106,7 @@ class MainWindow(QMainWindow):
         self.handler.live_refresh_interval = self.ui.spinBox_live_refresh_interval.value()
         if self.handler.live_refresh_interval == 0:
             self.handler.live_refresh_interval = 3
-        self.handler.resolution = self.ui.comboBox_resolution.currentText()
+        self.handler.resolution = RESOLUTION_CONFIG[self.ui.comboBox_resolution.currentIndex()]
         self.handler.best_quality = self.ui.checkBox_best_quality.isChecked()
         self.handler.video_only = self.ui.checkBox_video_only.isChecked()
         self.handler.audio_only = self.ui.checkBox_audio_only.isChecked()
@@ -109,7 +129,7 @@ class MainWindow(QMainWindow):
         self.handler.parse_only = self.ui.checkBox_parse_only.isChecked()
         self.handler.show_init = self.ui.checkBox_show_init.isChecked()
         self.handler.index_to_name = self.ui.checkBox_index_name.isChecked()
-        self.handler.log_level = self.ui.comboBox_log_level.currentText()
+        self.handler.log_level = LOG_LEVEL_CONFIG[self.ui.comboBox_log_level.currentIndex()]
         self.handler.redl_code = self.ui.lineEdit_redl_code.text().strip()
         self.handler.hide_load_metadata = self.ui.checkBox_hide_load_metadata.isChecked()
         self.handler.save_config()
@@ -121,7 +141,7 @@ class MainWindow(QMainWindow):
         self.ui.spinBox_live_utc_offset.setValue(self.handler.live_utc_offset)
         self.ui.spinBox_live_refresh_interval.setValue(self.handler.live_refresh_interval)
         for index in range(self.ui.comboBox_resolution.count()):
-            if self.handler.resolution == self.ui.comboBox_resolution.itemText(index):
+            if self.handler.resolution == RESOLUTION_CONFIG[index]:
                 self.ui.comboBox_resolution.setCurrentIndex(index)
                 break
         self.ui.checkBox_best_quality.setChecked(self.handler.best_quality)
@@ -145,7 +165,7 @@ class MainWindow(QMainWindow):
         self.ui.checkBox_show_init.setChecked(self.handler.show_init)
         self.ui.checkBox_index_name.setChecked(self.handler.index_to_name)
         for index in range(self.ui.comboBox_log_level.count()):
-            if self.handler.log_level == self.ui.comboBox_log_level.itemText(index):
+            if self.handler.log_level == LOG_LEVEL_CONFIG[index]:
                 self.ui.comboBox_log_level.setCurrentIndex(index)
                 break
         self.ui.lineEdit_redl_code.setText(self.handler.redl_code)
@@ -262,6 +282,9 @@ class MainWindow(QMainWindow):
         if self.handler.log_level != 'INFO':
             command.append('--log-level')
             command.append(self.handler.log_level)
+        if self.handler.resolution != '':
+            command.append('--resolution')
+            command.append(self.handler.resolution)
         if self.handler.redl_code:
             command.append('--redl_code')
             command.append(self.handler.redl_code)
@@ -315,7 +338,15 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
+    trans = QTranslator()
+    if locale.getdefaultlocale()[0] == 'zh_CN':
+        if getattr(sys, 'frozen', False):
+            app_path = Path(__file__).parent / 'XstreamDL_GUI'
+        else:
+            app_path = Path(__file__).parent
+        trans.load('ui/headersui', app_path.resolve().as_posix())
+        trans.load('ui/mainui', app_path.resolve().as_posix())
+    app.installTranslator(trans)
     window = MainWindow()
     window.show()
 

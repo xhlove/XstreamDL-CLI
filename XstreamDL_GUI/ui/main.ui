@@ -43,7 +43,7 @@
            <widget class="QLabel" name="label_9">
             <property name="minimumSize">
              <size>
-              <width>60</width>
+              <width>70</width>
               <height>0</height>
              </size>
             </property>
@@ -85,7 +85,7 @@
            <widget class="QLabel" name="label_11">
             <property name="minimumSize">
              <size>
-              <width>60</width>
+              <width>70</width>
               <height>0</height>
              </size>
             </property>
@@ -98,7 +98,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_save_dir">
+           <widget class="SaveDirQLineEdit" name="lineEdit_save_dir">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -130,7 +130,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>60</width>
+              <width>70</width>
               <height>0</height>
              </size>
             </property>
@@ -169,7 +169,7 @@
            <widget class="QLabel" name="label_7">
             <property name="minimumSize">
              <size>
-              <width>60</width>
+              <width>70</width>
               <height>0</height>
              </size>
             </property>
@@ -208,7 +208,7 @@
            <widget class="QLabel" name="label_6">
             <property name="minimumSize">
              <size>
-              <width>60</width>
+              <width>70</width>
               <height>0</height>
              </size>
             </property>
@@ -247,7 +247,7 @@
            <widget class="QLabel" name="label_10">
             <property name="minimumSize">
              <size>
-              <width>60</width>
+              <width>70</width>
               <height>0</height>
              </size>
             </property>
@@ -286,7 +286,7 @@
            <widget class="QLabel" name="label_8">
             <property name="minimumSize">
              <size>
-              <width>60</width>
+              <width>70</width>
               <height>0</height>
              </size>
             </property>
@@ -325,7 +325,7 @@
            <widget class="QLabel" name="label_2">
             <property name="minimumSize">
              <size>
-              <width>60</width>
+              <width>70</width>
               <height>0</height>
              </size>
             </property>
@@ -364,7 +364,7 @@
            <widget class="QLabel" name="label_3">
             <property name="minimumSize">
              <size>
-              <width>60</width>
+              <width>70</width>
               <height>0</height>
              </size>
             </property>
@@ -1251,7 +1251,7 @@ QPushButton#pushButton_edit_headers:pressed, QPushButton#pushButton_edit_headers
        <widget class="QLabel" name="label_4">
         <property name="minimumSize">
          <size>
-          <width>60</width>
+          <width>70</width>
           <height>0</height>
          </size>
         </property>
@@ -1333,7 +1333,7 @@ QPushButton#pushButton_do:pressed, QPushButton#pushButton_do:checked {
         </property>
         <property name="minimumSize">
          <size>
-          <width>60</width>
+          <width>70</width>
           <height>0</height>
          </size>
         </property>
@@ -1409,6 +1409,11 @@ QPushButton#pushButton_copy_command:pressed, QPushButton#pushButton_copy_command
    <class>CommandQTextEdit</class>
    <extends>QTextEdit</extends>
    <header>XstreamDL_GUI/ui/widgets/qtextedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SaveDirQLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>XstreamDL_GUI/ui/widgets/qlineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources>

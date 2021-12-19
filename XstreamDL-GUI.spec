@@ -7,7 +7,10 @@ block_cipher = None
 a = Analysis(['XstreamDL_GUI\\gui.py'],
              pathex=['C:\\Users\\weimo\\Documents\\codes\\XstreamDL-CLI'],
              binaries=[],
-             datas=[],
+             datas=[
+                ("XstreamDL_GUI\\ui\\headersui.qm", "XstreamDL_GUI\\ui"),
+                ("XstreamDL_GUI\\ui\\mainui.qm", "XstreamDL_GUI\\ui"),
+             ],
              hiddenimports=["PySide6.QtCore", "PySide6.QtWidgets", "PySide6.QtGui"],
              hookspath=[],
              runtime_hooks=[],

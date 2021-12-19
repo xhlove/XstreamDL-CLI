@@ -6,6 +6,7 @@ XstreamDL-CLI的可视化界面
 
 ```bash
 pyside6-uic -g python -o XstreamDL_GUI/ui/mainui.py --from-imports XstreamDL_GUI/ui/main.ui
+pyside6-uic -g python -o XstreamDL_GUI/ui/headersui.py --from-imports XstreamDL_GUI/ui/headers.ui
 ```
 
 ## 转换qrc到py文件
