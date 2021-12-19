@@ -308,3 +308,7 @@ pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.8 -F XstreamDL_CLI\__main__.py
 ## 反馈 & FeedBack
 
 - https://discord.gg/u385PRAUTG
+
+## Pay For Feature
+
+...
