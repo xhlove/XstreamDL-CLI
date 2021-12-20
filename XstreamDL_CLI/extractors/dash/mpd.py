@@ -34,7 +34,7 @@ class MPD(MPDItem):
             if self.availabilityStartTime == '1970-01-01T00:00:00Z':
                 self.availabilityStartTime = 0.0
             # 2019-03-05T08:26:06.748000+00:00
-            if self.availabilityStartTime[-9:] == '000+00:00':
+            if isinstance(self.availabilityStartTime, str) and self.availabilityStartTime[-9:] == '000+00:00':
                 self.availabilityStartTime = self.availabilityStartTime[:-9] + 'Z'
             try:
                 self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp()
