@@ -16,10 +16,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QListWidget, QListWidgetItem,
-    QPushButton, QSizePolicy, QTextEdit, QVBoxLayout,
-    QWidget)
+    QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
 from XstreamDL_GUI.ui.widgets.qlineedit import HeaderFileQLineEdit
+from XstreamDL_GUI.ui.widgets.qtextedit import HeadersQTextEdit
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -61,7 +61,7 @@ class Ui_Form(object):
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setSpacing(6)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.textEdit_headers_content = QTextEdit(Form)
+        self.textEdit_headers_content = HeadersQTextEdit(Form)
         self.textEdit_headers_content.setObjectName(u"textEdit_headers_content")
 
         self.horizontalLayout.addWidget(self.textEdit_headers_content)

@@ -67,7 +67,7 @@
       <number>6</number>
      </property>
      <item>
-      <widget class="QTextEdit" name="textEdit_headers_content"/>
+      <widget class="HeadersQTextEdit" name="textEdit_headers_content"/>
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -139,6 +139,11 @@
    <class>HeaderFileQLineEdit</class>
    <extends>QLineEdit</extends>
    <header>XstreamDL_GUI/ui/widgets/qlineedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>HeadersQTextEdit</class>
+   <extends>QTextEdit</extends>
+   <header>XstreamDL_GUI/ui/widgets/qtextedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

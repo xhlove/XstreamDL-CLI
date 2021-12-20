@@ -44,6 +44,7 @@ class EditorForm(QWidget, Ui_Form):
         self.pushButton_select.clicked.connect(self.select_header_file)
         self.pushButton_add.clicked.connect(self.add_header_key_value)
         self.pushButton_save.clicked.connect(self.save_header_file)
+        self.textEdit_headers_content.refresh.connect(lambda: self.load_from_content())
         self.refresh_ui()
 
     def refresh_ui(self):
@@ -68,6 +69,13 @@ class EditorForm(QWidget, Ui_Form):
         except Exception:
             # 异常则清空路径
             self.lineEdit_headers_path.setText('')
+
+    def load_from_content(self):
+        try:
+            self.config = json.loads(self.textEdit_headers_content.toPlainText())
+            self.show_key_value()
+        except Exception:
+            pass
 
     def show_key_value(self):
         '''
