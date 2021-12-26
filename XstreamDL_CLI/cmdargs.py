@@ -22,6 +22,7 @@ class CmdArgs:
         self.mp4decrypt = None # type: str
         self.mp4box = None # type: str
         self.select = None # type: bool
+        self.multi_s = None # type: bool
         self.disable_force_close = None # type: bool
         self.limit_per_host = None # type: int
         self.headers = None # type: str

@@ -366,7 +366,9 @@ class DASHParser(BaseParser):
         time_offset = st.presentationTimeOffset if base_time == 0 else 0
         start_number = st.startNumber
         tmp_offset_r = 0
-        for s in ss:
+        for index, s in enumerate(ss):
+            if self.args.multi_s and index > 0 and s.t > 0:
+                base_time = s.t
             if st.timescale == 0:
                 interval = 0
             else:

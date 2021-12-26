@@ -109,6 +109,7 @@ def main():
     parser.add_argument('--service', default='', help='set serviceLocation for BaseURL choose')
     parser.add_argument('--save-dir', default='Downloads', help='set save dir for Stream')
     parser.add_argument('--select', action='store_true', help='show stream to select and download, default is to download all')
+    parser.add_argument('--multi-s', action='store_true', help='use this option when S tag number > 0')
     parser.add_argument('--disable-force-close', action='store_true', help='default make all connections closed securely, but it will make DL speed slower')
     parser.add_argument('--limit-per-host', default=4, help='increase the value if your connection to the stream host is poor, suggest >100 for DASH stream')
     parser.add_argument('--headers', default='headers.json', help='read headers from headers.json, you can also use custom config')
