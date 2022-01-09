@@ -32,6 +32,8 @@ class Segment:
         # <---分段类型--->
         self.segment_type = 'normal'
         self.skip_concat = False
+        # 直播流 单个分段 最大404次数
+        self.max_retry_404 = 5
 
     def is_ism(self) -> bool:
         ''' 请重写 '''

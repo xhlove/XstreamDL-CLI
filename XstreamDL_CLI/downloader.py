@@ -403,6 +403,9 @@ class Downloader:
         ts = time.time()
         client = ClientSession(connector=get_connector(self.args)) # type: ClientSession
         for segment in _left:
+            if segment.max_retry_404 <= 0:
+                self.xprogress.decrease_total_count()
+                continue
             task = loop.create_task(self.download(client, stream, segment))
             task.add_done_callback(_done_callback)
             tasks.add(task)
@@ -426,6 +429,8 @@ class Downloader:
                     flag = False
                     self.xprogress.decrease_total_count()
                     segment.skip_concat = True
+                    if resp.status == 404:
+                        segment.max_retry_404 -= 1
                 if resp.status == 405:
                     status = 'STATUS_CODE_ERROR'
                     flag = False
