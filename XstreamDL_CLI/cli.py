@@ -150,7 +150,8 @@ def main():
         sys.exit('No URL/FILE/FOLDER input')
     logger = setup_logger('XstreamDL', args.log_level)
     command_handler(logger, args)
-    logger.info(f'set URI to {args.URI}')
+    logger.info(f'use {__version__}, set URI to {args.URI}')
+    logger.debug(f'args => {args}')
     daemon = Daemon(logger, args)
     daemon.daemon()
     if args.disable_auto_exit:
