@@ -83,8 +83,8 @@ class XKey(X):
             return 'http', base_url + '/' + self.uri
 
     async def fetch(self, url: str, args: CmdArgs) -> bytes:
-        if self.args.proxy != '':
-            connector = ProxyConnector.from_url(self.args.proxy, ssl=False)
+        if args.proxy != '':
+            connector = ProxyConnector.from_url(args.proxy, ssl=False)
         else:
             connector = TCPConnector(ssl=False)
         async with ClientSession(connector=connector) as client: # type: ClientSession
