@@ -229,6 +229,7 @@ class DASHParser(BaseParser):
                     streams.append(stream)
                     continue
             segmentlists = representation.find('SegmentList') # type: List[SegmentList]
+            r_segmenttemplates = representation.find('SegmentTemplate') # type: List[SegmentTemplate]
             # 针对视频音频流处理 分情况生成链接
             if len(segmentlists) == 1:
                 self.walk_segmentlist(segmentlists[0], representation, period, stream)
@@ -236,6 +237,8 @@ class DASHParser(BaseParser):
                 self.walk_segmenttemplate(representation, period, stream)
             elif len(segmenttemplates) == 1 and len(segmenttemplates[0].find('SegmentTimeline')) == 1:
                 self.walk_segmenttimeline(segmenttemplates[0], representation, period, stream)
+            elif len(r_segmenttemplates) == 1 and len(r_segmenttemplates[0].find('SegmentTimeline')) == 1:
+                self.walk_segmenttimeline(r_segmenttemplates[0], representation, period, stream)
             elif len(segmenttemplates) == 1 and segmenttemplates[0].initialization is None:
                 # tv-player.ap1.admint.biz live
                 _segmenttemplates = representation.find('SegmentTemplate')
