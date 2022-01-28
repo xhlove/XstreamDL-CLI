@@ -10,6 +10,7 @@ class CmdArgs:
         self.live_refresh_interval = None # type: int
         self.name = None # type: str
         self.base_url = None # type: str
+        self.ad_keyword = None # type: str
         self.resolution = None # type: str
         self.best_quality = None # type: bool
         self.video_only = None # type: bool

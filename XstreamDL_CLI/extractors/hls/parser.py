@@ -171,7 +171,9 @@ class HLSParser(BaseParser):
             # 过滤掉广告片段
             _segments = []
             for segment in stream.segments:
-                if '/ad/' not in segment.url:
+                if self.args.ad_keyword == '':
+                    _segments.append(segment)
+                elif self.args.ad_keyword not in segment.url:
                     _segments.append(segment)
             stream.segments = _segments
             # 保留过滤掉广告片段分段数大于0的Stream

@@ -100,6 +100,7 @@ def main():
     parser.add_argument('--live-refresh-interval', default='3', help='live refresh interval')
     parser.add_argument('--name', default='', help='specific stream base name')
     parser.add_argument('--base-url', default='', help='set base url for Stream')
+    parser.add_argument('--ad-keyword', default='', help='skip #EXT-X-DISCONTINUITY which segment url has this keyword')
     parser.add_argument('--resolution', default='', choices=['', '270', '360', '480', '540', '576', '720', '1080', '2160'], help='auto choose target quality')
     parser.add_argument('--best-quality', action='store_true', help='auto choose best quality for dash streams')
     parser.add_argument('--video-only', action='store_true', help='only choose video stream when use --best-quality')
