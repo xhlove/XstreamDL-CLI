@@ -242,7 +242,11 @@ class DASHParser(BaseParser):
             elif len(segmenttemplates) == 1 and segmenttemplates[0].initialization is None:
                 # tv-player.ap1.admint.biz live
                 _segmenttemplates = representation.find('SegmentTemplate')
-                assert len(_segmenttemplates) == 1, '请报告出现此异常提示的mpd/report plz'
+                if len(_segmenttemplates) != 1:
+                    # AdaptationSet 的 SegmentTemplate 没有 initialization 
+                    # Representation 没有 SegmentTemplate 则跳过
+                    continue
+                # assert len(_segmenttemplates) == 1, '请报告出现此异常提示的mpd/report plz'
                 segmenttemplate = segmenttemplates[0]
                 _segmenttemplate = _segmenttemplates[0]
                 if segmenttemplate.timescale is not None:
@@ -406,7 +410,10 @@ class DASHParser(BaseParser):
         if '$RepresentationID$' in init_url:
             init_url = init_url.replace('$RepresentationID$', rid)
         stream.set_init_url(init_url)
-        interval = float(int(st.duration) / int(st.timescale))
+        if st.timescale == 0:
+            interval = st.duration
+        else:
+            interval = float(int(st.duration) / int(st.timescale))
         repeat = math.ceil(period.duration / interval)
         for number in range(int(st.startNumber), repeat + int(st.startNumber)):
             media_url = st.get_media_url()

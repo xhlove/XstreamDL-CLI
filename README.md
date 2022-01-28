@@ -6,7 +6,7 @@
 
 ![XstreamDL-GUI](images/oCam_2021_12_19_00_07_34_559.gif)
 
-[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.3.8/XstreamDL-GUI_v1.3.8.exe)
+[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.3.9/XstreamDL-GUI_v1.3.9.exe)
 
 **使用XstreamDL-GUI需要和XstreamDL-CLI放一起**
 
@@ -220,7 +220,7 @@ C#版写起来非常不顺手，搁置了
 ## HELP INFO
 
 ```bash
-version 1.3.8, A downloader that download the HLS/DASH stream.
+version 1.3.9, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
 A downloader that download the HLS/DASH stream
@@ -294,7 +294,7 @@ optional arguments:
 ## pyinstaller打包
 
 ```bash
-pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.8 -F XstreamDL_CLI\__main__.py
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.9 -F XstreamDL_CLI\__main__.py
 ```
 
 ## 特性
