@@ -222,7 +222,11 @@ class DASHParser(BaseParser):
             BaseURLs = representation.find('BaseURL') # type: List[BaseURL]
             if len(BaseURLs) == 1:
                 if len(Roles) == 1 and Roles[0].value in ['subtitle', 'caption']:
-                    stream.set_subtitle_url(BaseURLs[0].innertext)
+                    base_url = BaseURLs[0].innertext.strip()
+                    if base_url.startswith('http') or base_url.startswith('/'):
+                        stream.set_subtitle_url(base_url)
+                    else:
+                        stream.set_subtitle_url('../' + base_url)
                     streams.append(stream)
                     continue
                 # if len(segmenttemplates) == 0 and len(representation.find('SegmentTimeline')) == 0:
