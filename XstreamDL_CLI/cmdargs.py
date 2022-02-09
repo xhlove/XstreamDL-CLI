@@ -5,6 +5,7 @@ class CmdArgs:
 
     def __init__(self):
         self.live = None # type: bool
+        self.name_from_url = None # type: bool
         self.live_duration = None # type: float
         self.live_utc_offset = None # type: int
         self.live_refresh_interval = None # type: int

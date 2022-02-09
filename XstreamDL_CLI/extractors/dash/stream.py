@@ -75,8 +75,8 @@ class DASHStream(Stream):
         self.segments[-1].set_init_url(self.fix_url(url))
         self.append_segment()
 
-    def set_media_url(self, url: str):
-        self.segments[-1].set_media_url(self.fix_url(url))
+    def set_media_url(self, url: str, name_from_url: bool = False):
+        self.segments[-1].set_media_url(self.fix_url(url), name_from_url=name_from_url)
         self.append_segment()
 
     def base2url(self, duration: float):

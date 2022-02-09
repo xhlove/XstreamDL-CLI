@@ -275,7 +275,7 @@ class DASHParser(BaseParser):
             stream.set_init_url(initializations[0].sourceURL)
         segmenturls = segmentlist.find('SegmentURL') # type: List[SegmentURL]
         for segmenturl in segmenturls:
-            stream.set_media_url(segmenturl.media)
+            stream.set_media_url(segmenturl.media, name_from_url=self.args.name_from_url)
         if has_initialization:
             interval = float(segmentlist.duration / segmentlist.timescale)
             stream.set_segments_duration(interval)
@@ -418,7 +418,7 @@ class DASHParser(BaseParser):
                     media_url = media_url.replace('$Time$', str(fmt_time))
                     time_offset += s.d
                 stream.set_segment_duration(interval)
-                stream.set_media_url(media_url)
+                stream.set_media_url(media_url, name_from_url=self.args.name_from_url)
 
     def generate_v1(self, period: Period, rid: str, st: SegmentTemplate, stream: DASHStream):
         init_url = st.get_url()
@@ -440,5 +440,5 @@ class DASHParser(BaseParser):
                 media_url = media_url.replace(old, new)
             if '$RepresentationID$' in media_url:
                 media_url = media_url.replace('$RepresentationID$', rid)
-            stream.set_media_url(media_url)
+            stream.set_media_url(media_url, name_from_url=self.args.name_from_url)
         stream.set_segments_duration(interval)

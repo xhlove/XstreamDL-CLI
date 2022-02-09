@@ -1,6 +1,6 @@
 ![XstreamDL-GUI](images/oCam_2021_12_19_00_07_34_559.gif)
 
-[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.3.9/XstreamDL-GUI_v1.3.9.exe)
+[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.4.0/XstreamDL-GUI_v1.3.9.exe)
 
 **XstreamDL-GUI must use with XstreamDL-CLI**
 
@@ -130,7 +130,7 @@ read **HELP INFO** for more option
 # HELP INFO
 
 ```bash
-version 1.3.9, A downloader that download the HLS/DASH stream.
+version 1.4.0, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
 A downloader that download the HLS/DASH stream

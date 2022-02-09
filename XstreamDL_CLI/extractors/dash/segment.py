@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 from XstreamDL_CLI.models.segment import Segment
 
 
@@ -33,10 +34,15 @@ class DASHSegment(Segment):
         self.url = init_url
         self.segment_type = 'init'
 
-    def set_media_url(self, media_url: str):
+    def get_url_name(self, url: str):
+        return urlparse(url).path.split('/')[-1]
+
+    def set_media_url(self, media_url: str, name_from_url: bool = False):
         parts = media_url.split('?')[0].split('/')[-1].split('.')
         if len(parts) > 1:
             # 修正后缀
             self.suffix = f'.{parts[-1]}'
             self.name = f'{self.index:0>4}.{parts[-1]}'
         self.url = media_url
+        if name_from_url:
+            self.name = self.get_url_name(self.url)

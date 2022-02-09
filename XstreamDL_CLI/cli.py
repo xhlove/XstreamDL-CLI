@@ -95,6 +95,7 @@ def main():
     parser.add_argument('-v', '--version', action='store_true', help='print version and exit')
     parser.add_argument('-h', '--help', action='store_true', help='print help message and exit')
     parser.add_argument('--live', action='store_true', help='live mode')
+    parser.add_argument('--name-from-url', action='store_true', help='get name from segment url')
     parser.add_argument('--live-duration', default='', help='live record time, format HH:MM:SS, example 00:00:30 will record about 30s')
     parser.add_argument('--live-utc-offset', default='0', help='the value is used to correct utc time')
     parser.add_argument('--live-refresh-interval', default='3', help='live refresh interval')
