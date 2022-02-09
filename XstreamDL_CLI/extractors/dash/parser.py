@@ -14,6 +14,7 @@ from .childs.s import S
 from .childs.segmentlist import SegmentList
 from .childs.initialization import Initialization
 from .childs.segmenturl import SegmentURL
+from .childs.segmentbase import SegmentBaee
 from .childs.segmenttemplate import SegmentTemplate
 from .childs.segmenttimeline import SegmentTimeline
 
@@ -286,6 +287,16 @@ class DASHParser(BaseParser):
             stream.append_key(DASHKey(contentprotection))
 
     def walk_segmenttemplate(self, representation: Representation, period: Period, stream: DASHStream):
+        baseurls = representation.find('BaseURL') # type: List[BaseURL]
+        segmentbases = representation.find('SegmentBase') # type: List[SegmentBaee]
+        if len(segmentbases) == 1 and len(baseurls) == 1:
+            base_url = baseurls[0].innertext.strip()
+            if base_url.startswith('http') or base_url.startswith('/'):
+                stream.set_init_url(base_url)
+            else:
+                stream.set_init_url('../' + base_url)
+            # stream.set_segment_duration(-1)
+            return
         segmenttemplates = representation.find('SegmentTemplate') # type: List[SegmentTemplate]
         # segmenttimelines = representation.find('SegmentTimeline') # type: List[SegmentTimeline]
         if len(segmenttemplates) != 1:

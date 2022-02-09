@@ -12,6 +12,7 @@ from .childs.s import S
 from .childs.segmentlist import SegmentList
 from .childs.initialization import Initialization
 from .childs.segmenturl import SegmentURL
+from .childs.segmentbase import SegmentBaee
 from .childs.segmenttemplate import SegmentTemplate
 from .childs.segmenttimeline import SegmentTimeline
 
@@ -60,6 +61,7 @@ def xml_handler(content: str):
         'Representation': Representation,
         'SegmentTemplate': SegmentTemplate,
         'SegmentURL': SegmentURL,
+        'SegmentBase': SegmentBaee,
         'Initialization': Initialization,
         'SegmentList': SegmentList,
         'SegmentTimeline': SegmentTimeline,
