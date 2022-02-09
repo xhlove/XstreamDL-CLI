@@ -241,3 +241,6 @@ class Stream:
         if args.enable_auto_delete and self.save_dir.exists():
             shutil.rmtree(self.save_dir.absolute().as_posix())
         return True
+
+    def fix_header(self, is_fake: bool):
+        pass
