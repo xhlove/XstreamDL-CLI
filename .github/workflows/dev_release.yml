@@ -26,9 +26,6 @@ jobs:
           utcOffset: "+08:00"
       - uses: actions/checkout@v2
       - name: build with pyinstaller
-        id: dddd
-        env:
-          BUILD_TIME: "${{ steps.ct.outputs.year }}${{ steps.ct.outputs.month }}${{ steps.ct.outputs.day }}_${{ steps.ct.outputs.hour }}${{ steps.ct.outputs.minute }}${{ steps.ct.outputs.second }}"
         uses: actions/setup-python@v2
         with:
           python-version: 3.7.5
@@ -39,10 +36,13 @@ jobs:
       - name: install pyinstaller
         run: pip install pyinstaller
       - name: run pyinstaller command
-        run: pyinstaller -i logo.ico -n test_dev_${{ env.BUILD_TIME }} -F test\__main__.py
-      
+        env:
+          BUILD_TIME: "${{ steps.ct.outputs.year }}${{ steps.ct.outputs.month }}${{ steps.ct.outputs.day }}_${{ steps.ct.outputs.hour }}${{ steps.ct.outputs.minute }}${{ steps.ct.outputs.second }}"
+        run: pyinstaller -i logo.ico -n XstreamDL-CLI_dev_${{ env.BUILD_TIME }} -F XstreamDL_CLI\__main__.py
       - name: Upload Artifact
+        env:
+          BUILD_TIME: "${{ steps.ct.outputs.year }}${{ steps.ct.outputs.month }}${{ steps.ct.outputs.day }}_${{ steps.ct.outputs.hour }}${{ steps.ct.outputs.minute }}${{ steps.ct.outputs.second }}"
         uses: actions/upload-artifact@v1.0.0
         with:
-          name: dev_release
-          path: dist\XstreamDL-CLI_dev_${{ steps.dddd.env.BUILD_TIME }}.exe
+          name: XstreamDL-CLI_dev_${{ env.BUILD_TIME }}
+          path: dist\XstreamDL-CLI_dev_${{ env.BUILD_TIME }}.exe
