@@ -305,6 +305,8 @@ optional arguments:
 pyinstaller -i logo.ico -n XstreamDL-CLI_v1.4.1 -F XstreamDL_CLI\__main__.py
 ```
 
+已添加自动构建，可前往[Actions](https://github.com/xhlove/XstreamDL-CLI/actions)页面下载最新dev版本程序
+
 ## 特性
 
 - 基于aiohttp
