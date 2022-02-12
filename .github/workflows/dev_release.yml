@@ -27,7 +27,7 @@ jobs:
       - name: Use current time
         env:
           BUILD_TIME: "${{ steps.ct.outputs.year }}${{ steps.ct.outputs.month }}${{ steps.ct.outputs.day }}_${{ steps.ct.outputs.hour }}${{ steps.ct.outputs.minute }}${{ steps.ct.outputs.second }}"
-      - uses: actions/setup-python@v2
+        uses: actions/setup-python@v2
         with:
           python-version: 3.7.5
       - run: python -m pip install --upgrade pip
