@@ -20,10 +20,14 @@ jobs:
     steps:
       - name: Get current time
         uses: josStorer/get-current-time@v2
-        id: current-time
+        id: ct
         with:
           format: YYYYMMDD-HH
           utcOffset: "+08:00"
+      - name: Use current time
+        env:
+          BUILD_TIME: "${{ steps.ct.outputs.year }}${{ steps.ct.outputs.month }}${{ steps.ct.outputs.day }}_${{ steps.ct.outputs.hour }}${{ steps.ct.outputs.minute }}${{ steps.ct.outputs.second }}"
+        run: echo $BUILD_TIME
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
@@ -31,4 +35,10 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: pip install -r requirements.txt
       - run: pip install pyinstaller
-      - run: pyinstaller -i logo.ico -n XstreamDL-CLI_dev_${{ steps.current-time.outputs.year }} -F XstreamDL_CLI\__main__.py
+      - run: pyinstaller -i logo.ico -n XstreamDL-CLI_dev_$BUILD_TIME -F XstreamDL_CLI\__main__.py
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: dev_release
+          path: dist\XstreamDL-CLI_dev_$BUILD_TIME.exe
