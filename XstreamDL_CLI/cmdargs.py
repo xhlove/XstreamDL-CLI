@@ -4,6 +4,8 @@ from pathlib import Path
 class CmdArgs:
 
     def __init__(self):
+        self.speed_up = None # type: bool
+        self.speed_up_left = None # type: int
         self.live = None # type: bool
         self.name_from_url = None # type: bool
         self.live_duration = None # type: float

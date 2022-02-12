@@ -141,7 +141,11 @@ positional arguments:
 optional arguments:
   -v, --version         print version and exit
   -h, --help            print help message and exit
+  --speed-up            speed up at end
+  --speed-up-left SPEED_UP_LEFT
+                        speed up when left count less than this value
   --live                live mode
+  --name-from-url       get name from segment url
   --live-duration LIVE_DURATION
                         live record time, format HH:MM:SS, example 00:00:30
                         will record about 30s
@@ -151,6 +155,9 @@ optional arguments:
                         live refresh interval
   --name NAME           specific stream base name
   --base-url BASE_URL   set base url for Stream
+  --ad-keyword AD_KEYWORD
+                        skip #EXT-X-DISCONTINUITY which segment url has this
+                        keyword
   --resolution {,270,360,480,540,576,720,1080,2160}
                         auto choose target quality
   --best-quality        auto choose best quality for dash streams
@@ -162,6 +169,7 @@ optional arguments:
   --save-dir SAVE_DIR   set save dir for Stream
   --select              show stream to select and download, default is to
                         download all
+  --multi-s             use this option when S tag number > 0
   --disable-force-close
                         default make all connections closed securely, but it
                         will make DL speed slower

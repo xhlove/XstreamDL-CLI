@@ -154,7 +154,7 @@ def get_connector(args: CmdArgs):
 
 class XProgress:
 
-    def __init__(self, title: str, total_count: int, downloaded_count: int, total_size: int, completed_size: int):
+    def __init__(self, title: str, total_count: int, downloaded_count: int, total_size: int, completed_size: int, speed_up_flag: bool, speed_up_left: int):
         self.last_time = time.time()
         self.title = title
         self.total_count = total_count
@@ -162,7 +162,14 @@ class XProgress:
         self.total_size = total_size
         self.downloaded_size = completed_size
         self.last_size = completed_size
+        self.speed_up_flag = speed_up_flag
+        self.speed_up_left = speed_up_left
         self.stop = False
+
+    def is_ending(self):
+        if self.speed_up_flag is False:
+            return False
+        return self.total_count - self.downloaded_count < self.speed_up_left
 
     def calc_speed(self, total_size: int, downloaded_size: int):
         ts = time.time()
@@ -213,9 +220,12 @@ class XProgress:
         sys.stdout.write(text)
         sys.stdout.flush()
 
-    def to_stop(self):
+    def to_stop(self, is_error: bool = False):
         self.stop = True
         self.update_progress(self.downloaded_count, self.total_size, self.downloaded_size)
+        if is_error:
+            sys.stdout.write('\r\n')
+            sys.stdout.flush()
 
 
 class Downloader:
@@ -295,9 +305,11 @@ class Downloader:
                 # 这里的init实际上是不正确的 这里生成是为了满足下载文件检查等逻辑
                 stream.fix_header(is_fake=True)
             self.logger.info(f'{stream.get_name()} {t_msg.download_start}.')
+            speed_up_flag = self.args.speed_up
             while max_failed > 0:
                 loop = new_event_loop()
-                results = loop.run_until_complete(self.do_with_progress(loop, stream))
+                results = loop.run_until_complete(self.do_with_progress(loop, stream, speed_up_flag))
+                speed_up_flag = False
                 loop.close()
                 all_results.append(results)
                 count_none, count_true, count_false = 0, 0, 0
@@ -341,7 +353,7 @@ class Downloader:
             if self.args.live is True and self.args.disable_auto_concat is False:
                 stream.concat(self.logger, self.args)
 
-    def init_progress(self, stream: Stream, count: int, completed: int):
+    def init_progress(self, stream: Stream, count: int, completed: int, speed_up_flag: bool):
         if completed > 0:
             if stream.filesize > 0:
                 total = stream.filesize
@@ -355,14 +367,23 @@ class Downloader:
                 total = 0
                 stream.filesize = total
             completed = 0
-        self.xprogress = XProgress(stream.get_name(), len(stream.segments), count, total, completed)
+        self.xprogress = XProgress(
+            stream.get_name(),
+            len(stream.segments),
+            count,
+            total,
+            completed,
+            speed_up_flag,
+            self.args.speed_up_left,
+        )
 
-    async def do_with_progress(self, loop: AbstractEventLoop, stream: Stream):
+    async def do_with_progress(self, loop: AbstractEventLoop, stream: Stream, speed_up_flag: bool):
         '''
         下载过程输出进度 并合理处理异常
         '''
         results = {} # type: Dict[bool]
         tasks = set() # type: Set[Task]
+        is_error = False
 
         def _done_callback(_future: Future) -> None:
             nonlocal results
@@ -382,13 +403,26 @@ class Downloader:
                     else:
                         self.logger.error(f'{status} {t_msg.segment_cannot_download_unknown_status}')
                 results[segment] = flag
+                if self.xprogress.is_ending():
+                    cancel_uncompleted_task()
             else:
                 # 出现未知异常 强制退出全部task
                 self.logger.error(f'{t_msg.segment_cannot_download_unknown_exc} => {_future.exception()}\n')
                 cancel_all_task()
                 results['未知segment'] = False
 
+        def cancel_uncompleted_task() -> None:
+            cancel_all_task()
+            _, _, _left = get_left_segments(stream)
+            for segment in _left:
+                if segment.max_retry_404 <= 0:
+                    continue
+                results[segment] = None
+                segment.content = []
+
         def cancel_all_task() -> None:
+            nonlocal is_error
+            is_error = True
             for task in tasks:
                 task.remove_done_callback(_done_callback)
             for task in filter(lambda task: not task.done(), tasks):
@@ -398,8 +432,13 @@ class Downloader:
         self.logger.debug(f'downloaded count {count}, downloaded size {completed}, left count {len(_left)}')
         if len(_left) == 0:
             return results
+        # 剩余数量小于预期 不加速
+        # 场景 => 在反复下载后还是少几个分段 然后重新跑命令下载
+        # 这个时候如果开了加速 那么就会在刚开始下载的时候就重下
+        if len(_left) <= self.args.speed_up_left:
+            speed_up_flag = False
         # 没有需要下载的则尝试合并 返回False则说明需要继续下载完整
-        self.init_progress(stream, count, completed)
+        self.init_progress(stream, count, completed, speed_up_flag)
         ts = time.time()
         client = ClientSession(connector=get_connector(self.args)) # type: ClientSession
         for segment in _left:
@@ -414,7 +453,7 @@ class Downloader:
         finished, unfinished = await asyncio.wait(tasks)
         # 关闭ClientSession
         await client.close()
-        self.xprogress.to_stop()
+        self.xprogress.to_stop(is_error=is_error)
         self.logger.info(f'tasks end, time used {time.time() - ts:.2f}s')
         return results
 

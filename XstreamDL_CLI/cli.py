@@ -16,6 +16,7 @@ def command_handler(logger: Logger, args: CmdArgs):
     '''
     对命令参数进行校验和修正
     '''
+    args.speed_up_left = int(args.speed_up_left)
     if args.live_duration == '':
         args.live_duration = 0.0
     else:
@@ -94,6 +95,8 @@ def main():
     parser = ArgumentParser(prog='XstreamDL-CLI', usage='XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...', description='A downloader that download the HLS/DASH stream', add_help=False)
     parser.add_argument('-v', '--version', action='store_true', help='print version and exit')
     parser.add_argument('-h', '--help', action='store_true', help='print help message and exit')
+    parser.add_argument('--speed-up', action='store_true', help='speed up at end')
+    parser.add_argument('--speed-up-left', default='10', help='speed up when left count less than this value')
     parser.add_argument('--live', action='store_true', help='live mode')
     parser.add_argument('--name-from-url', action='store_true', help='get name from segment url')
     parser.add_argument('--live-duration', default='', help='live record time, format HH:MM:SS, example 00:00:30 will record about 30s')
