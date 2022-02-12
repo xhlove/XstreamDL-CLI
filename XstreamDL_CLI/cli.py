@@ -1,8 +1,8 @@
 import sys
 import base64
+import logging
 import platform
 from pathlib import Path
-from logging import Logger
 from argparse import ArgumentParser
 
 from XstreamDL_CLI.cmdargs import CmdArgs
@@ -11,8 +11,10 @@ from XstreamDL_CLI.version import __version__
 from XstreamDL_CLI.headers.default import Headers
 from XstreamDL_CLI.log import setup_logger
 
+logger = setup_logger('XstreamDL', level='INFO')
 
-def command_handler(logger: Logger, args: CmdArgs):
+
+def command_handler(args: CmdArgs):
     '''
     对命令参数进行校验和修正
     '''
@@ -33,22 +35,18 @@ def command_handler(logger: Logger, args: CmdArgs):
         args.live_refresh_interval = int(args.live_refresh_interval)
     except Exception:
         assert False, '--live-utc-offset can not be convert to int value'
-    logger.debug(f'set --live-duration to {args.live_duration}')
     if args.video_only is True and args.audio_only is True:
         assert False, '--video-only and --audio-only cannot be used at the same time'
     args.save_dir = Path(args.save_dir)
     if args.save_dir.exists() is False:
         args.save_dir.mkdir()
-    logger.debug(f'set --save-dir to {args.save_dir.resolve().as_posix()}')
-    args.headers = Headers(logger).get(args)
+    args.headers = Headers().get(args)
     args.limit_per_host = int(args.limit_per_host)
-    logger.debug(f'set --limit-per-host to {args.limit_per_host}')
     if args.key is not None:
         infos = args.key.split(':')
         assert len(infos) == 2, 'DASH Stream decryption key format error !'
         # assert len(infos[0]) == 32, 'DASH Stream decryption key @KID must be 32 length hex string !'
         assert len(infos[1]) == 32, 'DASH Stream decryption key @k must be 32 length hex string !'
-    logger.debug(f'set --key to {args.key}')
     if args.b64key is not None:
         try:
             _ = base64.b64decode(args.b64key)
@@ -57,8 +55,6 @@ def command_handler(logger: Logger, args: CmdArgs):
     if args.hexiv is not None:
         if args.hexiv.lower().startswith('0x'):
             args.hexiv = args.hexiv.lower()[2:]
-    logger.debug(f'set --b64key to {args.b64key}')
-    logger.debug(f'set --hexiv to {args.hexiv}')
 
     if getattr(sys, 'frozen', False):
         bin_path = Path(sys.executable).parent / 'binaries'
@@ -153,11 +149,16 @@ def main():
             args.URI.append(uri.strip())
     if len(args.URI) == 0:
         sys.exit('No URL/FILE/FOLDER input')
-    logger = setup_logger('XstreamDL', args.log_level)
-    command_handler(logger, args)
+    for handler in logger.handlers:
+        # 注意 这里不能拿 StreamHandler 做判断
+        # 因为 FileHandler 父类是 StreamHandler
+        # 这样当 handler 是 FileHandler 的时候 isinstance 返回 True
+        if isinstance(handler, logging.FileHandler) is False:
+            handler.setLevel(logging.getLevelName(args.log_level))
+    command_handler(args)
     logger.info(f'use {__version__}, set URI to {args.URI}')
     logger.debug(f'args => {args}')
-    daemon = Daemon(logger, args)
+    daemon = Daemon(args)
     daemon.daemon()
     if args.disable_auto_exit:
         _ = input('press any key to exit.')

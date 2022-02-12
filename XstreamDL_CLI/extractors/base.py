@@ -1,12 +1,13 @@
 from pathlib import Path
-from logging import Logger
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.models.base import BaseUri
+from XstreamDL_CLI.log import setup_logger
+
+logger = setup_logger('XstreamDL', level='INFO')
 
 
 class BaseParser:
-    def __init__(self, logger: Logger, args: CmdArgs, uri_type: str):
-        self.logger = logger
+    def __init__(self, args: CmdArgs, uri_type: str):
         self.args = args
         self.uri_type = uri_type
         self.suffix = '.SUFFIX'
@@ -15,24 +16,24 @@ class BaseParser:
         '''
         remove illegal char
         '''
-        self.logger.debug(f'fix name before: {name}')
+        # logger.debug(f'fix name before: {name}')
         exclude_str = ["\\", "/", ":", "：", "*", "?", "\"", "<", ">", "|", "\r", "\n", "\t"]
         for s in exclude_str:
             name = name.replace(s, " ")
         name = "_".join(name.split())
-        self.logger.debug(f'fix name after: {name}')
+        # logger.debug(f'fix name after: {name}')
         return name
 
     def dump_content(self, name: str, content: str, suffix: str):
         dump_path = self.args.save_dir / f'{name}{suffix}'
-        self.logger.debug(f'save content to {dump_path.resolve().as_posix()}, size {len(content)}')
+        logger.debug(f'save content to {dump_path.resolve().as_posix()}, size {len(content)}')
         dump_path.write_text(content, encoding='utf-8')
 
     def parse_uri(self, uri: str) -> BaseUri:
         '''
         进入此处的uri不可能是文件夹
         '''
-        self.logger.debug(f'start parse uri for: {uri}')
+        logger.debug(f'start parse uri for: {uri}')
         rm_manifest = False
         if '.ism' in self.args.base_url and 'manifest' in self.args.base_url:
             rm_manifest = True
@@ -60,7 +61,7 @@ class BaseParser:
                 base_url = self.args.base_url
             home_url = '/'.join(base_url.split('/', maxsplit=3)[:-1])
         name = self.fix_name(name)
-        self.logger.debug(
+        logger.debug(
             f'parse uri result:\n'
             f'    name {name}\n'
             f'    home_url {home_url}\n'

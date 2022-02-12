@@ -4,7 +4,6 @@ import time
 import signal
 import asyncio
 import binascii
-from logging import Logger
 from typing import List, Set, Dict
 from asyncio import new_event_loop
 from asyncio import AbstractEventLoop, Future, Task
@@ -16,6 +15,9 @@ from XstreamDL_CLI.models.stream import Stream
 from XstreamDL_CLI.models.segment import Segment
 from XstreamDL_CLI.util.decryptors.aes import CommonAES
 from XstreamDL_CLI.util.texts import t_msg
+from XstreamDL_CLI.log import setup_logger
+
+logger = setup_logger('XstreamDL', level='INFO')
 
 
 def auto_choose_resolution(args: CmdArgs, streams: List[Stream]) -> List[Stream]:
@@ -230,20 +232,20 @@ class XProgress:
 
 class Downloader:
 
-    def __init__(self, logger: Logger, args: CmdArgs):
-        self.logger = logger
+    def __init__(self, args: CmdArgs):
         self.args = args
+        self.log_detail = args.log_level.upper() == 'DEBUG'
         self.xprogress = None # type: XProgress
         self.terminate = False
         signal.signal(signal.SIGINT, self.stop)
         signal.signal(signal.SIGTERM, self.stop)
 
     def stop(self, signum: int, frame):
-        self.logger.debug('stopped by Ctrl C')
+        logger.debug('stopped by Ctrl C')
         self.terminate = True
 
     def stop_record(self):
-        self.logger.debug('stopped reason: stop_record')
+        logger.debug('stopped reason: stop_record')
         self.terminate = True
 
     def do_select(self, streams: List[Stream], selected: list = []):
@@ -258,7 +260,7 @@ class Downloader:
         if self.args.select is True:
             selected = get_selected_index(len(streams))
             if len(selected) == 0:
-                self.logger.info(t_msg.select_without_any_stream)
+                logger.info(t_msg.select_without_any_stream)
         elif self.args.best_quality:
             selected = auto_choose_best_streams(self.args, streams)
         elif self.args.all_videos:
@@ -278,7 +280,7 @@ class Downloader:
 
     def download_streams(self, streams: List[Stream], selected: list = []):
         selected = self.do_select(streams, selected)
-        self.logger.debug(f'selected is {selected}')
+        logger.debug(f'selected is {selected}')
         if selected is None:
             return
         should_stop_record = False
@@ -293,7 +295,7 @@ class Downloader:
                 if stream.get_skey() not in selected:
                     continue
             if self.args.live is False and len(stream.segments) == 1:
-                self.logger.warning(f'only one segment, download speed maybe slow =>\n{stream.segments[0].url + self.args.url_patch}')
+                logger.warning(f'only one segment, download speed maybe slow =>\n{stream.segments[0].url + self.args.url_patch}')
                 # continue
             stream.dump_segments()
             max_failed = 5
@@ -304,7 +306,7 @@ class Downloader:
             if stream.get_stream_model() == 'mss':
                 # 这里的init实际上是不正确的 这里生成是为了满足下载文件检查等逻辑
                 stream.fix_header(is_fake=True)
-            self.logger.info(f'{stream.get_name()} {t_msg.download_start}.')
+            logger.info(f'{stream.get_name()} {t_msg.download_start}.')
             speed_up_flag = self.args.speed_up
             while max_failed > 0:
                 loop = new_event_loop()
@@ -336,7 +338,7 @@ class Downloader:
             # 应当进行优化 只针对单个流进行停止录制
             if self.args.live and should_stop_record is False and stream.check_record_time(self.args.live_duration):
                 should_stop_record = True
-                self.logger.debug(f'set should_stop_record flag as {should_stop_record}')
+                logger.debug(f'set should_stop_record flag as {should_stop_record}')
         # 主动停止录制
         if should_stop_record:
             self.stop_record()
@@ -344,14 +346,14 @@ class Downloader:
 
     def try_concat(self, stream: Stream):
         if self.args.live is False and self.args.disable_auto_concat is False:
-            stream.concat(self.logger, self.args)
+            stream.concat(self.args)
 
     def try_concat_streams(self, streams: List[Stream], selected: List[str]):
         for stream in streams:
             if stream.get_skey() not in selected:
                 continue
             if self.args.live is True and self.args.disable_auto_concat is False:
-                stream.concat(self.logger, self.args)
+                stream.concat(self.args)
 
     def init_progress(self, stream: Stream, count: int, completed: int, speed_up_flag: bool):
         if completed > 0:
@@ -391,23 +393,23 @@ class Downloader:
                 segment, status, flag = _future.result()
                 if flag is None:
                     segment.content = []
-                    # self.logger.error('下载过程中出现已知异常 需重新下载\n')
+                    # logger.error('下载过程中出现已知异常 需重新下载\n')
                 elif flag is False:
                     segment.content = []
                     # 某几类已知异常 如状态码不对 返回头没有文件大小 视为无法下载 主动退出
                     cancel_all_task()
                     if status in ['STATUS_CODE_ERROR', 'NO_CONTENT_LENGTH']:
-                        self.logger.error(f'{status} {t_msg.segment_cannot_download}')
+                        logger.error(f'{status} {t_msg.segment_cannot_download}')
                     elif status == 'EXIT':
                         pass
                     else:
-                        self.logger.error(f'{status} {t_msg.segment_cannot_download_unknown_status}')
+                        logger.error(f'{status} {t_msg.segment_cannot_download_unknown_status}')
                 results[segment] = flag
                 if self.xprogress.is_ending():
                     cancel_uncompleted_task()
             else:
                 # 出现未知异常 强制退出全部task
-                self.logger.error(f'{t_msg.segment_cannot_download_unknown_exc} => {_future.exception()}\n')
+                logger.error(f'{t_msg.segment_cannot_download_unknown_exc} => {_future.exception()}\n')
                 cancel_all_task()
                 results['未知segment'] = False
 
@@ -429,7 +431,7 @@ class Downloader:
                 task.cancel()
         # limit_per_host 根据不同网站和网络状况调整 如果与目标地址连接性较好 那么设置小一点比较好
         count, completed, _left = get_left_segments(stream)
-        self.logger.debug(f'downloaded count {count}, downloaded size {completed}, left count {len(_left)}')
+        logger.debug(f'downloaded count {count}, downloaded size {completed}, left count {len(_left)}')
         if len(_left) == 0:
             return results
         # 剩余数量小于预期 不加速
@@ -448,13 +450,13 @@ class Downloader:
             task = loop.create_task(self.download(client, stream, segment))
             task.add_done_callback(_done_callback)
             tasks.add(task)
-        self.logger.info(f'{len(tasks)} tasks start')
+        logger.info(f'{len(tasks)} tasks start')
         # 阻塞并等待运行完成
         finished, unfinished = await asyncio.wait(tasks)
         # 关闭ClientSession
         await client.close()
         self.xprogress.to_stop(is_error=is_error)
-        self.logger.info(f'tasks end, time used {time.time() - ts:.2f}s')
+        logger.info(f'tasks end, time used {time.time() - ts:.2f}s')
         return results
 
     async def download(self, client: ClientSession, stream: Stream, segment: Segment):
@@ -462,7 +464,8 @@ class Downloader:
         try:
             async with client.get(segment.url + self.args.url_patch, headers=self.args.headers) as resp: # type: ClientResponse
                 _flag = True
-                self.logger.debug(f'{segment.name} status {resp.status}, {segment.url + self.args.url_patch}')
+                if self.log_detail or resp.status != 200:
+                    logger.debug(f'{segment.name} status {resp.status}, {segment.url + self.args.url_patch}')
                 if resp.status in [403, 404]:
                     status = 'STATUS_SKIP'
                     flag = False
@@ -480,10 +483,10 @@ class Downloader:
                     # 对于 filesize 不为 0 后面再另外考虑
                     size = int(resp.headers["Content-length"])
                     stream.filesize += size
-                    self.logger.debug(f'{segment.name} response Content-length => {size}')
+                    logger.debug(f'{segment.name} response Content-length => {size}')
                     self.xprogress.update_total_size(stream.filesize)
                 else:
-                    self.logger.debug(f'{segment.name} response header has no Content-length {dict(resp.headers)}')
+                    logger.debug(f'{segment.name} response header has no Content-length {dict(resp.headers)}')
                     _flag = False
                 if flag:
                     while self.terminate is False:
@@ -494,7 +497,7 @@ class Downloader:
                         self.xprogress.add_downloaded_size(len(data))
                         if _flag is False:
                             stream.filesize += len(data)
-                            self.logger.debug(f'{segment.name} recv {size} byte data')
+                            logger.debug(f'{segment.name} recv {size} byte data')
                             self.xprogress.update_total_size(stream.filesize)
         except TimeoutError:
             return segment, 'TimeoutError', None
@@ -511,7 +514,7 @@ class Downloader:
         except CancelledError:
             return segment, 'EXIT', False
         except Exception as e:
-            self.logger.error(f'! -> {segment.url}', exc_info=e)
+            logger.error(f'! -> {segment.url}', exc_info=e)
             return segment, status, False
         if self.terminate:
             return segment, 'EXIT', False
@@ -522,7 +525,7 @@ class Downloader:
         if flag is False:
             return segment, status, False
         self.xprogress.add_downloaded_count(1)
-        self.logger.debug(f'{segment.name} download end, size => {sum([len(data) for data in segment.content])}')
+        logger.debug(f'{segment.name} download end, size => {sum([len(data) for data in segment.content])}')
         return segment, 'SUCCESS', await self.decrypt(segment, stream)
 
     async def decrypt(self, segment: Segment, stream: Stream) -> bool:
@@ -530,10 +533,10 @@ class Downloader:
         解密部分
         '''
         if self.args.disable_auto_decrypt is True:
-            self.logger.debug(f'--disable-auto-decrypt, skip decrypt')
+            logger.debug(f'--disable-auto-decrypt, skip decrypt')
             return segment.dump()
         if segment.is_encrypt() and segment.is_supported_encryption():
-            self.logger.debug(f'common aes decrypt, key {segment.xkey.key.hex()} iv {segment.xkey.iv}')
+            logger.debug(f'common aes decrypt, key {segment.xkey.key.hex()} iv {segment.xkey.iv}')
             cipher = CommonAES(segment.xkey.key, binascii.a2b_hex(segment.xkey.iv))
             return cipher.decrypt(segment)
         else:

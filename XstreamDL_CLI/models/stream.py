@@ -2,7 +2,6 @@ import os
 import json
 import shutil
 from urllib.parse import urlparse
-from logging import Logger
 from typing import List
 from pathlib import Path
 from datetime import datetime
@@ -12,6 +11,9 @@ from XstreamDL_CLI.models.key import StreamKey
 from XstreamDL_CLI.models.segment import Segment
 from XstreamDL_CLI.util.texts import t_msg
 from XstreamDL_CLI.util.concat import Concat
+from XstreamDL_CLI.log import setup_logger
+
+logger = setup_logger('XstreamDL', level='INFO')
 
 
 class Stream:
@@ -191,7 +193,7 @@ class Stream:
         else:
             return f'{self.base_url}/{url}'
 
-    def concat(self, logger: Logger, args: CmdArgs):
+    def concat(self, args: CmdArgs):
         ''' 合并视频 '''
         out = Path(self.save_dir.absolute().as_posix() + self.suffix)
         if args.overwrite is False and out.exists() is True:

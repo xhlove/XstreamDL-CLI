@@ -1,12 +1,14 @@
 
 import asyncio
-from logging import Logger
 from aiohttp_socks import ProxyConnector
 from aiohttp import ClientSession, ClientResponse
 from aiohttp.connector import TCPConnector
 
 from .x import X
 from XstreamDL_CLI.cmdargs import CmdArgs
+from XstreamDL_CLI.log import setup_logger
+
+logger = setup_logger('XstreamDL', level='INFO')
 
 DEFAULT_IV = '0' * 32
 
@@ -91,7 +93,7 @@ class XKey(X):
             async with client.get(url, headers=args.headers) as resp: # type: ClientResponse
                 return await resp.content.read()
 
-    def load(self, args: CmdArgs, custom_xkey: 'XKey', logger: Logger):
+    def load(self, args: CmdArgs, custom_xkey: 'XKey'):
         '''
         如果custom_xkey存在key 那么覆盖解析结果中的key
         并且不进行请求key的动作 同时覆盖iv 如果有自定义iv的话

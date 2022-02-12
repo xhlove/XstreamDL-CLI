@@ -1,7 +1,6 @@
 import asyncio
 from typing import List
 from pathlib import Path
-from logging import Logger
 from aiohttp.connector import TCPConnector
 from aiohttp import ClientSession, ClientResponse
 from aiohttp_socks import ProxyConnector
@@ -15,6 +14,10 @@ from XstreamDL_CLI.extractors.mss.parser import MSSParser
 from XstreamDL_CLI.extractors.mss.stream import MSSStream
 from XstreamDL_CLI.util.texts import t_msg
 
+from XstreamDL_CLI.log import setup_logger
+
+logger = setup_logger('XstreamDL', level='INFO')
+
 
 class Extractor:
     '''
@@ -23,8 +26,7 @@ class Extractor:
     或者读取含有多个元数据文件的文件夹
     最终得到一个Stream（流）对象供Downloader（下载器）下载
     '''
-    def __init__(self, logger: Logger, args: CmdArgs):
-        self.logger = logger
+    def __init__(self, args: CmdArgs):
         self.args = args
         self.parser = None
 
@@ -36,7 +38,7 @@ class Extractor:
             try:
                 raw_text = data.decode('utf-16')
             except Exception as e:
-                self.logger.error(f'load_raw2text failed', exc_info=e)
+                logger.error(f'load_raw2text failed', exc_info=e)
         return raw_text
 
     def fetch_metadata(self, uri: str, parent_stream: Stream = None):
@@ -96,11 +98,11 @@ class Extractor:
         elif '<SmoothStreamingMedia' in content and '</SmoothStreamingMedia>' in content:
             return self.parse_as_mss(uri_type, uri, content, parent_stream)
         else:
-            self.logger.warning(t_msg.cannot_get_stream_metadata)
+            logger.warning(t_msg.cannot_get_stream_metadata)
             return []
 
     def parse_as_hls(self, uri_type: str, uri: str, content: str, parent_stream: HLSStream = None) -> List[HLSStream]:
-        _streams = HLSParser(self.logger, self.args, uri_type).parse(uri, content, parent_stream)
+        _streams = HLSParser(self.args, uri_type).parse(uri, content, parent_stream)
         streams = []
         for stream in _streams:
             # 针对master类型加载详细内容
@@ -108,9 +110,9 @@ class Extractor:
                 streams.append(stream)
                 continue
             if self.args.hide_load_metadata:
-                self.logger.debug(f'Load {stream.tag} metadata from -> {stream.origin_url}')
+                logger.debug(f'Load {stream.tag} metadata from -> {stream.origin_url}')
             else:
-                self.logger.info(f'Load {stream.tag} metadata from -> {stream.origin_url}')
+                logger.info(f'Load {stream.tag} metadata from -> {stream.origin_url}')
             new_streams = self.fetch_metadata(stream.origin_url, parent_stream=stream)
             if new_streams is None:
                 continue
@@ -119,14 +121,14 @@ class Extractor:
             streams.extend(new_streams)
         # 在全部流解析完成后 再处理key
         for stream in streams:
-            stream.try_fetch_key(self.args, logger=self.logger)
+            stream.try_fetch_key(self.args)
         return streams
 
     def parse_as_dash(self, uri_type: str, uri: str, content: str, parent_stream: DASHStream = None) -> List[DASHStream]:
-        self.parser = DASHParser(self.logger, self.args, uri_type)
+        self.parser = DASHParser(self.args, uri_type)
         streams = self.parser.parse(uri, content)
         return streams
 
     def parse_as_mss(self, uri_type: str, uri: str, content: str, parent_stream: MSSStream = None) -> List[MSSStream]:
-        streams = MSSParser(self.logger, self.args, uri_type).parse(uri, content)
+        streams = MSSParser(self.args, uri_type).parse(uri, content)
         return streams

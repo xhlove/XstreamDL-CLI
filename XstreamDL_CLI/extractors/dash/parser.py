@@ -1,6 +1,5 @@
 import re
 import math
-from logging import Logger
 from typing import List, Dict, Union
 from .mpd import MPD
 from .handler import xml_handler
@@ -23,11 +22,14 @@ from XstreamDL_CLI.models.base import BaseUri
 from XstreamDL_CLI.extractors.base import BaseParser
 from XstreamDL_CLI.extractors.dash.key import DASHKey
 from XstreamDL_CLI.extractors.dash.stream import DASHStream
+from XstreamDL_CLI.log import setup_logger
+
+logger = setup_logger('XstreamDL', level='INFO')
 
 
 class DASHParser(BaseParser):
-    def __init__(self, logger: Logger, args: CmdArgs, uri_type: str):
-        super(DASHParser, self).__init__(logger, args, uri_type)
+    def __init__(self, args: CmdArgs, uri_type: str):
+        super(DASHParser, self).__init__(args, uri_type)
         self.is_live = False
         self.root = None # type: MPD
         self.suffix = '.mpd'
@@ -50,7 +52,7 @@ class DASHParser(BaseParser):
 
         每到一个层级都检查修正 修正后的base_url应当只适用于当前层级
         '''
-        self.logger.debug(f'[fix_dash_base_url] previous_base_url {previous_base_url}')
+        # logger.debug(f'previous_base_url {previous_base_url}')
         # 不管何时 previous_base_url 都应当以 http(s):// 开头
         if re.match(r'^https?://', previous_base_url) is None:
             assert False, 'unexcepted condition, report information to me'
@@ -115,7 +117,7 @@ class DASHParser(BaseParser):
     def parse(self, uri: str, content: str) -> List[DASHStream]:
         uri_item = self.parse_uri(uri)
         if uri_item is None:
-            self.logger.error(f'parse {uri} failed')
+            logger.error(f'parse {uri} failed')
             return []
         self.dump_content(uri_item.name, content, self.suffix)
         # 解析转换内容为期望的对象
@@ -126,7 +128,7 @@ class DASHParser(BaseParser):
             self.args.live = True
             self.is_live = True
         if self.args.live and self.is_live is False:
-            self.logger.debug('detect current dash content is a living stream')
+            logger.debug('detect current dash content is a living stream')
             self.is_live = True
         # 修正 MPD 节点的 BaseURL
         base_url = self.fix_dash_base_url(uri_item.base_url, mpd)
@@ -171,7 +173,7 @@ class DASHParser(BaseParser):
             base_url = self.fix_dash_base_url(uri_item.base_url, adaptationset)
             current_uri_item = uri_item.new_base_url(base_url)
             if adaptationset.mimeType == 'image/jpeg':
-                self.logger.debug(f'skip parse for AdaptationSet mimeType image/jpeg')
+                logger.debug(f'skip parse for AdaptationSet mimeType image/jpeg')
                 continue
             representations = adaptationset.find('Representation') # type: List[Representation]
             if len(representations) > 0:
@@ -196,7 +198,7 @@ class DASHParser(BaseParser):
             # 修正 Representation 节点的 BaseURL
             base_url = self.fix_dash_base_url(uri_item.base_url, representation)
             current_uri_item = uri_item.new_base_url(base_url)
-            self.logger.debug(f'[DASHStream] base_url {current_uri_item.base_url}')
+            logger.debug(f'current_base_url {current_uri_item.base_url}')
             stream = DASHStream(sindex, current_uri_item, self.args.save_dir)
             sindex += 1
             self.walk_contentprotection(adaptationset, stream)
@@ -308,9 +310,9 @@ class DASHParser(BaseParser):
             # 没有就无法计算分段 则跳过
             # 不止一个可能是没见过的类型 提醒上报
             if len(segmenttemplates) > 1:
-                self.logger.error('please report this DASH content.')
+                logger.error('please report this DASH content.')
             else:
-                self.logger.warning('stream has no SegmentTemplate between Representation tag.')
+                logger.warning('stream has no SegmentTemplate between Representation tag.')
             return
         if len(segmenttemplates[0].find('SegmentTimeline')) == 0:
             self.generate_v1(period, representation.id, segmenttemplates[0], stream)
@@ -321,9 +323,9 @@ class DASHParser(BaseParser):
         segmenttimelines = segmenttemplate.find('SegmentTimeline') # type: List[SegmentTimeline]
         if len(segmenttimelines) != 1:
             if len(segmenttimelines) > 1:
-                self.logger.error('please report this DASH content.')
+                logger.error('please report this DASH content.')
             else:
-                self.logger.warning('stream has no SegmentTimeline between SegmentTemplate tag.')
+                logger.warning('stream has no SegmentTimeline between SegmentTemplate tag.')
             return
         self.walk_s(segmenttimelines[0], segmenttemplate, representation, period, stream)
 
@@ -358,15 +360,15 @@ class DASHParser(BaseParser):
             current_utctime = self.root.publishTime.timestamp() - self.args.live_utc_offset
             presentation_start = period.start - st.presentationTimeOffset / st.timescale + 30
             start_utctime = self.root.availabilityStartTime + presentation_start
-            self.logger.debug(f'mpd.presentationTimeOffset {st.presentationTimeOffset} timescale {st.timescale}')
-            self.logger.debug(f'mpd.availabilityStartTime {self.root.availabilityStartTime} Period.start {period.start}')
-            self.logger.debug(f'start_utctime {start_utctime} current_utctime {current_utctime}')
+            logger.debug(f'mpd.presentationTimeOffset {st.presentationTimeOffset} timescale {st.timescale}')
+            logger.debug(f'mpd.availabilityStartTime {self.root.availabilityStartTime} Period.start {period.start}')
+            logger.debug(f'start_utctime {start_utctime} current_utctime {current_utctime}')
             tmp_t = ss[0].t
             for s in ss:
                 for number in range(s.r):
                     if (tmp_t + s.d) / st.timescale + start_utctime > current_utctime:
                         base_time = tmp_t
-                        self.logger.debug(f'set base_time {base_time} target_r {target_r}')
+                        logger.debug(f'set base_time {base_time} target_r {target_r}')
                         break
                     if target_r > 0:
                         tmp_t += s.d
@@ -374,13 +376,13 @@ class DASHParser(BaseParser):
                 if base_time:
                     break
             if base_time is None:
-                self.logger.debug(f'{representation.id} report mpd to me, maybe need wait {current_utctime - start_utctime - tmp_t / st.timescale}s')
+                logger.debug(f'{representation.id} report mpd to me, maybe need wait {current_utctime - start_utctime - tmp_t / st.timescale}s')
             assert base_time is not None, f'{representation.id} report mpd to me, maybe need wait {current_utctime - start_utctime - tmp_t / st.timescale}s'
             # if base_time is None:
             #     base_time = ss[0].t
         elif ss[0].t > 0:
             base_time = ss[0].t
-            self.logger.debug(f'ss[0].t > 0, set base_time {base_time}')
+            logger.debug(f'ss[0].t > 0, set base_time {base_time}')
         else:
             base_time = 0
         # 如果 base_time 不为 0 即第一个 s.t 不为

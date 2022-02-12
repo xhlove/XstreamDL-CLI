@@ -1,5 +1,4 @@
 from typing import List
-from logging import Logger
 from .ism import ISM
 from .childs.c import c as Cc
 from .childs.protectionheader import ProtectionHeader
@@ -12,11 +11,14 @@ from XstreamDL_CLI.models.base import BaseUri
 from XstreamDL_CLI.extractors.mss.key import MSSKey
 from XstreamDL_CLI.extractors.mss.stream import MSSStream
 from XstreamDL_CLI.extractors.base import BaseParser
+from XstreamDL_CLI.log import setup_logger
+
+logger = setup_logger('XstreamDL', level='INFO')
 
 
 class MSSParser(BaseParser):
-    def __init__(self, logger: Logger, args: CmdArgs, uri_type: str):
-        super(MSSParser, self).__init__(logger, args, uri_type)
+    def __init__(self, args: CmdArgs, uri_type: str):
+        super(MSSParser, self).__init__(args, uri_type)
         self.suffix = '.ism'
 
     def parse(self, uri: str, content: str) -> List[MSSStream]:
@@ -99,7 +101,7 @@ class MSSParser(BaseParser):
             for protectionheader in protectionheaders:
                 stream.set_kid(protectionheader.kid)
                 stream.append_key(MSSKey(protectionheader))
-            self.logger.debug(f'ProtectionHeader was found')
+            logger.debug(f'ProtectionHeader was found')
         else:
             protection_flag = False
         stream.set_protection_flag(protection_flag)

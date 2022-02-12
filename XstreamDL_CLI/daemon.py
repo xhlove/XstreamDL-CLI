@@ -1,22 +1,22 @@
 import time
 from typing import List
 from pathlib import Path
-from logging import Logger
 from XstreamDL_CLI.cmdargs import CmdArgs
 from XstreamDL_CLI.extractor import Extractor
 from XstreamDL_CLI.downloader import Downloader
 from XstreamDL_CLI.models.stream import Stream
 from XstreamDL_CLI.extractors.hls.stream import HLSStream
 from XstreamDL_CLI.extractors.dash.stream import DASHStream
-# from XstreamDL_CLI.extractors.hls.parser import HLSParser
 from XstreamDL_CLI.extractors.dash.parser import DASHParser
 from XstreamDL_CLI.extractors.dash.childs.location import Location
+from XstreamDL_CLI.log import setup_logger
+
+logger = setup_logger('XstreamDL', level='INFO')
 
 
 class Daemon:
 
-    def __init__(self, logger: Logger, args: CmdArgs):
-        self.logger = logger
+    def __init__(self, args: CmdArgs):
         self.args = args
         self.exit = False
 
@@ -26,10 +26,10 @@ class Daemon:
         - 下载
         - 合并
         '''
-        extractor = Extractor(self.logger, self.args)
+        extractor = Extractor(self.args)
         streams = extractor.fetch_metadata(self.args.URI[0])
         if self.args.live is False:
-            return Downloader(self.logger, self.args).download_streams(streams)
+            return Downloader(self.args).download_streams(streams)
         else:
             return self.live_record(extractor, streams)
 
@@ -75,9 +75,9 @@ class Daemon:
         if '://' not in next_mpd_url:
             if Path(next_mpd_url).is_file() or Path(next_mpd_url).is_dir():
                 assert False, 'not support dash live stream for file/folder type, because cannot refresh'
-        self.logger.info(f'refresh link {next_mpd_url}')
+        logger.info(f'refresh link {next_mpd_url}')
         # 初始化下载器
-        downloader = Downloader(self.logger, self.args)
+        downloader = Downloader(self.args)
         # 获取用户选择的流的skey
         skeys = downloader.do_select(streams)
         if len(skeys) == 0:
@@ -99,7 +99,7 @@ class Daemon:
             downloader.download_streams(streams, selected=skeys)
             # 检查是不是主动退出了
             if downloader.terminate:
-                self.logger.debug(f'downloader terminated break')
+                logger.debug(f'downloader terminated break')
                 break
             # 继续循环
         downloader.try_concat_streams(streams, skeys)

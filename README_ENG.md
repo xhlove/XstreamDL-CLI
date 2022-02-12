@@ -1,6 +1,6 @@
 ![XstreamDL-GUI](images/oCam_2021_12_19_00_07_34_559.gif)
 
-[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.4.0/XstreamDL-GUI_v1.4.0.exe)
+[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.4.1/XstreamDL-GUI_v1.4.1.exe)
 
 **XstreamDL-GUI must use with XstreamDL-CLI**
 
@@ -36,7 +36,7 @@ some_folder
     binaries
         ffmpeg.exe
         mp4decrypt.exe
-    XstreamDL-CLI_v1.4.0.exe
+    XstreamDL-CLI_v1.4.1.exe
 ```
 
 ## tips
@@ -85,8 +85,8 @@ if you want to privacy protection, you can
 
 ```bash
 [question]: download successfully, but cannot decrypt
-[version]: XstreamDL-CLI_v1.4.0.exe
-[command]: XstreamDL-CLI_v1.4.0.exe --select --raw-concat "https://ec05-poz1.waw2.cache.orange.pl/canal/v/canal/vod/store01/FPL_Y6mY2VScXBCoXRHn6R9K/_/hd4-hssdrm02.ism/manifest"
+[version]: XstreamDL-CLI_v1.4.1.exe
+[command]: XstreamDL-CLI_v1.4.1.exe --select --raw-concat "https://ec05-poz1.waw2.cache.orange.pl/canal/v/canal/vod/store01/FPL_Y6mY2VScXBCoXRHn6R9K/_/hd4-hssdrm02.ism/manifest"
 [traceback]:
 [init segment]:
 [sample segment]:
@@ -130,7 +130,7 @@ read **HELP INFO** for more option
 # HELP INFO
 
 ```bash
-version 1.4.0, A downloader that download the HLS/DASH stream.
+version 1.4.1, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
 A downloader that download the HLS/DASH stream
