@@ -6,7 +6,7 @@
 
 ![XstreamDL-GUI](images/oCam_2021_12_19_00_07_34_559.gif)
 
-[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.4.0/XstreamDL-GUI_v1.3.9.exe)
+[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.4.0/XstreamDL-GUI_v1.4.0.exe)
 
 **使用XstreamDL-GUI需要和XstreamDL-CLI放一起**
 
@@ -302,7 +302,7 @@ optional arguments:
 ## pyinstaller打包
 
 ```bash
-pyinstaller -i logo.ico -n XstreamDL-CLI_v1.3.9 -F XstreamDL_CLI\__main__.py
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.4.0 -F XstreamDL_CLI\__main__.py
 ```
 
 ## 特性
