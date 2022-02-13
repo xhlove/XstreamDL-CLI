@@ -1,6 +1,6 @@
 ![XstreamDL-GUI](images/oCam_2021_12_19_00_07_34_559.gif)
 
-[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.4.1/XstreamDL-GUI_v1.4.1.exe)
+[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.3.8/XstreamDL-GUI_v1.3.8.exe)
 
 **XstreamDL-GUI must use with XstreamDL-CLI**
 
