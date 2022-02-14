@@ -44,14 +44,25 @@ class MPD(MPDItem):
                 except Exception:
                     pass
         if isinstance(self.publishTime, str):
+            is_match = False
             try:
                 self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%S.%fZ')
             except Exception:
+                pass
+            if is_match is False:
                 try:
                     self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%SZ')
                 except Exception:
-                    try:
-                        # 2021-11-28T12:33:53
-                        self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%S')
-                    except Exception:
-                        pass
+                    pass
+            if is_match is False:
+                try:
+                    # 2021-11-28T12:33:53
+                    self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%S')
+                except Exception:
+                    pass
+            if is_match is False:
+                try:
+                    # 2022-02-14T11:43:04+00:00
+                    self.publishTime = datetime.strptime(self.publishTime.split('+')[0], '%Y-%m-%dT%H:%M:%S')
+                except Exception:
+                    pass
