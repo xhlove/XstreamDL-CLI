@@ -47,22 +47,28 @@ class MPD(MPDItem):
             is_match = False
             try:
                 self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%S.%fZ')
+                is_match = True
             except Exception:
                 pass
             if is_match is False:
                 try:
                     self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%SZ')
+                    is_match = True
                 except Exception:
                     pass
             if is_match is False:
                 try:
                     # 2021-11-28T12:33:53
                     self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%S')
+                    is_match = True
                 except Exception:
                     pass
             if is_match is False:
                 try:
                     # 2022-02-14T11:43:04+00:00
                     self.publishTime = datetime.strptime(self.publishTime.split('+')[0], '%Y-%m-%dT%H:%M:%S')
+                    is_match = True
                 except Exception:
                     pass
+            if is_match is False:
+                assert is_match is True, f'mathc publishTime failed => {self.publishTime}'
