@@ -7,6 +7,7 @@ class CmdArgs:
         self.speed_up = None # type: bool
         self.speed_up_left = None # type: int
         self.live = None # type: bool
+        self.dont_split_discontinuity = None # type: bool
         self.name_from_url = None # type: bool
         self.live_duration = None # type: float
         self.live_utc_offset = None # type: int

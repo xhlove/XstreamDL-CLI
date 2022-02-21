@@ -70,17 +70,20 @@ class HLSParser(BaseParser):
             elif line.startswith('#EXT-X-PLAYLIST-TYPE'):
                 pass
             elif line.startswith('#EXT-X-DISCONTINUITY'):
-                # 此标签后面的分段都认为是一个新的Stream 直到结束或下一个相同标签出现
-                # 对于优酷 根据特征字符匹配 移除不需要的Stream 然后将剩余的Stream合并
-                sindex += 1
-                _xkey = stream.xkey
-                _bakcup_xkey = stream.bakcup_xkey
-                streams.append(stream)
-                stream = HLSStream(sindex, uri_item, self.args.save_dir, parent_stream)
-                stream.set_origin_url(uri_item.home_url, uri_item.base_url, uri)
-                stream.set_xkey(_xkey)
-                stream.set_bakcup_xkey(_bakcup_xkey)
-                stream.set_tag('#EXT-X-DISCONTINUITY')
+                if self.args.dont_split_discontinuity:
+                    pass
+                else:
+                    # 此标签后面的分段都认为是一个新的Stream 直到结束或下一个相同标签出现
+                    # 对于优酷 根据特征字符匹配 移除不需要的Stream 然后将剩余的Stream合并
+                    sindex += 1
+                    _xkey = stream.xkey
+                    _bakcup_xkey = stream.bakcup_xkey
+                    streams.append(stream)
+                    stream = HLSStream(sindex, uri_item, self.args.save_dir, parent_stream)
+                    stream.set_origin_url(uri_item.home_url, uri_item.base_url, uri)
+                    stream.set_xkey(_xkey)
+                    stream.set_bakcup_xkey(_bakcup_xkey)
+                    stream.set_tag('#EXT-X-DISCONTINUITY')
             elif line.startswith('#EXT-X-MAP'):
                 segment.set_map_url(uri_item.home_url, uri_item.base_url, line)
                 stream.set_map_flag()

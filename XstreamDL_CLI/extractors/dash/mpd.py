@@ -71,4 +71,4 @@ class MPD(MPDItem):
                 except Exception:
                     pass
             if is_match is False:
-                assert is_match is True, f'mathc publishTime failed => {self.publishTime}'
+                assert is_match is True, f'match publishTime failed => {self.publishTime}'

@@ -234,6 +234,8 @@ class Stream:
             if args.enable_auto_delete:
                 shutil.rmtree(self.save_dir.absolute().as_posix())
                 logger.info(f'{self.save_dir.absolute().as_posix()} was deleted')
+        else:
+            logger.warning(f'merge {out.as_posix()} failed')
         # 针对DASH流 如果有key 那么就解密 注意 HLS是边下边解密
         # 加密文件合并输出和临时文件夹同一级 所以前面的删除动作并不影响进一步解密
         if args.key is not None:
