@@ -25,6 +25,11 @@ class MPDItem:
         duration = re.match(r"PT(\d+)(\.?\d+)S", _duration)
         if duration is not None:
             return float(duration.group(1)) if duration else 0.0
+        # PT50M0S
+        duration = re.match(r"PT(\d+)M(\d+)S", _duration)
+        if duration is not None:
+            _m, _s = duration.groups()
+            return int(_m) * 60 + int(_s)
         # PT1H54.600S
         duration = re.match(r"PT(\d+)H(\d+)(\.?\d+)S", _duration)
         if duration is not None:
