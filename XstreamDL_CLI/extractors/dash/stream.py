@@ -28,6 +28,8 @@ class DASHStream(Stream):
             base_name += f'_{self.codecs}'
         if self.stream_type == 'subtitle' and self.lang != '':
             base_name += f'_{self.lang}'
+        if self.stream_type == 'subtitle' and self.skey != '':
+            base_name += f'_{self.skey}'
         elif self.stream_type == 'text' and self.lang != '':
             base_name += f'_{self.lang}'
         elif self.stream_type == 'video' and self.resolution != '':
@@ -37,7 +39,7 @@ class DASHStream(Stream):
         if self.stream_type in ['audio', 'video'] and self.bandwidth is not None:
             base_name += f'_{self.bandwidth / 1000:.2f}kbps'
         if self.stream_type == '' and self.skey:
-            base_name += self.skey
+            base_name += f'_{self.skey}'
         return base_name
 
     def append_segment(self):
@@ -148,6 +150,9 @@ class DASHStream(Stream):
 
     def set_stream_type(self, stream_type: str):
         if stream_type is None:
+            return
+        if stream_type == 'subtitle':
+            self.stream_type = stream_type
             return
         stream_type, stream_suffix = stream_type.split('/')
         if stream_suffix == 'ttml+xml':

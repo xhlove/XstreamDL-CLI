@@ -221,6 +221,8 @@ class DASHParser(BaseParser):
                 stream.set_resolution(representation.width, representation.height)
             # 针对字幕直链类型
             Roles = adaptationset.find('Role') # type: List[Role]
+            if stream.stream_type == '' and len(Roles) > 0:
+                stream.set_stream_type(Roles[0].value)
             BaseURLs = representation.find('BaseURL') # type: List[BaseURL]
             if len(BaseURLs) == 1:
                 if len(Roles) == 1 and Roles[0].value in ['subtitle', 'caption']:
@@ -296,6 +298,7 @@ class DASHParser(BaseParser):
         baseurls = representation.find('BaseURL') # type: List[BaseURL]
         segmentbases = representation.find('SegmentBase') # type: List[SegmentBaee]
         if len(segmentbases) == 1 and len(baseurls) == 1:
+            # change to stream.base_url ?
             base_url = baseurls[0].innertext.strip()
             if base_url.startswith('http') or base_url.startswith('/'):
                 stream.set_init_url(base_url)
@@ -313,6 +316,8 @@ class DASHParser(BaseParser):
                 logger.error('please report this DASH content.')
             else:
                 logger.warning('stream has no SegmentTemplate between Representation tag.')
+                if stream.base_url.startswith('http'):
+                    stream.set_init_url(stream.base_url)
             return
         if len(segmenttemplates[0].find('SegmentTimeline')) == 0:
             self.generate_v1(period, representation.id, segmenttemplates[0], stream)
