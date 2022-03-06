@@ -1,5 +1,5 @@
-
 import asyncio
+import platform
 from aiohttp_socks import ProxyConnector
 from aiohttp import ClientSession, ClientResponse
 from aiohttp.connector import TCPConnector
@@ -105,6 +105,8 @@ class XKey(X):
             return True
         if self.uri.startswith('http://') or self.uri.startswith('https://'):
             logger.info(f'key uri => {self.uri}')
+            if platform.system() == 'Windows':
+                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
             loop = asyncio.get_event_loop()
             self.key = loop.run_until_complete(self.fetch(self.uri, args))
         elif self.uri.startswith('ftp://'):

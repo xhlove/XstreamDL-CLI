@@ -1,4 +1,5 @@
 import asyncio
+import platform
 from typing import List
 from pathlib import Path
 from aiohttp.connector import TCPConnector
@@ -46,6 +47,8 @@ class Extractor:
         从链接/文件/文件夹等加载内容 解析metadata
         '''
         if uri.startswith('http://') or uri.startswith('https://') or uri.startswith('ftp://'):
+            if platform.system() == 'Windows':
+                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
             loop = asyncio.get_event_loop()
             return self.raw2streams('url', *loop.run_until_complete(self.fetch(uri)), parent_stream)
         if '\\' in uri:
