@@ -103,22 +103,6 @@ class MSSStream(Stream):
         segment = MSSSegment().set_index(index).set_folder(self.save_dir)
         self.segments.append(segment)
 
-    def update(self, stream: 'MSSStream'):
-        '''
-        Representation id相同可以合并
-        这个时候应该重新计算时长和码率
-        '''
-        total_duration = self.duration + stream.duration
-        if total_duration > 0:
-            self.bandwidth = (stream.duration * stream.bandwidth + self.duration * self.bandwidth) / (self.duration + stream.duration)
-        self.duration += stream.duration
-        for segment in stream.segments:
-            # 被合并的流的init分段 避免索引计算错误
-            if segment.segment_type == 'init':
-                stream.segments.remove(segment)
-                break
-        self.segments_extend(stream.segments)
-
     def set_subtitle_url(self, url: str):
         self.has_init_segment = True
         self.segments[-1].set_subtitle_url(self.fix_url(url))

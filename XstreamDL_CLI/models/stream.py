@@ -57,7 +57,7 @@ class Stream:
         self.model = ''
         self.suffix = '.mp4'
 
-    def segments_extend(self, segments: List[Segment], has_init: bool = False):
+    def segments_extend(self, segments: List[Segment], has_init: bool = False, name_from_url: bool = False):
         '''
         某些情况下对流进行合并
         需要更新一下新增分段的文件名
@@ -68,11 +68,11 @@ class Stream:
             # 跳过init分段
             if segment.index == -1:
                 continue
-            segment.add_offset_for_name(offset, has_init)
+            segment.add_offset_for_name(offset, has_init, name_from_url=name_from_url)
             _segments.append(segment)
         self.segments.extend(_segments)
 
-    def live_segments_extend(self, segments: List[Segment], has_init: bool):
+    def live_segments_extend(self, segments: List[Segment], has_init: bool, name_from_url: bool = False):
         '''
         对live流进行合并
         - 更新新增分段的文件名
@@ -86,7 +86,7 @@ class Stream:
                 continue
             if urlparse(segment.url).path in url_paths:
                 continue
-            segment.set_offset_for_name(offset, has_init)
+            segment.set_offset_for_name(offset, has_init, name_from_url=name_from_url)
             offset += 1
             _segments.append(segment)
         self.segments.extend(_segments)

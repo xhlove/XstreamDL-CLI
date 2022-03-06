@@ -49,7 +49,7 @@ class DASHStream(Stream):
         segment = DASHSegment().set_index(index).set_folder(self.save_dir)
         self.segments.append(segment)
 
-    def update(self, stream: 'DASHStream'):
+    def update(self, stream: 'DASHStream', name_from_url: bool = False):
         '''
         Representation id相同可以合并
         这个时候应该重新计算时长和码率
@@ -65,7 +65,7 @@ class DASHStream(Stream):
                 has_init = True
                 stream.segments.remove(segment)
                 break
-        self.segments_extend(stream.segments, has_init=has_init)
+        self.segments_extend(stream.segments, has_init=has_init, name_from_url=name_from_url)
 
     def set_subtitle_url(self, url: str):
         self.has_init_segment = True

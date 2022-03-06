@@ -158,7 +158,7 @@ class HLSParser(BaseParser):
             streams.append(stream)
         # 下面的for循环中stream/segment是浅拷贝
         _stream_paths = []
-        _streams = []
+        _streams = [] # type: List[HLSStream]
         for stream in streams:
             # 去重
             if stream.tag == '#EXT-X-STREAM-INF':
@@ -196,7 +196,7 @@ class HLSParser(BaseParser):
                     stream = _stream
                     continue
                 else:
-                    stream.segments_extend(_stream.segments)
+                    stream.segments_extend(_stream.segments, name_from_url=self.args.name_from_url)
             streams.append(stream)
             _streams = streams
         return _streams

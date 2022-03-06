@@ -159,7 +159,7 @@ class DASHParser(BaseParser):
         skey_stream = {} # type: Dict[str, DASHStream]
         for stream in streams:
             if stream.skey in skey_stream:
-                skey_stream[stream.skey].update(stream)
+                skey_stream[stream.skey].update(stream, name_from_url=self.args.name_from_url)
             else:
                 skey_stream[stream.skey] = stream
         streams = list(skey_stream.values())
