@@ -7,7 +7,8 @@ import binascii
 from typing import List, Set, Dict
 from asyncio import new_event_loop
 from asyncio import AbstractEventLoop, Future, Task
-from aiohttp import ClientSession, ClientResponse, TCPConnector, client_exceptions
+from aiohttp import client_exceptions
+from aiohttp import ClientSession, ClientTimeout, TCPConnector
 from aiohttp_socks import ProxyConnector
 from concurrent.futures._base import TimeoutError, CancelledError
 from XstreamDL_CLI.cmdargs import CmdArgs
@@ -442,7 +443,7 @@ class Downloader:
         # 没有需要下载的则尝试合并 返回False则说明需要继续下载完整
         self.init_progress(stream, count, completed, speed_up_flag)
         ts = time.time()
-        client = ClientSession(connector=get_connector(self.args)) # type: ClientSession
+        client = ClientSession(connector=get_connector(self.args), timeout=ClientTimeout(total=None, sock_connect=5, sock_read=5)) # type: ClientSession
         for segment in _left:
             if segment.max_retry_404 <= 0:
                 self.xprogress.decrease_total_count()
