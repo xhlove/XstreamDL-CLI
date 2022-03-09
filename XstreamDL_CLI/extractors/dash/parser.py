@@ -298,12 +298,11 @@ class DASHParser(BaseParser):
         baseurls = representation.find('BaseURL') # type: List[BaseURL]
         segmentbases = representation.find('SegmentBase') # type: List[SegmentBaee]
         if len(segmentbases) == 1 and len(baseurls) == 1:
-            # change to stream.base_url ?
-            base_url = baseurls[0].innertext.strip()
-            if base_url.startswith('http') or base_url.startswith('/'):
-                stream.set_init_url(base_url)
+            if stream.base_url.startswith('http') or stream.base_url.startswith('/'):
+                stream.set_init_url(stream.base_url)
             else:
-                stream.set_init_url('../' + base_url)
+                # set baseurls[0].innertext.strip() ?
+                stream.set_init_url('../' + stream.base_url)
             # stream.set_segment_duration(-1)
             return
         segmenttemplates = representation.find('SegmentTemplate') # type: List[SegmentTemplate]
