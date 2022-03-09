@@ -72,19 +72,26 @@ class Stream:
             _segments.append(segment)
         self.segments.extend(_segments)
 
-    def live_segments_extend(self, segments: List[Segment], has_init: bool, name_from_url: bool = False):
+    def live_segments_extend(self, segments: List[Segment], has_init: bool, name_from_url: bool = False, compare_with_url: bool = False):
         '''
         对live流进行合并
         - 更新新增分段的文件名
         - 根据链接中的path部分检查是不是重复了
         '''
-        url_paths = [urlparse(segment.url).path for segment in self.segments if segment.skip_concat is False]
+        if compare_with_url:
+            url_paths = [segment.url for segment in self.segments if segment.skip_concat is False]
+        else:
+            url_paths = [urlparse(segment.url).path for segment in self.segments if segment.skip_concat is False]
         offset = len(self.segments)
         _segments = []
         for segment in segments:
             if segment.index == -1:
                 continue
-            if urlparse(segment.url).path in url_paths:
+            if compare_with_url:
+                _url = segment.url
+            else:
+                _url = urlparse(segment.url).path
+            if _url in url_paths:
                 continue
             segment.set_offset_for_name(offset, has_init, name_from_url=name_from_url)
             offset += 1

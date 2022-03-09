@@ -119,4 +119,4 @@ class Daemon:
             if _stream is None or _next_stream is None:
                 continue
             # 对于新增的分段 认为默认有init分段
-            _stream.live_segments_extend(_next_stream.segments, has_init=True, name_from_url=self.args.name_from_url)
+            _stream.live_segments_extend(_next_stream.segments, has_init=True, name_from_url=self.args.name_from_url, compare_with_url=self.args.compare_with_url)

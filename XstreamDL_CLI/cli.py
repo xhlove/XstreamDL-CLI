@@ -94,6 +94,7 @@ def main():
     parser.add_argument('--speed-up', action='store_true', help='speed up at end')
     parser.add_argument('--speed-up-left', default='10', help='speed up when left count less than this value')
     parser.add_argument('--live', action='store_true', help='live mode')
+    parser.add_argument('--compare-with-url', action='store_true', help='use full url to compare with last segments to get new segments')
     parser.add_argument('--dont-split-discontinuity', action='store_true', help='dont take #EXT-X-DISCONTINUITY tag as a new stream')
     parser.add_argument('--name-from-url', action='store_true', help='get name from segment url')
     parser.add_argument('--live-duration', default='', help='live record time, format HH:MM:SS, example 00:00:30 will record about 30s')
