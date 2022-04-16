@@ -443,7 +443,7 @@ class Downloader:
         # 没有需要下载的则尝试合并 返回False则说明需要继续下载完整
         self.init_progress(stream, count, completed, speed_up_flag)
         ts = time.time()
-        client = ClientSession(connector=get_connector(self.args), timeout=ClientTimeout(total=None, sock_connect=5, sock_read=5)) # type: ClientSession
+        client = ClientSession(connector=get_connector(self.args), timeout=ClientTimeout(total=None, sock_connect=15, sock_read=15)) # type: ClientSession
         for segment in _left:
             if segment.max_retry_404 <= 0:
                 self.xprogress.decrease_total_count()

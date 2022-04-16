@@ -19,7 +19,10 @@ class Concat:
         if args.overwrite is False and out_decrypted.exists():
             print(t_msg.decrypted_file_exists_skip)
             return
-        _cmd = f'""{args.mp4decrypt}" --show-progress --key {args.key} "{out}" "{out_decrypted.as_posix()}""'
+        if platform.system() == 'Windows':
+            _cmd = f'""{args.mp4decrypt}" --show-progress --key {args.key} "{out}" "{out_decrypted.as_posix()}""'
+        else:
+            _cmd = f'"{args.mp4decrypt}" --show-progress --key {args.key} "{out}" "{out_decrypted.as_posix()}"'
         print(t_msg.start_decrypt)
         os.system(_cmd)
         if args.enable_auto_delete:
