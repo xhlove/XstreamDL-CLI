@@ -31,7 +31,8 @@ class MPD(MPDItem):
         if isinstance(self.minBufferTime, str):
             self.minBufferTime = self.match_duration(self.minBufferTime)
         if isinstance(self.availabilityStartTime, str):
-            if self.availabilityStartTime in ['1970-01-01T00:00:00Z', '1970-01-01T00:00:00.000Z']:
+            # if self.availabilityStartTime in ['1970-01-01T00:00:00Z', '1970-01-01T00:00:00.000Z']:
+            if self.availabilityStartTime.startswith('1970-01-01'):
                 self.availabilityStartTime = 0.0
             # 2019-03-05T08:26:06.748000+00:00
             if isinstance(self.availabilityStartTime, str) and self.availabilityStartTime[-9:] == '000+00:00':
