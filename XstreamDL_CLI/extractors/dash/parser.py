@@ -279,6 +279,9 @@ class DASHParser(BaseParser):
             stream.set_init_url(initializations[0].sourceURL)
         segmenturls = segmentlist.find('SegmentURL') # type: List[SegmentURL]
         for segmenturl in segmenturls:
+            if segmenturl.media == '':
+                # 通常就是一个整段
+                continue
             stream.set_media_url(segmenturl.media, name_from_url=self.args.name_from_url)
         if has_initialization:
             interval = float(segmentlist.duration / segmentlist.timescale)
