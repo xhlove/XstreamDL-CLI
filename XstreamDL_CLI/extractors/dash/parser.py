@@ -198,7 +198,8 @@ class DASHParser(BaseParser):
             # 修正 Representation 节点的 BaseURL
             base_url = self.fix_dash_base_url(uri_item.base_url, representation)
             current_uri_item = uri_item.new_base_url(base_url)
-            logger.debug(f'current_base_url {current_uri_item.base_url}')
+            if self.args.log_level == 'DEBUG':
+                logger.debug(f'current_base_url {current_uri_item.base_url}')
             stream = DASHStream(sindex, current_uri_item, self.args.save_dir)
             sindex += 1
             self.walk_contentprotection(adaptationset, stream)
@@ -343,6 +344,11 @@ class DASHParser(BaseParser):
         return [stream]
 
     def walk_s(self, segmenttimeline: SegmentTimeline, st: SegmentTemplate, representation: Representation, period: Period, stream: DASHStream):
+        # # ---------对于直播流 计算单轮最大下载分段数
+        # max_segments_one_round = -1
+        # if self.is_live:
+        #     max_segments_one_round = math.floor(self.root.minBufferTime / self.root.maxSegmentDuration)
+        # # ---------
         init_url = st.get_url()
         if init_url is not None:
             if '$RepresentationID$' in init_url:
@@ -359,6 +365,7 @@ class DASHParser(BaseParser):
         target_r = 0 # type: int
         ss = segmenttimeline.find('S') # type: List[S]
         if len(ss) > 0 and self.is_live and ss[0].t > 0:
+            # 这个部分是修正 base_time
             # timeShiftBufferDepth => cdn max cache time for segments
             # newest available segment $Time$ should meet below condition
             # SegmentTimeline.S.t / timescale + (mpd.availabilityStartTime + Period.start) <= time.time()
@@ -367,15 +374,17 @@ class DASHParser(BaseParser):
             current_utctime = self.root.publishTime.timestamp() - self.args.live_utc_offset
             presentation_start = period.start - st.presentationTimeOffset / st.timescale + 30
             start_utctime = self.root.availabilityStartTime + presentation_start
-            logger.debug(f'mpd.presentationTimeOffset {st.presentationTimeOffset} timescale {st.timescale}')
-            logger.debug(f'mpd.availabilityStartTime {self.root.availabilityStartTime} Period.start {period.start}')
-            logger.debug(f'start_utctime {start_utctime} current_utctime {current_utctime}')
+            if self.args.log_level == 'DEBUG':
+                logger.debug(f'mpd.presentationTimeOffset {st.presentationTimeOffset} timescale {st.timescale}')
+                logger.debug(f'mpd.availabilityStartTime {self.root.availabilityStartTime} Period.start {period.start}')
+                logger.debug(f'start_utctime {start_utctime} current_utctime {current_utctime}')
             tmp_t = ss[0].t
             for s in ss:
                 for number in range(s.r):
                     if (tmp_t + s.d) / st.timescale + start_utctime > current_utctime:
                         base_time = tmp_t
-                        logger.debug(f'set base_time {base_time} target_r {target_r}')
+                        if self.args.log_level == 'DEBUG':
+                            logger.debug(f'set base_time {base_time} target_r {target_r}')
                         break
                     if target_r > 0:
                         tmp_t += s.d
@@ -397,6 +406,7 @@ class DASHParser(BaseParser):
         time_offset = st.presentationTimeOffset if base_time == 0 else 0
         start_number = st.startNumber
         tmp_offset_r = 0
+        total_segments_duration = 0.0
         for index, s in enumerate(ss):
             if self.args.multi_s and index > 0 and s.t > 0:
                 base_time = s.t
@@ -408,6 +418,12 @@ class DASHParser(BaseParser):
                 tmp_offset_r += 1
                 if self.is_live and tmp_offset_r < target_r:
                     continue
+                # 经过测试 对于直播流 应当计算时长来确定应该下载的分段
+                # 因为无法通过比较两轮的url来排除已经下载的分段 通过url比较会导致重复下载
+                # 根据标准 这里与 minBufferTime 或者 minimumUpdatePeriod 比较都可以 浏览器是后者 保持一致
+                if self.is_live and total_segments_duration > self.root.minimumUpdatePeriod:
+                    break
+                total_segments_duration += interval
                 media_url = st.get_media_url()
                 if '$Bandwidth$' in media_url:
                     media_url = media_url.replace('$Bandwidth$', str(representation.bandwidth))
@@ -428,6 +444,10 @@ class DASHParser(BaseParser):
                     time_offset += s.d
                 stream.set_segment_duration(interval)
                 stream.set_media_url(media_url, name_from_url=self.args.name_from_url)
+                # # 当设置了最大分段数 且大于上限的时候结束解析
+                # # 注意这里的分段 包含了init分段以及下一个未设置url的分段
+                # if max_segments_one_round > 0 and len(stream.segments) > max_segments_one_round + 1:
+                #     break
 
     def generate_v1(self, period: Period, rid: str, st: SegmentTemplate, stream: DASHStream):
         init_url = st.get_url()

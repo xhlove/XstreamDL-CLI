@@ -30,6 +30,8 @@ class MPD(MPDItem):
             self.mediaPresentationDuration = self.match_duration(self.mediaPresentationDuration)
         if isinstance(self.minBufferTime, str):
             self.minBufferTime = self.match_duration(self.minBufferTime)
+        if isinstance(self.minimumUpdatePeriod, str):
+            self.minimumUpdatePeriod = self.match_duration(self.minimumUpdatePeriod)
         if isinstance(self.availabilityStartTime, str):
             # if self.availabilityStartTime in ['1970-01-01T00:00:00Z', '1970-01-01T00:00:00.000Z']:
             if self.availabilityStartTime.startswith('1970-01-01'):

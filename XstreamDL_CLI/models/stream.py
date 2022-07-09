@@ -85,6 +85,7 @@ class Stream:
         offset = len(self.segments)
         _segments = []
         for segment in segments:
+            # 这里会过滤掉init分段
             if segment.index == -1:
                 continue
             if compare_with_url:
