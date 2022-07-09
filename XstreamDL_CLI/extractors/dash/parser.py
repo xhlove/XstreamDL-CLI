@@ -216,6 +216,8 @@ class DASHParser(BaseParser):
                 stream.set_stream_type(adaptationset.mimeType)
             else:
                 stream.set_stream_type(representation.mimeType)
+            if representation.mimeType == 'text/vtt':
+                print('debug')
             if representation.width is None or representation.height is None:
                 stream.set_resolution(adaptationset.width, adaptationset.height)
             else:
@@ -224,20 +226,6 @@ class DASHParser(BaseParser):
             Roles = adaptationset.find('Role') # type: List[Role]
             if stream.stream_type == '' and len(Roles) > 0:
                 stream.set_stream_type(Roles[0].value)
-            BaseURLs = representation.find('BaseURL') # type: List[BaseURL]
-            if len(BaseURLs) == 1:
-                if len(Roles) == 1 and Roles[0].value in ['subtitle', 'caption']:
-                    base_url = BaseURLs[0].innertext.strip()
-                    if base_url.startswith('http') or base_url.startswith('/'):
-                        stream.set_subtitle_url(base_url)
-                    else:
-                        stream.set_subtitle_url('../' + base_url)
-                    streams.append(stream)
-                    continue
-                # if len(segmenttemplates) == 0 and len(representation.find('SegmentTimeline')) == 0:
-                #     stream.base2url(period.duration)
-                #     streams.append(stream)
-                #     continue
             segmentlists = representation.find('SegmentList') # type: List[SegmentList]
             r_segmenttemplates = representation.find('SegmentTemplate') # type: List[SegmentTemplate]
             # 针对视频音频流处理 分情况生成链接

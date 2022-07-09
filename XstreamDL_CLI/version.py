@@ -1,2 +1,2 @@
 script_name = 'XstreamDL-CLI'
-__version__ = '1.4.1_20220709'
+__version__ = '1.4.2'

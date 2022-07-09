@@ -196,9 +196,6 @@ class Stream:
             return url
         elif url.startswith('/'):
             return f'{self.home_url}{url}'
-        elif url.startswith('../'):
-            fixed_base_url = '/'.join(self.base_url.split("/")[:-1])
-            return f'{fixed_base_url}{url[2:]}'
         elif url == '':
             return f'{self.base_url}'
         else:

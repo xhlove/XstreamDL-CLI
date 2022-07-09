@@ -8,7 +8,7 @@ from typing import List, Set, Dict
 from asyncio import new_event_loop
 from asyncio import AbstractEventLoop, Future, Task
 from aiohttp import client_exceptions
-from aiohttp import ClientSession, ClientTimeout, TCPConnector
+from aiohttp import ClientResponse, ClientSession, ClientTimeout, TCPConnector
 from aiohttp_socks import ProxyConnector
 from concurrent.futures._base import TimeoutError, CancelledError
 from XstreamDL_CLI.cmdargs import CmdArgs
