@@ -216,8 +216,6 @@ class DASHParser(BaseParser):
                 stream.set_stream_type(adaptationset.mimeType)
             else:
                 stream.set_stream_type(representation.mimeType)
-            if representation.mimeType == 'text/vtt':
-                print('debug')
             if representation.width is None or representation.height is None:
                 stream.set_resolution(adaptationset.width, adaptationset.height)
             else:
@@ -306,7 +304,7 @@ class DASHParser(BaseParser):
             if len(segmenttemplates) > 1:
                 logger.error('please report this DASH content.')
             else:
-                logger.warning('stream has no SegmentTemplate between Representation tag.')
+                # logger.warning('stream has no SegmentTemplate between Representation tag.')
                 if stream.base_url.startswith('http'):
                     stream.set_init_url(stream.base_url)
             return
@@ -332,11 +330,6 @@ class DASHParser(BaseParser):
         return [stream]
 
     def walk_s(self, segmenttimeline: SegmentTimeline, st: SegmentTemplate, representation: Representation, period: Period, stream: DASHStream):
-        # # ---------对于直播流 计算单轮最大下载分段数
-        # max_segments_one_round = -1
-        # if self.is_live:
-        #     max_segments_one_round = math.floor(self.root.minBufferTime / self.root.maxSegmentDuration)
-        # # ---------
         init_url = st.get_url()
         if init_url is not None:
             if '$RepresentationID$' in init_url:
@@ -432,10 +425,6 @@ class DASHParser(BaseParser):
                     time_offset += s.d
                 stream.set_segment_duration(interval)
                 stream.set_media_url(media_url, name_from_url=self.args.name_from_url)
-                # # 当设置了最大分段数 且大于上限的时候结束解析
-                # # 注意这里的分段 包含了init分段以及下一个未设置url的分段
-                # if max_segments_one_round > 0 and len(stream.segments) > max_segments_one_round + 1:
-                #     break
 
     def generate_v1(self, period: Period, rid: str, st: SegmentTemplate, stream: DASHStream):
         init_url = st.get_url()

@@ -22,6 +22,7 @@ class CmdArgs:
         self.audio_only = None # type: bool
         self.all_videos = None # type: bool
         self.all_audios = None # type: bool
+        self.all_subtitles = None # type: bool
         self.service = None # type: str
         self.save_dir = None # type: Path
         self.ffmpeg = None # type: str

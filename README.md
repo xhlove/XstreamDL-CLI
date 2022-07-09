@@ -4,12 +4,6 @@
 
 基于`python 3.7.4`的，命令行版本的，HLS/DASH流下载器，仅支持**HLS标准AES-128-CBC**解密
 
-![XstreamDL-GUI](images/oCam_2021_12_19_00_07_34_559.gif)
-
-[XstreamDL-GUI](https://github.com/xhlove/XstreamDL-CLI/releases/download/1.3.8/XstreamDL-GUI_v1.3.8.exe)
-
-**使用XstreamDL-GUI需要和XstreamDL-CLI放一起**
-
 ## 使用
 
 **首先将`ffmpeg`和`mp4decrypt`的可执行文件放置在`binaries`文件夹中**
@@ -220,7 +214,7 @@ C#版写起来非常不顺手，搁置了
 ## HELP INFO
 
 ```bash
-version 1.4.1, A downloader that download the HLS/DASH stream.
+version 1.4.3, A downloader that download the HLS/DASH stream.
 usage: XstreamDL-CLI [OPTION]... URL/FILE/FOLDER...
 
 A downloader that download the HLS/DASH stream
@@ -302,7 +296,7 @@ optional arguments:
 ## pyinstaller打包
 
 ```bash
-pyinstaller -i logo.ico -n XstreamDL-CLI_v1.4.1 -F XstreamDL_CLI\__main__.py
+pyinstaller -i logo.ico -n XstreamDL-CLI_v1.4.3 -F XstreamDL_CLI\__main__.py
 ```
 
 已添加自动构建，可前往[Actions](https://github.com/xhlove/XstreamDL-CLI/actions)页面下载最新dev版本程序

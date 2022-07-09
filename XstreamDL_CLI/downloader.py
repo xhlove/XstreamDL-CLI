@@ -268,6 +268,8 @@ class Downloader:
             selected = [index for index, stream in enumerate(streams) if stream.stream_type == 'video']
         elif self.args.all_audios:
             selected = [index for index, stream in enumerate(streams) if stream.stream_type == 'audio']
+        elif self.args.all_subtitles:
+            selected = [index for index, stream in enumerate(streams) if stream.stream_type == 'subtitle']
         elif self.args.resolution != '':
             selected = auto_choose_resolution(self.args, streams)
         else:

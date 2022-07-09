@@ -109,6 +109,7 @@ def main():
     parser.add_argument('--audio-only', action='store_true', help='only choose audio stream when use --best-quality')
     parser.add_argument('--all-videos', action='store_true', help='choose all video stream to download')
     parser.add_argument('--all-audios', action='store_true', help='choose all audio stream to download')
+    parser.add_argument('--all-subtitles', action='store_true', help='choose all subtitle stream to download')
     parser.add_argument('--service', default='', help='set serviceLocation for BaseURL choose')
     parser.add_argument('--save-dir', default='Downloads', help='set save dir for Stream')
     parser.add_argument('--select', action='store_true', help='show stream to select and download, default is to download all')
