@@ -1,3 +1,7 @@
+下载最新版本请查看[Actions](https://github.com/xhlove/XstreamDL-CLI/actions)
+
+---
+
 [ENGLISH README](README_ENG.md)
 
 # XstreamDL-CLI
@@ -102,7 +106,17 @@ README中存在一些对于新人不友好的术语或者我使用的名词，�
 
 但更多的用户希望可以通过指定分辨率、最佳质量一类选项进行下载
 
-**这会在以后实现**
+如果希望指定下载`最佳质量/特定类型/特定分辨率`流，请使用下面的选项
+
+```bash
+--resolution
+--best-quality
+--video-only
+--audio-only
+--all-videos
+--all-audios
+--all-subtitles
+```
 
 ### 未成功下载任何文件
 
@@ -131,8 +145,6 @@ A: 之前在编写软件过程中，出现过bug，某个循环异常，开启�
 
 如果是回放类型的dash流，可以尝试普通模式下载
 
-**后续会尝试支持m3u8直播流**
-
 ### 代理
 
 目前`--proxy`选项支持设定`socks5`和`http`代理，示例
@@ -152,12 +164,6 @@ A: 之前在编写软件过程中，出现过bug，某个循环异常，开启�
 ### dash流解密
 
 下载器调用`mp4decrypt`解密，请通过`--key`设置解密key，不设置则会强制二进制合并
-
-### ism解密
-
-**暂不支持**
-
-似乎是可以通过`mp4decrypt`进行解密的，但是我不知道如何构造解密需要的文件头，如果有人可以提供这方面的帮助，请联系我
 
 ### 访问受限
 
@@ -229,6 +235,10 @@ optional arguments:
   --speed-up-left SPEED_UP_LEFT
                         speed up when left count less than this value
   --live                live mode
+  --compare-with-url    use full url to compare with last segments to get new
+                        segments
+  --dont-split-discontinuity
+                        dont take #EXT-X-DISCONTINUITY tag as a new stream
   --name-from-url       get name from segment url
   --live-duration LIVE_DURATION
                         live record time, format HH:MM:SS, example 00:00:30
@@ -249,6 +259,7 @@ optional arguments:
   --audio-only          only choose audio stream when use --best-quality
   --all-videos          choose all video stream to download
   --all-audios          choose all audio stream to download
+  --all-subtitles       choose all subtitle stream to download
   --service SERVICE     set serviceLocation for BaseURL choose
   --save-dir SAVE_DIR   set save dir for Stream
   --select              show stream to select and download, default is to

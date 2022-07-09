@@ -1,3 +1,7 @@
+To get the latest release, check [Actions](https://github.com/xhlove/XstreamDL-CLI/actions)
+
+---
+
 The tool is unfriendly, read README carefully if you want to use it.
 
 # FIRST
@@ -137,6 +141,10 @@ optional arguments:
   --speed-up-left SPEED_UP_LEFT
                         speed up when left count less than this value
   --live                live mode
+  --compare-with-url    use full url to compare with last segments to get new
+                        segments
+  --dont-split-discontinuity
+                        dont take #EXT-X-DISCONTINUITY tag as a new stream
   --name-from-url       get name from segment url
   --live-duration LIVE_DURATION
                         live record time, format HH:MM:SS, example 00:00:30
@@ -157,6 +165,7 @@ optional arguments:
   --audio-only          only choose audio stream when use --best-quality
   --all-videos          choose all video stream to download
   --all-audios          choose all audio stream to download
+  --all-subtitles       choose all subtitle stream to download
   --service SERVICE     set serviceLocation for BaseURL choose
   --save-dir SAVE_DIR   set save dir for Stream
   --select              show stream to select and download, default is to
