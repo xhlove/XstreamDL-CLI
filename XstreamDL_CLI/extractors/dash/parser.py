@@ -395,7 +395,11 @@ class DASHParser(BaseParser):
                 interval = 0
             else:
                 interval = s.d / st.timescale
-            for number in range(s.r):
+            if s.r == -1:
+                _range = math.ceil((period.duration or self.root.mediaPresentationDuration) / interval)
+            else:
+                _range = s.r
+            for number in range(_range):
                 tmp_offset_r += 1
                 if self.is_live and tmp_offset_r < target_r:
                     continue
