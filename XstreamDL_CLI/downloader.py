@@ -446,13 +446,15 @@ class Downloader:
         self.init_progress(stream, count, completed, speed_up_flag)
         ts = time.time()
         client = ClientSession(connector=get_connector(self.args), timeout=ClientTimeout(total=None, sock_connect=15, sock_read=15)) # type: ClientSession
-        for segment in _left:
+        for count, segment in enumerate(_left):
             if segment.max_retry_404 <= 0:
                 self.xprogress.decrease_total_count()
                 continue
             task = loop.create_task(self.download(client, stream, segment))
             task.add_done_callback(_done_callback)
             tasks.add(task)
+            if self.args.gen_init_only and count == 0:
+                break
         logger.info(f'{len(tasks)} tasks start')
         # 阻塞并等待运行完成
         finished, unfinished = await asyncio.wait(tasks)
