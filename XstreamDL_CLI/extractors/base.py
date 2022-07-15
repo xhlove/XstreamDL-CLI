@@ -25,6 +25,8 @@ class BaseParser:
         return name
 
     def dump_content(self, name: str, content: str, suffix: str):
+        if self.args.no_metadata_file:
+            return
         dump_path = self.args.save_dir / f'{name}{suffix}'
         logger.debug(f'save content to {dump_path.resolve().as_posix()}, size {len(content)}')
         dump_path.write_text(content, encoding='utf-8')

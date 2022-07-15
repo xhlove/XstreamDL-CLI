@@ -134,6 +134,7 @@ def main():
     parser.add_argument('--log-level', default='INFO', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], help='set log level, default is INFO')
     parser.add_argument('--redl-code', default='502', help='re-download set of response status codes , e.g. 408,500,502,503,504')
     parser.add_argument('--hide-load-metadata', action='store_true', help='hide `Load #EXT-X-MEDIA metadata` balabala')
+    parser.add_argument('--no-metadata-file', action='store_true', help='do not save metadata file(.m3u8/.mpd/.ism/...)')
     parser.add_argument('URI', nargs='*', help='URL/FILE/FOLDER string')
     args = parser.parse_args()
     if args.help:

@@ -50,4 +50,5 @@ class CmdArgs:
         self.log_level = None # type: str
         self.redl_code = None # type: list
         self.hide_load_metadata = None # type: bool
+        self.no_metadata_file = None # type: bool
         self.URI = None # type: list
