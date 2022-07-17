@@ -155,6 +155,10 @@ def main():
     if len(args.URI) == 0:
         sys.exit('No URL/FILE/FOLDER input')
     for handler in logger.handlers:
+        if isinstance(handler, logging.FileHandler) and args.log_level != 'DEBUG':
+            logger.handlers.remove(handler)
+            break
+    for handler in logger.handlers:
         # 注意 这里不能拿 StreamHandler 做判断
         # 因为 FileHandler 父类是 StreamHandler
         # 这样当 handler 是 FileHandler 的时候 isinstance 返回 True
