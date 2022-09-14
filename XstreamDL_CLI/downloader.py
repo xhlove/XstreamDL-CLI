@@ -455,6 +455,8 @@ class Downloader:
             tasks.add(task)
             if self.args.gen_init_only and count == 0:
                 break
+        if len(tasks) == 0:
+            return results
         logger.info(f'{len(tasks)} tasks start')
         # 阻塞并等待运行完成
         finished, unfinished = await asyncio.wait(tasks)
