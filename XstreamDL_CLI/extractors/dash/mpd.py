@@ -16,7 +16,7 @@ class MPD(MPDItem):
         # static -> live playback
         self.type = None # type: str
         # only use when type is 'dynamic' which specifies the smallest period between potential changes to the MPD
-        self.minimumUpdatePeriod = None # type: str
+        self.minimumUpdatePeriod = None # type: float
         # time of client to fetch the mpd content
         self.publishTime = None # type: datetime
         self.availabilityStartTime = None # type: float

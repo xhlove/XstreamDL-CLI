@@ -439,8 +439,21 @@ class DASHParser(BaseParser):
             interval = st.duration
         else:
             interval = float(int(st.duration) / int(st.timescale))
-        repeat = math.ceil(period.duration / interval)
-        for number in range(int(st.startNumber), repeat + int(st.startNumber)):
+        if self.is_live:
+            current_utctime = self.root.publishTime.timestamp() - self.args.live_utc_offset
+            presentation_start = period.start - st.presentationTimeOffset / st.timescale + 30
+            start_utctime = self.root.availabilityStartTime + presentation_start
+            number_start = math.ceil((current_utctime - start_utctime) / interval)
+            max_repeat = math.ceil(self.root.minimumUpdatePeriod / interval)
+            repeat = 0
+            for i in range(max_repeat):
+                repeat += 1
+                if (number_start + repeat) * interval + start_utctime > current_utctime:
+                    break
+        else:
+            number_start = int(st.startNumber)
+            repeat = math.ceil(period.duration / interval)
+        for number in range(number_start, repeat + number_start):
             media_url = st.get_media_url()
             if '$Number$' in media_url:
                 media_url = media_url.replace('$Number$', str(number))
