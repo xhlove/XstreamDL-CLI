@@ -1,5 +1,6 @@
 import re
 import math
+from datetime import datetime, timezone
 from typing import List, Dict, Union
 from .mpd import MPD
 from .handler import xml_handler
@@ -440,10 +441,12 @@ class DASHParser(BaseParser):
         else:
             interval = float(int(st.duration) / int(st.timescale))
         if self.is_live:
-            current_utctime = self.root.publishTime.timestamp() - self.args.live_utc_offset
+            # 对于直播流来说应该有两个线程 一个刷新分段信息 一个负责下载 但是不想大改 就这样用吧
+            # 这样带来的问题是，下载速度要快且稳定 不然容易丢失分段
+            current_utctime = datetime.now(timezone.utc).timestamp() - self.args.live_utc_offset + 30
             presentation_start = period.start - st.presentationTimeOffset / st.timescale + 30
             start_utctime = self.root.availabilityStartTime + presentation_start
-            number_start = math.ceil((current_utctime - start_utctime) / interval)
+            number_start = math.ceil((self.root.publishTime.timestamp() - start_utctime) / interval)
             max_repeat = math.ceil(self.root.minimumUpdatePeriod / interval)
             repeat = 0
             for i in range(max_repeat):
