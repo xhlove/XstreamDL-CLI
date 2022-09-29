@@ -74,4 +74,11 @@ class MPD(MPDItem):
                 except Exception:
                     pass
             if is_match is False:
+                try:
+                    # 2022-02-14T11:43:04.xxxx+00:00
+                    self.publishTime = datetime.strptime(self.publishTime.split('+')[0], '%Y-%m-%dT%H:%M:%S.%f')
+                    is_match = True
+                except Exception:
+                    pass
+            if is_match is False:
                 assert is_match is True, f'match publishTime failed => {self.publishTime}'
