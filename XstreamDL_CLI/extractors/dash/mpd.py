@@ -1,4 +1,5 @@
 from datetime import datetime
+from dateutil.parser import parse as parse_datetime
 from .mpditem import MPDItem
 
 
@@ -40,45 +41,15 @@ class MPD(MPDItem):
             if isinstance(self.availabilityStartTime, str) and self.availabilityStartTime[-9:] == '000+00:00':
                 self.availabilityStartTime = self.availabilityStartTime[:-9] + 'Z'
             try:
-                self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp()
+                self.availabilityStartTime = parse_datetime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp()
             except Exception:
-                try:
-                    self.availabilityStartTime = datetime.strptime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%SZ').timestamp()
-                except Exception:
-                    pass
+                pass
         if isinstance(self.publishTime, str):
             is_match = False
             try:
-                self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%S.%fZ')
+                self.publishTime = parse_datetime(self.publishTime)
                 is_match = True
             except Exception:
                 pass
-            if is_match is False:
-                try:
-                    self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%SZ')
-                    is_match = True
-                except Exception:
-                    pass
-            if is_match is False:
-                try:
-                    # 2021-11-28T12:33:53
-                    self.publishTime = datetime.strptime(self.publishTime, '%Y-%m-%dT%H:%M:%S')
-                    is_match = True
-                except Exception:
-                    pass
-            if is_match is False:
-                try:
-                    # 2022-02-14T11:43:04+00:00
-                    self.publishTime = datetime.strptime(self.publishTime.split('+')[0], '%Y-%m-%dT%H:%M:%S')
-                    is_match = True
-                except Exception:
-                    pass
-            if is_match is False:
-                try:
-                    # 2022-02-14T11:43:04.xxxx+00:00
-                    self.publishTime = datetime.strptime(self.publishTime.split('+')[0], '%Y-%m-%dT%H:%M:%S.%f')
-                    is_match = True
-                except Exception:
-                    pass
             if is_match is False:
                 assert is_match is True, f'match publishTime failed => {self.publishTime}'
