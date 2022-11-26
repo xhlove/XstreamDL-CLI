@@ -472,7 +472,7 @@ class MSSStream(Stream):
                 sample_entry_payload += box(b'avcC', avcc_payload) + self.get_sinf_payload(kid, b'avc1') # AVC Decoder Configuration Record
                 sample_entry_box = box(b'encv', sample_entry_payload) # AVC Simple Entry
             else:
-                assert False
+                assert False, f'fourcc is not supported => {fourcc}'
         elif stream_type == 'text':
             if fourcc == 'TTML':
                 sample_entry_payload += b'http://www.w3.org/ns/ttml\0' # namespace

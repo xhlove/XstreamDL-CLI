@@ -306,9 +306,13 @@ class Downloader:
                 if len(stream.segments) <= 5:
                     stream.show_segments()
                 continue
-            if stream.get_stream_model() == 'mss':
+            if stream.get_stream_model() == 'mss' and self.args.skip_gen_init is False:
                 # 这里的init实际上是不正确的 这里生成是为了满足下载文件检查等逻辑
                 stream.fix_header(is_fake=True)
+            if self.args.skip_gen_init:
+                # 跳过init
+                if stream.segments[0].name.startswith('init'):
+                    _ = stream.segments.pop(0)
             logger.info(f'{stream.get_name()} {t_msg.download_start}.')
             speed_up_flag = self.args.speed_up
             while max_failed > 0:
@@ -334,7 +338,7 @@ class Downloader:
                     continue
                 break
             # track_id 最佳获取方案是从实际分段中提取 通过ism元数据无法直接计算出来
-            if stream.get_stream_model() == 'mss':
+            if stream.get_stream_model() == 'mss' and self.args.skip_gen_init is False:
                 stream.fix_header(is_fake=False)
             self.try_concat(stream)
             # 只需要检查一个流的时间达到最大值就停止录制

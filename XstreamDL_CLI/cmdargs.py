@@ -52,4 +52,5 @@ class CmdArgs:
         self.hide_load_metadata = None # type: bool
         self.no_metadata_file = None # type: bool
         self.gen_init_only = None # type: bool
+        self.skip_gen_init = None # type: bool
         self.URI = None # type: list
