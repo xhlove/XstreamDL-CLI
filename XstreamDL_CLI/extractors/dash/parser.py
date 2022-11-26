@@ -466,5 +466,9 @@ class DASHParser(BaseParser):
                 media_url = media_url.replace(old, new)
             if '$RepresentationID$' in media_url:
                 media_url = media_url.replace('$RepresentationID$', rid)
+            if self.is_live and '$Time$' in media_url:
+                fmt_time = number * st.duration
+                stream.set_segment_fmt_time(fmt_time)
+                media_url = media_url.replace('$Time$', str(fmt_time))
             stream.set_media_url(media_url, name_from_url=self.args.name_from_url)
         stream.set_segments_duration(interval)

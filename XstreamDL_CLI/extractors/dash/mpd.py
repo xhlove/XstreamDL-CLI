@@ -41,7 +41,7 @@ class MPD(MPDItem):
             if isinstance(self.availabilityStartTime, str) and self.availabilityStartTime[-9:] == '000+00:00':
                 self.availabilityStartTime = self.availabilityStartTime[:-9] + 'Z'
             try:
-                self.availabilityStartTime = parse_datetime(self.availabilityStartTime, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp()
+                self.availabilityStartTime = parse_datetime(self.availabilityStartTime).timestamp()
             except Exception:
                 pass
         if isinstance(self.publishTime, str):
